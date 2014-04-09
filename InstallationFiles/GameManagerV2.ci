@@ -1,0 +1,90 @@
+<*project
+      version = 4 civer = "Free v4.14.5" winver = "2.8/6.1.7601" > 
+   <output> K:\GameManagerV2\</>
+   <exename> GameManagerV2.1_Beta6.exe</>
+   <digitsign> </>
+   <appname> GameManagerV2.1</>
+   <password> </>
+   <addlang> </>
+   <icon> Default - 1</>
+   <selfextr> 1</>
+   <voltype> nolimit</>
+   <volsize> </>
+   <volpattern> disk%i.pak</>
+   <load> </>
+   <loadtime> 1000</>
+   <checktype> admin</>
+   <chkname> </>
+   <chkmsg> </>
+   <dlgfont> Verdana,8</>
+   <lang> english</>
+   <theme> Dark</>
+   <iface> </>
+   <leftlogo> K:\GameManagerV2\InstallationFiles\side.bmp</>
+   <logo> K:\GameManagerV2\InstallationFiles\Logo.bmp</>
+   <vb> </>
+   <dao> 0</>
+   <background> 0</>
+   <dlgwelcome> 1</>
+   <dlgreadme> K:\GameManagerV2\InstallationFiles\Readme.txt</>
+   <dlglic> K:\GameManagerV2\InstallationFiles\Licence.txt</>
+   <dlgcustpath> </>
+   <dlgenfpath> </>
+   <dlgsavepath> </>
+   <dlgautoprog> 1</>
+   <dlgfinish> 1</>
+   <comptype> defmax</>
+   <solid> 0</>
+   <srcfolder> K:\GameManagerV2\GameManagerV2 Retail</>
+   <ifexist> overnewer</>
+   <runafter> FrontEnd.exe</>
+   <runconfirm> 1</>
+   <uninclude> 1</>
+   <unicon> Uninstall</>
+   <unshortcut> 1</>
+   <unrun> </>
+   <silent> 0</>
+   <unfeed> </>
+   <unautoclose> 0</>
+   <unfinish> 1</>
+   <bl> </>
+   <blurl> </>
+   <bghead> </>
+   <bgfoot> </> 
+   <bgback> </>
+   <files listview >
+      
+   </files>
+   <runx listview >
+      
+   </runx>
+   <registry listview >
+      
+   </registry>
+   <shcut listview >
+      <_><shpath>prog</><shname>FrontEnd</><tarpath>inst</><tarname>FrontEnd.exe</><cmdline></><workpath>def</><workcust></><icon></></>
+<_><shpath>prog</><shname>Update Database</><tarpath>inst</><tarname>DatabaseFrontEnd.exe</><cmdline></><workpath>def</><workcust></><icon></></>
+<_><shpath>prog</><shname>System Tray</><tarpath>inst</><tarname>GameLoaderTray.exe</><cmdline></><workpath>def</><workcust></><icon></></>
+<_><shpath>prog</><shname>Setup</><tarpath>inst</><tarname>Setup.exe</><cmdline></><workpath>def</><workcust></><icon></></>
+
+   </shcut>
+   <ini listview >
+      
+   </ini>
+   <copy listview >
+      
+   </copy>
+   <activex listview >
+      
+   </activex>
+   <font listview >
+      
+   </font>
+   <ext listview >
+      
+   </ext>
+   <mreg listview >
+      
+   </mreg>
+   <macros> </>
+</project>

@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<Mounter><MounterEXE>DTLite.exe</MounterEXE><MounterPath>C:\Program Files (x86)\DAEMON Tools Lite\DTLite.exe</MounterPath><Mount>"[MounterPath]" -mount scsi,[MounterNum],"[GameISOPath]"</Mount><UnMount>"[MounterPath]" -unmount scsi,[MounterNum]</UnMount><Platform>Win32</Platform><Drives><Drive>0</Drive><Drive>1</Drive><Drive>2</Drive><Drive>3</Drive></Drives></Mounter>

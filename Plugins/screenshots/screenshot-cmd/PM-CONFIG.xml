@@ -1,0 +1,1 @@
+<?xml version="1.0"?><PluginConfig><type>screenshot</type><path>[CURRENTDIR]\screenshot-cmd.exe -o [FILENAME]</path><format>.png</format><key>121</key><configurepath>Internal</configurepath></PluginConfig>

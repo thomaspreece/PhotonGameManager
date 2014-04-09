@@ -1,0 +1,29 @@
+101 ICON "Database.ico"
+
+1 VERSIONINFO 
+FILEVERSION 4,0,9,0 
+PRODUCTVERSION 4,0,9,0 
+FILEOS 0x40004
+FILETYPE 0x1
+{ 
+BLOCK "StringFileInfo" 
+{ 
+ BLOCK "040904b0" 
+ { 
+  VALUE "Comments", "Use PhotonManager to add games to GameManagers database. It is part of the Photon GameManager Suite."
+  VALUE "CompanyName", "Photon Software" 
+  VALUE "FileVersion", "4.0.9.0" 
+  VALUE "FileDescription", "PhotonManager" 
+  VALUE "InternalName", "PhotonManager" 
+  VALUE "LegalCopyright", "" 
+  VALUE "LegalTrademarks", "" 
+  VALUE "OriginalFilename", "PhotonManager.exe" 
+  VALUE "ProductName", "Photon GameManager" 
+  VALUE "ProductVersion", "4.0.9.0" 
+ } 
+}
+BLOCK "VarFileInfo"
+{
+  VALUE "Translation", 0x0409, 0
+}
+}

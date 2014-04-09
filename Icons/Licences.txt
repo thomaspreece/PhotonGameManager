@@ -1,0 +1,6 @@
+Internet - LGPL
+JoyStick - LGPL
+Controller - LGPL
+GamesCab - LGPL
+Database - Free for commercial use
+Runner - LGPL
