@@ -1,0 +1,15 @@
+.bmx/
+/Backup-PreVM/
+/GameManagerV4 Retail/
+/Games/
+/Log/
+/PastVersionArchive/
+/Settings/
+/Temp/
+/V4 Images,Vids/
+/*.exe
+/*.zip
+*.bak
+/Icons/OLD/
+!mt.exe
+

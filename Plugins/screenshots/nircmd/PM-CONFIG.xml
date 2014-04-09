@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<PluginConfig>
+<type>screenshot</type>
+<path>[CURRENTDIR]\nircmd.exe savescreenshot [FILENAME]</path>
+<format>.png</format>
+<key>121</key>
+<configurepath>Internal</configurepath>
+</PluginConfig>

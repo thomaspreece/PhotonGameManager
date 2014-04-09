@@ -1,0 +1,130 @@
+<logdata>
+<_  time = '05/12/2011 02:24:32' >Processing K:\GameManagerV2\InstallationFiles\GameManagerV2.ci</>
+<_   >Converting the project...</>
+<_   >Generating sources...</>
+<_   >Compiling Gentee scripts...</>
+<_   >Optimizing...</>
+<_   >Input size: 116882 bytes</>
+<_   >Output size: 81001 bytes</>
+<_   >Making K:\GameManagerV2\GameManagerV2.1_Beta6.exe...</>
+<_   >Adding temporary files to EXE</>
+<_ ratio = 64.43% time = '18/11/2011 11:52:49' size = 748>K:\GameManagerV2\InstallationFiles\Licence.txt</>
+<_ ratio = 16.59% time = '10/08/2011 11:52:00' size = 58854>K:\GameManagerV2\InstallationFiles\side.bmp</>
+<_ ratio = 66.43% time = '20/09/2011 16:11:50' size = 1007>K:\GameManagerV2\InstallationFiles\Readme.txt</>
+<_ ratio = 69.22% time = '09/08/2011 11:45:20' size = 7502>K:\GameManagerV2\InstallationFiles\Logo.bmp</>
+<_ ratio = 41.57% time = '05/12/2011 02:24:34' size = 3824>C:\Users\Tom\AppData\Local\Temp\gentee00\english.lng</>
+<_   >Adding resource files to EXE</>
+<_   size = 118272>File K:\GameManagerV2\GameManagerV2.1_Beta6.exe has been created successfully</>
+<_   >Making C:\Users\Tom\AppData\Local\Temp\gentee00\uninstall.exe...</>
+<_   >Adding resource files to EXE</>
+<_   size = 118272>File C:\Users\Tom\AppData\Local\Temp\gentee00\uninstall.exe has been created successfully</>
+<_ ratio = 0.89%  size = 118272>Packing Uninstall Exe</>
+<_   >Packing files</>
+<_   >================================</>
+<_ ratio = 44.71% time = '03/02/2009 07:21:04' size = 726016>K:\GameManagerV2\GameManagerV2 Retail\7zip\7z.dll</>
+<_ ratio = 51.72% time = '03/02/2009 07:09:38' size = 150016>K:\GameManagerV2\GameManagerV2 Retail\7zip\7z.exe</>
+<_ ratio = 52.11% time = '03/02/2009 07:21:06' size = 139776>K:\GameManagerV2\GameManagerV2 Retail\7zip\7zCon.sfx</>
+<_ ratio = 50.49% time = '18/11/2011 11:52:34' size = 1927>K:\GameManagerV2\GameManagerV2 Retail\7zip\license.txt</>
+<_ ratio = 54.37% time = '24/11/2009 09:58:38' size = 686592>K:\GameManagerV2\GameManagerV2 Retail\b3d.dll</>
+<_ ratio = 36.79% time = '30/10/2011 21:26:31' size = 8882>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\boxcutter-fs.cpp</>
+<_ ratio = 28.58% time = '30/10/2011 21:26:31' size = 22067>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\boxcutter-fs.exe</>
+<_ ratio = 29.11% time = '30/10/2011 21:26:31' size = 15661>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\boxcutter.cpp</>
+<_ ratio = 27.13% time = '30/10/2011 21:26:31' size = 513132>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\boxcutter.exe</>
+<_ ratio = 36.59% time = '30/10/2011 21:26:31' size = 26432>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\COPYING.LESSER</>
+<_ ratio = 54.58% time = '30/10/2011 21:26:31' size = 1706800>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\gdiplus.dll</>
+<_ ratio = 35.19% time = '30/10/2011 21:26:31' size = 1662>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlus.h</>
+<_ ratio = 16.30% time = '30/10/2011 21:26:31' size = 206254>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlus.lib</>
+<_ ratio = 41.36% time = '30/10/2011 21:26:31' size = 793>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusBase.h</>
+<_ ratio = 15.12% time = '30/10/2011 21:26:31' size = 19908>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusBitmap.h</>
+<_ ratio = 12.33% time = '30/10/2011 21:26:31' size = 26606>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusBrush.h</>
+<_ ratio = 45.64% time = '30/10/2011 21:26:31' size = 1113>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusCachedBitmap.h</>
+<_ ratio = 26.87% time = '30/10/2011 21:26:31' size = 9467>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusColor.h</>
+<_ ratio = 27.62% time = '30/10/2011 21:26:31' size = 1578>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusColorMatrix.h</>
+<_ ratio = 19.96% time = '30/10/2011 21:26:31' size = 46939>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusEnums.h</>
+<_ ratio = 11.81% time = '30/10/2011 21:26:31' size = 82056>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusFlat.h</>
+<_ ratio = 23.18% time = '30/10/2011 21:26:31' size = 5524>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusFont.h</>
+<_ ratio = 28.86% time = '30/10/2011 21:26:31' size = 2848>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusFontCollection.h</>
+<_ ratio = 23.96% time = '30/10/2011 21:26:31' size = 4257>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusFontFamily.h</>
+<_ ratio = 31.67% time = '30/10/2011 21:26:31' size = 2608>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusGpStubs.h</>
+<_ ratio = 8.52% time = '30/10/2011 21:26:31' size = 85534>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusGraphics.h</>
+<_ ratio = 20.73% time = '30/10/2011 21:26:31' size = 18830>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusHeaders.h</>
+<_ ratio = 14.06% time = '30/10/2011 21:26:31' size = 12575>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusimageAttributes.h</>
+<_ ratio = 30.95% time = '30/10/2011 21:26:31' size = 1276>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusImageCodec.h</>
+<_ ratio = 24.30% time = '30/10/2011 21:26:31' size = 22857>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusImaging.h</>
+<_ ratio = 38.26% time = '30/10/2011 21:26:31' size = 3175>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusInit.h</>
+<_ ratio = 18.45% time = '30/10/2011 21:26:31' size = 6534>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusLineCaps.h</>
+<_ ratio = 16.85% time = '30/10/2011 21:26:31' size = 8894>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusMatrix.h</>
+<_ ratio = 42.93% time = '30/10/2011 21:26:31' size = 750>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusMem.h</>
+<_ ratio = 14.96% time = '30/10/2011 21:26:31' size = 11883>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusMetaFile.h</>
+<_ ratio = 35.29% time = '30/10/2011 21:26:31' size = 7727>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusMetaHeader.h</>
+<_ ratio = 11.49% time = '30/10/2011 21:26:31' size = 45718>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusPath.h</>
+<_ ratio = 16.92% time = '30/10/2011 21:26:31' size = 12732>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusPen.h</>
+<_ ratio = 28.40% time = '30/10/2011 21:26:31' size = 3816>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusPixelFormats.h</>
+<_ ratio = 13.58% time = '30/10/2011 21:26:31' size = 14382>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusRegion.h</>
+<_ ratio = 18.79% time = '30/10/2011 21:26:31' size = 7859>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusStringFormat.h</>
+<_ ratio = 18.91% time = '30/10/2011 21:26:31' size = 15817>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\gdi\GdiPlusTypes.h</>
+<_ ratio = 104.62% time = '30/10/2011 21:26:31' size = 108>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\LICENSE</>
+<_ ratio = 46.77% time = '30/10/2011 21:26:31' size = 883>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\Makefile</>
+<_ ratio = 54.57% time = '30/10/2011 21:26:31' size = 1343>K:\GameManagerV2\GameManagerV2 Retail\boxcutter\README.txt</>
+<_ ratio = 36.86% time = '15/10/2007 16:02:24' size = 238102>K:\GameManagerV2\GameManagerV2 Retail\ca-bundle.crt</>
+<_ ratio = 35.19% time = '15/10/2007 16:02:24' size = 426344>K:\GameManagerV2\GameManagerV2 Retail\cacert.pem</>
+<_ ratio = 45.47% time = '03/12/2011 19:18:42' size = 941056>K:\GameManagerV2\GameManagerV2 Retail\DatabaseFrontend.exe</>
+<_ ratio = 39.22% time = '15/08/2011 17:35:25' size = 109568>K:\GameManagerV2\GameManagerV2 Retail\DownloadFilesSub.exe</>
+<_ ratio = 37.19% time = '03/12/2011 18:50:21' size = 3275264>K:\GameManagerV2\GameManagerV2 Retail\FrontEnd.exe</>
+<_ ratio = 34.52% time = '02/12/2011 01:25:52' size = 388608>K:\GameManagerV2\GameManagerV2 Retail\GameLoaderTray.exe</>
+<_ ratio = 46.11% time = '08/09/2011 05:50:50' size = 1100288>K:\GameManagerV2\GameManagerV2 Retail\libeay32.dll</>
+<_ ratio = 42.18% time = '03/12/2011 18:50:03' size = 612864>K:\GameManagerV2\GameManagerV2 Retail\PatchDownloader.exe</>
+<_ ratio = 55.01% time = '18/11/2011 18:34:39' size = 1176>K:\GameManagerV2\GameManagerV2 Retail\Platforms.txt</>
+<_ ratio = 66.43% time = '20/09/2011 16:11:50' size = 1007>K:\GameManagerV2\GameManagerV2 Retail\Readme.txt</>
+<_ ratio = 100.01% time = '26/11/2011 01:16:17' size = 42796>K:\GameManagerV2\GameManagerV2 Retail\Resources\Banner.png</>
+<_ ratio = 100.02% time = '18/09/2011 09:59:20' size = 20144>K:\GameManagerV2\GameManagerV2 Retail\Resources\Banner_Grey.png</>
+<_ ratio = 91.25% time = '15/07/2011 16:21:02' size = 5400>K:\GameManagerV2\GameManagerV2 Retail\Resources\BEEP.WAV</>
+<_ ratio = 78.01% time = '20/06/2011 19:06:52' size = 655>K:\GameManagerV2\GameManagerV2 Retail\Resources\Black.jpg</>
+<_ ratio = 100.01% time = '26/07/2011 19:00:00' size = 44532>K:\GameManagerV2\GameManagerV2 Retail\Resources\CoverFlow.png</>
+<_ ratio = 100.02% time = '26/07/2011 18:59:00' size = 19945>K:\GameManagerV2\GameManagerV2 Retail\Resources\CoverFlow_Grey.png</>
+<_ ratio = 100.08% time = '10/11/2011 19:58:41' size = 5757>K:\GameManagerV2\GameManagerV2 Retail\Resources\CoverOverlay.png</>
+<_ ratio = 100.01% time = '29/07/2011 15:08:13' size = 25722>K:\GameManagerV2\GameManagerV2 Retail\Resources\Database.png</>
+<_ ratio = 100.03% time = '29/07/2011 15:08:31' size = 15296>K:\GameManagerV2\GameManagerV2 Retail\Resources\Database_Grey.png</>
+<_ ratio = 68.32% time = '30/07/2011 18:11:33' size = 884>K:\GameManagerV2\GameManagerV2 Retail\Resources\Gray.jpg</>
+<_ ratio = 100.81% time = '31/08/2011 11:26:20' size = 611>K:\GameManagerV2\GameManagerV2 Retail\Resources\GreyTick.png</>
+<_ ratio = 12.86% time = '23/05/2008 18:07:02' size = 170278>K:\GameManagerV2\GameManagerV2 Retail\Resources\Joystick.ico</>
+<_ ratio = 100.02% time = '30/10/2011 23:22:18' size = 20878>K:\GameManagerV2\GameManagerV2 Retail\Resources\LeftMenu.png</>
+<_ ratio = 100.03% time = '22/09/2011 14:17:00' size = 16325>K:\GameManagerV2\GameManagerV2 Retail\Resources\LeftMenu1.png</>
+<_ ratio = 100.03% time = '22/09/2011 14:17:34' size = 16108>K:\GameManagerV2\GameManagerV2 Retail\Resources\LeftMenu2.png</>
+<_ ratio = 100.02% time = '30/10/2011 23:24:05' size = 20874>K:\GameManagerV2\GameManagerV2 Retail\Resources\LeftMenu3.png</>
+<_ ratio = 100.03% time = '22/09/2011 13:56:09' size = 13381>K:\GameManagerV2\GameManagerV2 Retail\Resources\ModeSelect.png</>
+<_ ratio = 100.02% time = '22/09/2011 13:58:49' size = 17741>K:\GameManagerV2\GameManagerV2 Retail\Resources\ModeSelect_1.png</>
+<_ ratio = 100.02% time = '22/09/2011 13:59:37' size = 17706>K:\GameManagerV2\GameManagerV2 Retail\Resources\ModeSelect_2.png</>
+<_ ratio = 100.02% time = '22/09/2011 14:00:18' size = 17777>K:\GameManagerV2\GameManagerV2 Retail\Resources\ModeSelect_3.png</>
+<_ ratio = 100.02% time = '29/07/2011 14:55:34' size = 20978>K:\GameManagerV2\GameManagerV2 Retail\Resources\Mount.png</>
+<_ ratio = 100.03% time = '29/07/2011 14:53:55' size = 14510>K:\GameManagerV2\GameManagerV2 Retail\Resources\Mount_Grey.png</>
+<_ ratio = 17.88% time = '10/05/2000 14:15:12' size = 738>K:\GameManagerV2\GameManagerV2 Retail\Resources\mouse.bmp</>
+<_ ratio = 69.40% time = '20/07/2011 17:02:58' size = 434661>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoBack.jpg</>
+<_ ratio = 97.20% time = '01/09/2011 11:06:05' size = 12108>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoBanner.png</>
+<_ ratio = 100.02% time = '25/07/2011 19:03:39' size = 19164>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoCD.png</>
+<_ ratio = 100.07% time = '22/09/2011 14:26:25' size = 6656>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoCDPatcher.png</>
+<_ ratio = 100.07% time = '22/09/2011 14:32:25' size = 6628>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoCDPatcher1.png</>
+<_ ratio = 100.03% time = '26/07/2011 12:17:02' size = 13463>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoCD_Grey.png</>
+<_ ratio = 64.18% time = '22/07/2011 18:17:21' size = 39261>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoCover.jpg</>
+<_ ratio = 100.00% time = '26/07/2011 19:13:17' size = 61543>K:\GameManagerV2\GameManagerV2 Retail\Resources\Normal.png</>
+<_ ratio = 100.01% time = '26/07/2011 19:13:44' size = 26482>K:\GameManagerV2\GameManagerV2 Retail\Resources\Normal_Grey.png</>
+<_ ratio = 96.15% time = '01/09/2011 11:12:06' size = 8147>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoShot.png</>
+<_ ratio = 85.22% time = '01/08/2011 14:31:37' size = 4590>K:\GameManagerV2\GameManagerV2 Retail\Resources\NoThumb.jpg</>
+<_ ratio = 100.03% time = '18/11/2011 11:56:12' size = 13070>K:\GameManagerV2\GameManagerV2 Retail\Resources\RightMenu.png</>
+<_ ratio = 100.03% time = '18/11/2011 11:58:03' size = 13331>K:\GameManagerV2\GameManagerV2 Retail\Resources\RightMenu1.png</>
+<_ ratio = 100.03% time = '18/11/2011 11:57:03' size = 13263>K:\GameManagerV2\GameManagerV2 Retail\Resources\RightMenu2.png</>
+<_ ratio = 97.59% time = '19/11/2011 01:39:46' size = 11648>K:\GameManagerV2\GameManagerV2 Retail\Resources\RightMenu2_NA.png</>
+<_ ratio = 100.63% time = '31/08/2011 10:34:01' size = 784>K:\GameManagerV2\GameManagerV2 Retail\Resources\Star.png</>
+<_ ratio = 100.84% time = '31/08/2011 10:32:27' size = 590>K:\GameManagerV2\GameManagerV2 Retail\Resources\Star_Empty.png</>
+<_ ratio = 100.81% time = '31/08/2011 10:41:59' size = 615>K:\GameManagerV2\GameManagerV2 Retail\Resources\Star_Grey.png</>
+<_ ratio = 100.77% time = '31/08/2011 10:35:00' size = 649>K:\GameManagerV2\GameManagerV2 Retail\Resources\Star_half.png</>
+<_ ratio = 57.75% time = '16/11/2011 21:21:28' size = 172032>K:\GameManagerV2\GameManagerV2 Retail\Resources\Thumbs.db</>
+<_ ratio = 100.79% time = '31/08/2011 11:11:57' size = 628>K:\GameManagerV2\GameManagerV2 Retail\Resources\Tick.png</>
+<_ ratio = 101.60% time = '31/08/2011 11:18:03' size = 312>K:\GameManagerV2\GameManagerV2 Retail\Resources\UnTick.png</>
+<_ ratio = 43.52% time = '02/12/2011 01:24:38' size = 460288>K:\GameManagerV2\GameManagerV2 Retail\Setup.exe</>
+<_ ratio = 48.47% time = '08/09/2011 05:51:02' size = 237568>K:\GameManagerV2\GameManagerV2 Retail\ssleay32.dll</>
+<_ ratio = 43.50% time = '03/12/2011 18:50:06' size = 556032>K:\GameManagerV2\GameManagerV2 Retail\WalkThroughDownloader.exe</>
+<_   >================================</>
+<_ ratio = 44.76%  size = 14428433>All files (103)</>
+<_  time = '05/12/2011 02:25:15' >Finish Successful</>
+</logdata>

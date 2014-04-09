@@ -1,0 +1,14 @@
+BigCover
+4
+FlipCover
+6
+Enter
+2
+Menu
+9
+Filter
+8
+Cancel
+3
+Info
+1

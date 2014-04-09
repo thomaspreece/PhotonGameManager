@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+    <noInheritable></noInheritable>
+    <assemblyIdentity
+		type="win32"
+		name="Microsoft.VC90.MFC"
+		version="9.0.21022.8"
+		processorArchitecture="x86"
+		publicKeyToken="1fc8b3b9a1e18e3b">
+	</assemblyIdentity>
+    <file name="mfc90.dll"></file>
+	<file name="mfc90u.dll"></file>
+	<file name="mfcm90.dll"></file>
+	<file name="mfcm90u.dll"></file>
+</assembly>

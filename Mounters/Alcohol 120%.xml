@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<Mounter><MounterEXE>AxCmd.exe</MounterEXE><MounterPath/><Mount>"[MounterPath]" [MounterNum]: /M:"[GameISOPath]"</Mount><UnMount>"[MounterPath]" [MounterNum]: /U</UnMount><Platform>Win32</Platform><Drives><Drive>1</Drive><Drive>2</Drive><Drive>3</Drive><Drive>4</Drive></Drives></Mounter>

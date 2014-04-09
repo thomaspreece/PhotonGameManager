@@ -1,0 +1,15 @@
+--TERMS--
+By 'MAIN PROGRAM CODE' we mean PhotonDownloader.exe,PhotonExplorer.exe,PhotonFrontend.exe,PhotonUpdater.exe and PhotonManager.exe
+By 'GameManager directory' we mean the folder that you will install GameManager to.
+
+--License/Licenses--
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The MAIN PROGRAM CODE has all rights reserved and you may NOT redistribute the MAIN PROGRAM CODE in any form including a modified form.
+YOU AGREE THAT GAMEMANAGER MAY BE CHANGED WITHOUT NOTICE, REQUIRING YOU TO UPDATE TO THE NEW PROGRAM BEFORE YOU MAY CONTINUE TO USE GAMEMANAGER.
+Boxcutter is copyrighted by Matt Rasmussen and is licensed under the LGPL (see GameManager directory/Boxcutter/COPYING.LESSER for details).
+7-Zip is copyrighted by Igor Pavlov and is licensed under GNU LGPL and unRAR restriction (see GameManager directory/7zip/license.txt for details)
+ResourcesExtract is copyrighted by Nir Sofer
+Nircmd is copyrighted by Nir Sofer
+screenshot-cmd is licensed under The BSD 3-Clause License
+All items in folder 'GameManager directory/Resources' are licensed under the LGPL unless otherwise stated in Licence.txt within that folder
+

@@ -1,0 +1,45 @@
+#Here you can enter the path to the emulator for various different platforms
+#The General Form is: "{Path to Emulator EXE}" "[ROMPATH]"
+#Note you enter [ROMPATH] where you want GameManager to insert the rom path and notice you MUST have the quotation marks (") around both [ROMPATH] AND the emulation Path
+#If your not sure exactly how to pass [ROMPATH] to an emulator, goto google and type '{Emulator Name} command line' 
+#Examples are "C:\Program Files\gens-win32-bin-2.14\gens.exe" "[ROMPATH]"
+# or "C:\Snes9x Folder\Snes9x.exe" "[ROMPATH]"
+3DO>
+Arcade>
+Atari 2600>
+Atari 5200>
+Atari 7800>
+Atari Jaguar>
+Atari Jaguar CD>
+Atari XE>
+Colecovision>
+Commodore 64>
+Intellivision>
+Mac OS>
+Microsoft Xbox>
+Microsoft Xbox 360>
+NeoGeo>
+Nintendo 64>
+Nintendo DS>
+Nintendo Entertainment System (NES)>
+Nintendo Gameboy>
+Nintendo Gameboy Advance>
+Nintendo GameCube>
+Nintendo Wii>
+Nintendo Wii U>
+PC>
+Sega 32X>
+Sega CD>
+Sega Dreamcast>
+Sega Game Gear>
+Sega Genesis>
+Sega Master System>
+Sega Mega Drive>
+Sega Saturn>
+Sony Playstation>
+Sony Playstation 2>
+Sony Playstation 3>
+Sony Playstation Vita>
+Sony PSP>
+Super Nintendo (SNES)>
+TurboGrafx 16>

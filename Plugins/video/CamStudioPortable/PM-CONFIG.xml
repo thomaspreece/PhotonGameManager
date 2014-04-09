@@ -1,0 +1,1 @@
+<?xml version="1.0"?><PluginConfig><type>video</type><key>122</key><capturepath>"[CURRENTDIR]\camstudio_cl.exe" -seconds 1 -outfile [FILENAME] </capturepath><stopcapturepath></stopcapturepath><format>.avi</format><configurepath>Internal</configurepath></PluginConfig>

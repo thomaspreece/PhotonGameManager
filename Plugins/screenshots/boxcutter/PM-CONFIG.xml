@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<PluginConfig>
+<type>screenshot</type>
+<path>[CURRENTDIR]\boxcutter-fs.exe [FILENAME]</path>
+<format>.bmp</format>
+<key>121</key>
+<configurepath>Internal</configurepath>
+</PluginConfig>

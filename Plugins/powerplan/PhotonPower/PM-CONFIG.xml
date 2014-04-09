@@ -1,0 +1,1 @@
+<?xml version="1.0"?><PluginConfig><type>powerplan</type><configurepath>Internal</configurepath><endPath>powercfg -SETACTIVE [POWERGUID]</endPath><startPath>powercfg -SETACTIVE [POWERGUID]</startPath><startGUID>381b4222-f694-41f0-9685-ff5bb260df2e</startGUID><endGUID>a1841308-3541-4fab-bc81-f71556f20b4a</endGUID></PluginConfig>
