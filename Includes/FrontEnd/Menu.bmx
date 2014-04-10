@@ -633,6 +633,9 @@ Type MenuWrapperType Extends GeneralType
 				Return True
 			Else
 				If FilterActive <> True Then 
+					If JoyHit(JOY_PLATROTATE,J) Then
+						GetNextPlatform()
+					EndIf
 					If JoyHit(JOY_MENU,J) Then
 						MenuSelected = False
 						ActiveMenuNumber = 1
@@ -910,6 +913,10 @@ Type MenuWrapperType Extends GeneralType
 					FlushKeys()
 					Return True 		
 				EndIf
+				If KeyHit(KEYBOARD_PLATROTATE) Then 
+					GetNextPlatform()
+				EndIf 
+				
 			EndIf 
 		EndIf
 		If FilterActive = True Then
@@ -1590,6 +1597,56 @@ End Function
 
 
 
+Function GetNextPlatform()
+
+	'This function gets all the platforms and gets the next one on from our current platform. It then filters the games by that new platform category
+	Local Selected:String = ""
+	Local SelectNext = 0
+	Local FirstPlatform:String = ""
+	For a:String = EachIn UsedPlatformList
+		PrintF("List-"+a)
+		If FirstPlatform = "" Then 
+			FirstPlatform = a
+		EndIf 
+		If SelectNext = 1 Then
+			Selected = a
+			SelectNext = 0
+			Exit
+		EndIf
+		If a = GamesPlatformFilter Then
+			SelectNext = 1
+		EndIf 
+	Next
+	ChangeInterface(0) 'Resets filters & Changes to menu interface temperourily
+	If SelectNext = 1 Then
+		PrintF("SelectNext - All Games")
+		FilterType = "All Games"
+		FilterName = ""
+		GamesPlatformFilter = ""
+	Else
+		If Selected="" Then 
+			If FirstPlatform = Null Then
+				PrintF("Selected - All Games")
+				FilterType = "All Games"
+				FilterName = ""		
+				GamesPlatformFilter = ""	
+			Else
+				PrintF(FirstPlatform)
+				FilterType = "Platform"
+				FilterName = FirstPlatform
+				GamesPlatformFilter = FirstPlatform
+			EndIf 
+		Else
+			PrintF(Selected)
+			FilterType = "Platform"
+			FilterName = Selected
+			GamesPlatformFilter = Selected	
+		EndIf 	
+	EndIf
+	
+	PopulateGames()
+	ChangeInterface(CurrentInterfaceNumber)
+End Function
 
 
 

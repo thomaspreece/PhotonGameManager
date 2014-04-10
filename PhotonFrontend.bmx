@@ -141,6 +141,7 @@ AppTitle = "FrontEnd"
 
 
 PopulateGames()
+PopulateUsedPlatformList()
 
 If GameArrayLen < 1 Then 
 	If Confirm("You don't have any games in your libary yet. Would you like to load PhotonManager?") = 1 Then 
@@ -338,6 +339,10 @@ EndIf
 If Int(SettingFile.GetSetting("KEYBOARD_FILTER")) <> 0 Then
 	KEYBOARD_FILTER = Int(SettingFile.GetSetting("KEYBOARD_FILTER"))
 EndIf 
+If Int(SettingFile.GetSetting("KEYBOARD_PLATROTATE")) <> 0 Then
+	KEYBOARD_PLATROTATE = Int(SettingFile.GetSetting("KEYBOARD_PLATROTATE"))
+EndIf 
+
 'JoyStickRead
 If Int(SettingFile.GetSetting("JOY_BIGCOVER")) <> 0 Then
 	JOY_BIGCOVER = Int(SettingFile.GetSetting("JOY_BIGCOVER"))
@@ -359,6 +364,9 @@ If Int(SettingFile.GetSetting("JOY_CANCEL")) <> 0 Then
 EndIf 
 If Int(SettingFile.GetSetting("JOY_INFO")) <> 0 Then
 	JOY_INFO = Int(SettingFile.GetSetting("JOY_INFO"))
+EndIf 
+If Int(SettingFile.GetSetting("JOY_PLATROTATE")) <> 0 Then
+	JOY_PLATROTATE = Int(SettingFile.GetSetting("JOY_PLATROTATE"))
 EndIf 
 
 
@@ -709,6 +717,17 @@ Function ChangeInterface(Number:Int,Clear:Int = True)
 	CurrentInterface.Init()
 	ForceTextureReset = True 
 End Function
+
+Function PopulateUsedPlatformList()
+	UsedPlatformList = CreateList()
+	Local GameNode:GameReadType = New GameReadType
+	For a = 0 To GameArrayLen - 1
+		GameNode.GetGame(GameArray[a])
+		If ListContains(UsedPlatformList , GameNode.Plat) <> 1 And GameNode.Plat <> "" Then
+			ListAddLast(UsedPlatformList , GameNode.Plat)
+		EndIf
+	Next 
+End Function 
 
 Function PopulateGames()
 	Local temp:String

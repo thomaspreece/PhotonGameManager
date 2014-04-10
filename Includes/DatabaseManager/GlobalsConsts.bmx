@@ -223,8 +223,8 @@ Const KIW_B = 902
 Const KIW_T = 916
 Const KIW_JKT = 917
 
-Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back/End", "Menu", "Search" ]
-Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info"]
+Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back/End", "Menu", "Search", "Rotate Platforms" ]
+Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info", "Rotate Platforms" ]
 
 Const EP_EXE_DescribeText1:String = "Below you can select what file GameManager will run for this game ~n" + ..
 "and any other command line options you require for this game. ~n" + ..

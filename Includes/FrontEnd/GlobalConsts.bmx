@@ -6,6 +6,7 @@ Global JOY_MENU = 9
 Global JOY_FILTER = 8
 Global JOY_CANCEL = 3
 Global JOY_INFO = 1
+Global JOY_PLATROTATE = 5
 
 'MARK: Keyboard
 Global KEYBOARD_BIGCOVER = KEY_1
@@ -19,6 +20,7 @@ Global KEYBOARD_INFO = KEY_I
 Global KEYBOARD_ESC = KEY_ESCAPE
 Global KEYBOARD_MENU = KEY_M
 Global KEYBOARD_FILTER = KEY_F
+Global KEYBOARD_PLATROTATE = KEY_P
 
 
 'MARK: System
@@ -38,8 +40,7 @@ Global CurrentInterface:GeneralType
 Global CurrentInterfaceNumber:Int
 
 Global FilterMenuEnabled:Int = False
-Global FilterType:String = "All Games"
-Global FilterName:String = ""
+
 
 Global GWidth:Int = 800
 Global GHeight:Int = 600
@@ -56,8 +57,15 @@ Global KeyboardLayout:String[] = ["1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" 
 'MARK: Game
 Global GameArray:String[0]
 Global GameArrayLen:Int
+
+Global UsedPlatformList:TList 
+
 Global CurrentGamePos:Int = 0
 Global Filter:String = ""
+
+Global FilterType:String = "All Games"
+Global FilterName:String = ""
+
 Global GamesPlatformFilter:String = ""
 Global GamesGenreFilter:String = ""
 Global GamesRelFilter:String = ""
@@ -68,7 +76,6 @@ Global GamesCoopFilter:String = ""
 Global GamesDeveloperFilter:String = ""
 Global GamesPublisherFilter:String = ""
 Global GamesCertificateFilter:String = ""
-
 Global GamesSortFilter:String = ""
 
 Global TextScrollRate:Float = 0.1
