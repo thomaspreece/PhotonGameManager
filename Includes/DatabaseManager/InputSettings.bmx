@@ -1,6 +1,6 @@
 Type KeyboardInputWindow Extends wxFrame 
 	Field ParentWin:SettingsWindow
-	Field InputBoxes:wxTextCtrl[11]
+	Field InputBoxes:wxTextCtrl[12]
 	Field ActiveField:Int 
 	Field ActiveValue:String 
 	Field KeyCountdown:wxTimer
@@ -32,13 +32,13 @@ Type KeyboardInputWindow Extends wxFrame
 		Local StaticText:wxStaticText
 		Local Button:KeyboardInputButton
 		
-		For a=0 To 10
+		For a=0 To 11
 			InputSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			StaticText = New wxStaticText.Create(Self , wxID_ANY , KeyboardInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 			InputBoxes[a] = New wxTextCtrl.Create(Self , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 			Button = KeyboardInputButton(New KeyboardInputButton.Create(Self, Int(KIW_B+a) , "Change"))
-			InputSizer.Add(StaticText, 1 , wxEXPAND | wxALL , 4)
-			InputSizer.Add(InputBoxes[a], 3 , wxEXPAND | wxALL , 4)
+			InputSizer.Add(StaticText, 2 , wxEXPAND | wxALL , 4)
+			InputSizer.Add(InputBoxes[a], 2 , wxEXPAND | wxALL , 4)
 			InputSizer.Add(Button, 1 , wxEXPAND | wxALL , 4)
 			vbox.AddSizer(InputSizer, 0 , wxEXPAND | wxALL , 4)
 			Connect(Int(KIW_B+a) , wxEVT_COMMAND_BUTTON_CLICKED , SetKey, String(a))
@@ -121,7 +121,14 @@ Type KeyboardInputWindow Extends wxFrame
 			InputBoxes[10].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
 		Else
 			InputBoxes[10].ChangeValue(KEY_F+" ("+getKeyCodeChar(KEY_F)+")")			
-		EndIf 																			
+		EndIf 	
+		
+		If FrontEndSettingFile.GetSetting("KEYBOARD_PLATROTATE") <> "" Then
+			temp = Int(FrontEndSettingFile.GetSetting("KEYBOARD_PLATROTATE"))
+			InputBoxes[11].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
+		Else
+			InputBoxes[11].ChangeValue(KEY_P+" ("+getKeyCodeChar(KEY_P)+")")			
+		EndIf 																				
 		
 		KeyCountdown = New wxTimer.Create(Self,KIW_T)
 			
@@ -172,6 +179,9 @@ Type KeyboardInputWindow Extends wxFrame
 		If Int(KeyboardInputWin.InputBoxes[10].GetValue())<>0
 			KeyboardInputWin.FrontEndSettingFile.SaveSetting("KEYBOARD_FILTER" , Int(KeyboardInputWin.InputBoxes[10].GetValue()))		
 		EndIf 
+		If Int(KeyboardInputWin.InputBoxes[11].GetValue())<>0
+			KeyboardInputWin.FrontEndSettingFile.SaveSetting("KEYBOARD_PLATROTATE" , Int(KeyboardInputWin.InputBoxes[11].GetValue()))		
+		EndIf 		
 		
 		KeyboardInputWin.FrontEndSettingFile.SaveFile()
 		
@@ -259,7 +269,7 @@ End Type
 
 Type JoyStickInputWindow Extends wxFrame 
 	Field ParentWin:SettingsWindow
-	Field InputBoxes:wxTextCtrl[11]
+	Field InputBoxes:wxTextCtrl[8]
 	Field ActiveField:Int 
 	Field ActiveValue:String 
 	Field JoyCountdown:wxTimer
@@ -292,13 +302,13 @@ Type JoyStickInputWindow Extends wxFrame
 		Local StaticText:wxStaticText
 		Local Button:wxButton 
 		
-		For a=0 To 6
+		For a=0 To 7
 			InputSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			StaticText = New wxStaticText.Create(Self , wxID_ANY , JoyStickInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 			InputBoxes[a] = New wxTextCtrl.Create(Self , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 			Button = New wxButton.Create(Self, Int(KIW_B+a) , "Change")
-			InputSizer.Add(StaticText, 1 , wxEXPAND | wxALL , 4)
-			InputSizer.Add(InputBoxes[a], 3 , wxEXPAND | wxALL , 4)
+			InputSizer.Add(StaticText, 2 , wxEXPAND | wxALL , 4)
+			InputSizer.Add(InputBoxes[a], 2 , wxEXPAND | wxALL , 4)
 			InputSizer.Add(Button, 1 , wxEXPAND | wxALL , 4)
 			vbox.AddSizer(InputSizer, 0 , wxEXPAND | wxALL , 4)
 			Connect(Int(KIW_B+a) , wxEVT_COMMAND_BUTTON_CLICKED , SetKey, String(a))
@@ -353,7 +363,14 @@ Type JoyStickInputWindow Extends wxFrame
 			InputBoxes[6].ChangeValue(temp)
 		Else
 			InputBoxes[6].ChangeValue("1")		
-		EndIf 															
+		EndIf 	
+		
+		If FrontEndSettingFile.GetSetting("JOY_PLATROTATE") <> "" Then
+			temp = Int(FrontEndSettingFile.GetSetting("JOY_PLATROTATE"))
+			InputBoxes[7].ChangeValue(temp)
+		Else
+			InputBoxes[7].ChangeValue("5")		
+		EndIf 																
 		
 		JoyCountdown = New wxTimer.Create(Self,KIW_T)
 		JoyKeyTimer = New wxTimer.Create(Self,KIW_JKT)
@@ -395,6 +412,9 @@ Type JoyStickInputWindow Extends wxFrame
 		If Int(JoyStickInputWin.InputBoxes[6].GetValue())<>0
 			JoyStickInputWin.FrontEndSettingFile.SaveSetting("JOY_INFO" , Int(JoyStickInputWin.InputBoxes[6].GetValue()))
 		EndIf 
+		If Int(JoyStickInputWin.InputBoxes[7].GetValue())<>0
+			JoyStickInputWin.FrontEndSettingFile.SaveSetting("JOY_PLATROTATE" , Int(JoyStickInputWin.InputBoxes[7].GetValue()))
+		EndIf 		
 				
 		JoyStickInputWin.FrontEndSettingFile.SaveFile()
 		
