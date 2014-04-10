@@ -216,7 +216,7 @@ Function WindowsRunProcess:Int(Command:String,Program:String)
 
 End Function 
 
-Function RunProcess:TProcess(Command:String,Detach:Int = 0,WinExecIt:Int=0)
+Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 	Local ReturnedValue = 0
 	Local ID = -1
 	Local Command1:String
@@ -229,7 +229,7 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0,WinExecIt:Int=0)
 	EndIf 
 	?
 
-	'BUG: My Programs Crash Using CreateProcess, No Idea Why...
+	'BUG: My Programs Crash and others Using CreateProcess on Windows, No Idea Why...
 	?Win32
 	If Detach = 1 Then 
 		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, FRONTENDPROGRAM)
@@ -237,11 +237,6 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0,WinExecIt:Int=0)
 		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, EXPLORERPROGRAM)
 		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, DOWNLOADERPROGRAM)
 		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, UPDATEPROGRAM)
-	EndIf 
-	?
-	
-	?Win32
-	If WinExecIt=1 Then 
 		If ReturnedValue = 0 Then 
 			Local Ex:TExecuter = New TExecuter
 			If Left(Command,1)=Chr(34) Then
@@ -276,7 +271,7 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0,WinExecIt:Int=0)
 			If Detach = 1 Then ProcessDetach(Process)
 		EndIf 
 	Else
-		PrintF("WinExec Used")
+		PrintF("WinExec/TExecuter Used")
 	EndIf 
 	
 	

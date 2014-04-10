@@ -58,7 +58,7 @@ Type RunnerWindow Extends wxFrame
 		Timer2 = New wxTimer.Create(Self,PR_T2)
 		'KeyTimer = New wxTimer.Create(Self,PR_KT)
 		Timer.Start(100)
-		Timer2.Start(3000)
+
 		'KeyTimer.Start(10)
 		TextCtrl = New wxTextCtrl.Create(Self,wxID_ANY,"(Initialising)" , -1, -1 ,-1 , -1 , wxTE_WORDWRAP | wxTE_MULTILINE | wxTE_READONLY)
 		EndButton = New wxButton.Create(Self , PR_EB , "Close PhotonRunner")
@@ -117,6 +117,7 @@ Type RunnerWindow Extends wxFrame
 		Local p:TWinProc
 		MainWin:RunnerWindow = RunnerWindow(event.parent)
 		MainWin.Timer2.Stop()
+				
 		?Linux
 		'Hack to bypass executable search code
 		'Do Nothing
@@ -145,22 +146,6 @@ Type RunnerWindow Extends wxFrame
 					EndRem 
 					ClearList(SteamProcessList)					
 					
-					Rem
-					ProcessList = ListProcesses()
-					For Process:String = EachIn ProcessList
-						If Lower(Process) = "steam.exe" Then
-							SteamProcessList = ListChildProcesses("steam.exe")			
-							SteamProcessList = StripSteamProcesses(SteamProcessList)		
-							If SteamProcessList = Null Or SteamProcessList.Count() < 1 Then
-								Running = False
-							Else
-								Running = True 
-							EndIf 	
-							ClearList(SteamProcessList)	
-						EndIf 
-					Next
-					ClearList(ProcessList)
-					EndRem
 				Else
 					ProcessList = ListProcesses()
 					For Process:String = EachIn ProcessList
@@ -428,7 +413,7 @@ Type RunnerWindow Extends wxFrame
 		EndIf 
 		
 		SetForegroundWindow(Int(hWnd))
-		'BringWindowToTop(Int(hWnd))
+		BringWindowToTop(Int(hWnd))
 		'SetActiveWindow(hWnd)
 		
 		If OurThreadID<>CurrentThreadID Then 
@@ -439,17 +424,14 @@ Type RunnerWindow Extends wxFrame
 		Delay 1000			
 
 		EndButton.Enable()
-		TextCtrl.AppendText("~n~n~n~n~n")	
-		TextCtrl.AppendText("If you are seeing this window after your game has ended Then Game Manager has failed To detect the game finishing properly. ~n" + ..
-		"Click 'Close PhotonRunner' to close GameManager, run any post-batch scripts set and unmount any game images if required.")
-		TextCtrl.AppendText("~n~n~n")	
+	
 					
 		If Left(RunEXE,1)=Chr(34) Then 
-			RunProcess(RunEXE , 1, 0)
+			RunProcess(RunEXE , 1)
 		Else
-			RunProcess(Chr(34)+ RunEXE +Chr(34) , 1, 0)
+			RunProcess(Chr(34)+ RunEXE +Chr(34) , 1)
 		EndIf 
-		AllowSetForegroundWindow(-1)
+		'AllowSetForegroundWindow(-1)
 		ChangeDir(CDir)
 
 		If Low(EXEOnly) <> "steam.exe" Then
@@ -463,6 +445,28 @@ Type RunnerWindow Extends wxFrame
 		
 		Delay 5000
 		
+		'Detect Origin and delay by half a miniute
+		Local ProcessList:TList = Null
+		ProcessList = ListProcesses()
+		For ProcessString:String = EachIn ProcessList
+			If Low(ProcessString) = "origin.exe" Then 
+				TextCtrl.AppendText("~n~n")	
+				TextCtrl.AppendText("Detected Origin Running. Waiting extra 30 seconds for origin to start.~n")
+				For k=1 To 30
+					PhotonRunnerApp.Yield()
+					TextCtrl.AppendText(k+"  ")	
+					Delay 1000
+				Next
+				Exit
+			EndIf 
+		Next		
+		
+		TextCtrl.AppendText("~n~n~n~n~n")	
+		TextCtrl.AppendText("If you are seeing this window after your game has ended Then Game Manager has failed To detect the game finishing properly. ~n" + ..
+		"Click 'Close PhotonRunner' to close GameManager, run any post-batch scripts set and unmount any game images if required.")
+		TextCtrl.AppendText("~n~n~n")
+		
+		Timer2.Start(3000)		
 	End Method
 	
 	Function ExtractEXEDir:String(Dir:String)
