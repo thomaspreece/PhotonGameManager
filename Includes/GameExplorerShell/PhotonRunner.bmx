@@ -263,6 +263,7 @@ Type RunnerWindow Extends wxFrame
 						EndButton.Enable()
 						EndButton.SetLabel("Skip")
 						Repeat 
+							If Process = Null Then Exit 
 							If ProcessStatus(Process)=0 Then Exit 
 							Delay 100
 							PhotonRunnerApp.Yield()
@@ -365,6 +366,7 @@ Type RunnerWindow Extends wxFrame
 					EndButton.Enable()
 					EndButton.SetLabel("Skip")
 					Repeat 
+						If Process=Null Then Exit 
 						If ProcessStatus(Process)=0 Then Exit 
 						Delay 100
 						PhotonRunnerApp.Yield()
