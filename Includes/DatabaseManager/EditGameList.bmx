@@ -88,6 +88,8 @@ Type EditGameList Extends wxFrame
 	Field PreBFEXEPath:wxTextCtrl
 	
 	Field A_RunnerON:wxComboBox
+	Field A_StartWaitEnabled:wxComboBox 
+	
 	Field BF_Pre_WTF:wxComboBox 
 	Field BF_Post_WTF:wxComboBox 
 	
@@ -647,11 +649,20 @@ Type EditGameList Extends wxFrame
 		Local A_RAO_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "PhotonRunner only closes when you click the close button (this game only): " , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		A_RunnerON = New wxComboBox.Create(AdvancedPanel, EGL_A_RAO , "No" , ["Yes","No"] , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )	
 		
+		Local Asubhbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		
+		Local A_SWE_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "Wait 30 seconds after starting game before checking if it has closed? (this game only): " , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		A_StartWaitEnabled = New wxComboBox.Create(AdvancedPanel, EGL_A_SWE , "No" , ["Yes","No"] , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		
 		Asubhbox.Add(A_RAO_Text , 0 , wxEXPAND | wxALL , 4)
 		Asubhbox.Add(A_RunnerON , 1 , wxEXPAND | wxALL , 4)
 		
+		Asubhbox2.Add(A_SWE_Text , 0 , wxEXPAND | wxALL , 4)
+		Asubhbox2.Add(A_StartWaitEnabled , 1 , wxEXPAND | wxALL , 4)
+		
 		AdvancedSizer.Add(A_ET_ST , 0 , wxEXPAND | wxALL , 4)
 		AdvancedSizer.AddSizer(Asubhbox , 0 , wxEXPAND | wxALL , 4)
+		AdvancedSizer.AddSizer(Asubhbox2 , 0 , wxEXPAND | wxALL , 4)
 		AdvancedPanel.SetSizer(AdvancedSizer)	
 		
 		
@@ -809,7 +820,8 @@ Type EditGameList Extends wxFrame
 		Connect( EGL_AM_ISOP , wxEVT_COMMAND_TEXT_UPDATED , DataChangeUpdate)
 		Connect( EGL_AM_MP , wxEVT_COMMAND_TEXT_UPDATED , DataChangeUpdate)
 		Connect( EGL_AM_VDC , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)
-		Connect( EGL_A_RAO , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)		
+		Connect( EGL_A_RAO , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)	
+		Connect( EGL_A_SWE , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)			
 		Connect( EGL_AM_UC , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)
 		
 		Connect( EGL_PreBF_WTF , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)
@@ -1420,6 +1432,13 @@ EndRem
 				EGW.A_RunnerON.SetSelection(EGW.A_RunnerON.FindString("No") )
 			EndIf 
 			
+			If GameNode.StartWaitEnabled = 1 Then 
+				EGW.A_StartWaitEnabled.SetSelection(EGW.A_StartWaitEnabled.FindString("Yes") )
+			Else
+				EGW.A_StartWaitEnabled.SetSelection(EGW.A_StartWaitEnabled.FindString("No") )
+			EndIf 
+
+			
 			If GameNode.PreBFWait = 1 Then 
 				EGW.BF_Pre_WTF.SetSelection(EGW.BF_Pre_WTF.FindString("Yes") )
 			Else
@@ -1588,6 +1607,7 @@ EndRem
 		Local GPlayers:String = EGW.DP_GamePlayers.GetValue()
 
 		Local GRunnerAlwaysOn:Int
+		Local GStartWaitEnabled:Int 
 		Local PreWait:Int
 		Local PostWait:Int 
 		
@@ -1595,6 +1615,12 @@ EndRem
 			GRunnerAlwaysOn = 1
 		Else
 			GRunnerAlwaysOn = 0
+		EndIf 
+		
+		If EGW.A_StartWaitEnabled.GetValue()="Yes" Then 
+			GStartWaitEnabled = 1
+		Else
+			GStartWaitEnabled = 0
 		EndIf 
 
 		If EGW.BF_Pre_WTF.GetValue()="Yes" Then 
@@ -1734,6 +1760,7 @@ EndRem
 		GameNode.PostBFWait = PostWait
 		
 		GameNode.GameRunnerAlwaysOn = GRunnerAlwaysOn
+		GameNode.StartWaitEnabled = GStartWaitEnabled
 
 		GameNode.VDriveNum = EGW.AM_VDCombo.GetValue()
 		GameNode.UnMount = EGW.AM_UnMountCombo.GetValue()

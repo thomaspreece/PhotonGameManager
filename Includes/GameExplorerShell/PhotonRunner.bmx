@@ -123,86 +123,86 @@ Type RunnerWindow Extends wxFrame
 		'Do Nothing
 		
 		?Win32	
-		If MainWin.GameNode.GameRunnerAlwaysOn = False Then 
-			If MainWin.ProgramStarted = True Then
+		
+		If MainWin.ProgramStarted = True Then
+			
+			If Lower(MainWin.EXEOnly) = "steam.exe" Then
+				TWinProc.GetProcesses()
+				p = TWinProc.Find("Steam.exe",TWinProc._list)
+				SteamProcessList:TList = p.kidsNames				
+				'SteamProcessList = ListChildProcesses("Steam.exe")			
+				SteamProcessList = StripSteamProcesses(SteamProcessList)		
+				If SteamProcessList = Null Or SteamProcessList.Count() < 1 Then
+					Running = False
+				Else
+					Running = True 
+				EndIf 	
+				Rem
+				PrintF("Printing SubProcesses")
+				For a:String = EachIn SteamProcessList
+					PrintF(a)
+				Next 
+				PrintF("Finished Printing Subprocesses")
+				EndRem 
+				ClearList(SteamProcessList)					
 				
-				If Lower(MainWin.EXEOnly) = "steam.exe" Then
-					TWinProc.GetProcesses()
-					p = TWinProc.Find("Steam.exe",TWinProc._list)
-					SteamProcessList:TList = p.kidsNames				
-					'SteamProcessList = ListChildProcesses("Steam.exe")			
-					SteamProcessList = StripSteamProcesses(SteamProcessList)		
-					If SteamProcessList = Null Or SteamProcessList.Count() < 1 Then
-						Running = False
+			Else
+				ProcessList = ListProcesses()
+				For Process:String = EachIn ProcessList
+					If Lower(Process) = Lower(MainWin.EXEOnly) Then
+						Running = True
+						'PrintF("Running") 
+						Exit 
 					Else
-						Running = True 
-					EndIf 	
-					Rem
+						Running = False 
+					EndIf 
+				Next
+				ClearList(ProcessList)
+			EndIf 
+			If Running = False Then 
+				MainWin.FinishProgram()
+			EndIf 
+		Else
+			If Lower(MainWin.EXEOnly) = "steam.exe" Then
+				TWinProc.GetProcesses()
+				p = TWinProc.Find("Steam.exe",TWinProc._list)
+				SteamProcessList:TList = p.kidsNames
+				
+				'SteamProcessList = ListChildProcesses("Steam.exe")	
+				SteamProcessList = StripSteamProcesses(SteamProcessList)		
+				If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
+					Delay 1000
+					MainWin.ProgramStarted = True
+					PrintF("Steam - ProgramStarted")
 					PrintF("Printing SubProcesses")
 					For a:String = EachIn SteamProcessList
 						PrintF(a)
 					Next 
 					PrintF("Finished Printing Subprocesses")
-					EndRem 
-					ClearList(SteamProcessList)					
+				EndIf 						
 					
-				Else
-					ProcessList = ListProcesses()
-					For Process:String = EachIn ProcessList
-						If Lower(Process) = Lower(MainWin.EXEOnly) Then
-							Running = True
-							'PrintF("Running") 
-							Exit 
-						Else
-							Running = False 
-						EndIf 
-					Next
-					ClearList(ProcessList)
-				EndIf 
-				If Running = False Then 
-					MainWin.FinishProgram()
-				EndIf 
-			Else
-				If Lower(MainWin.EXEOnly) = "steam.exe" Then
-					TWinProc.GetProcesses()
-					p = TWinProc.Find("Steam.exe",TWinProc._list)
-					SteamProcessList:TList = p.kidsNames
-					
-					'SteamProcessList = ListChildProcesses("Steam.exe")	
-					SteamProcessList = StripSteamProcesses(SteamProcessList)		
-					If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
-						Delay 1000
-						MainWin.ProgramStarted = True
-						PrintF("Steam - ProgramStarted")
-						PrintF("Printing SubProcesses")
-						For a:String = EachIn SteamProcessList
-							PrintF(a)
-						Next 
-						PrintF("Finished Printing Subprocesses")
-					EndIf 						
-						
-					Rem
-					ProcessList = ListProcesses()
-					For Process:String = EachIn ProcessList
-						If Lower(Process) = "steam.exe" Then
-							SteamProcessList = ListChildProcesses(Process)	
-							SteamProcessList = StripSteamProcesses(SteamProcessList)		
-							If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
-								Delay 1000
-								MainWin.ProgramStarted = True
-								PrintF("Steam - ProgramStarted")
-								PrintF("Printing SubProcesses")
-								For a:String = EachIn SteamProcessList
-									PrintF(a)
-								Next 
-								PrintF("Finished Printing Subprocesses")
-							EndIf 						
-						EndIf 
-					Next
-					EndRem
-				EndIf 
-			EndIf
-		EndIf 
+				Rem
+				ProcessList = ListProcesses()
+				For Process:String = EachIn ProcessList
+					If Lower(Process) = "steam.exe" Then
+						SteamProcessList = ListChildProcesses(Process)	
+						SteamProcessList = StripSteamProcesses(SteamProcessList)		
+						If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
+							Delay 1000
+							MainWin.ProgramStarted = True
+							PrintF("Steam - ProgramStarted")
+							PrintF("Printing SubProcesses")
+							For a:String = EachIn SteamProcessList
+								PrintF(a)
+							Next 
+							PrintF("Finished Printing Subprocesses")
+						EndIf 						
+					EndIf 
+				Next
+				EndRem
+			EndIf 
+		EndIf
+
 		?	
 		MainWin.Timer2.Start(3000)
 	End Function 
@@ -445,28 +445,44 @@ Type RunnerWindow Extends wxFrame
 		
 		Delay 5000
 		
-		'Detect Origin and delay by half a miniute
-		Local ProcessList:TList = Null
-		ProcessList = ListProcesses()
-		For ProcessString:String = EachIn ProcessList
-			If Low(ProcessString) = "origin.exe" Then 
+		If OriginWaitEnabled = True Then 
+			'Detect Origin and delay by half a miniute
+			Local ProcessList:TList = Null
+			ProcessList = ListProcesses()
+			For ProcessString:String = EachIn ProcessList
+				If Low(ProcessString) = "origin.exe" Then 
+					TextCtrl.AppendText("~n~n")	
+					TextCtrl.AppendText("Detected Origin Running. Waiting extra 30 seconds for origin to start.~n")
+					For k=1 To 30
+						PhotonRunnerApp.Yield()
+						TextCtrl.AppendText(k+"  ")	
+						Delay 1000
+					Next
+					Exit
+				EndIf 
+			Next	
+		else
+			If GameNode.StartWaitEnabled = True Then 
 				TextCtrl.AppendText("~n~n")	
-				TextCtrl.AppendText("Detected Origin Running. Waiting extra 30 seconds for origin to start.~n")
+				TextCtrl.AppendText("Waiting for 30 seconds (Advanced setting for this game)~n")
 				For k=1 To 30
 					PhotonRunnerApp.Yield()
 					TextCtrl.AppendText(k+"  ")	
 					Delay 1000
 				Next
-				Exit
 			EndIf 
-		Next		
+		EndIf 
 		
 		TextCtrl.AppendText("~n~n~n~n~n")	
 		TextCtrl.AppendText("If you are seeing this window after your game has ended Then Game Manager has failed To detect the game finishing properly. ~n" + ..
 		"Click 'Close PhotonRunner' to close GameManager, run any post-batch scripts set and unmount any game images if required.")
 		TextCtrl.AppendText("~n~n~n")
-		
-		Timer2.Start(3000)		
+
+		If RunnerButtonCloseOnly = False Then 
+			If GameNode.GameRunnerAlwaysOn = False Then 
+				Timer2.Start(3000)		
+			EndIf
+		EndIf
 	End Method
 	
 	Function ExtractEXEDir:String(Dir:String)
@@ -702,9 +718,9 @@ Type PowerPlanPluginType
 	Method ActivatePlugin(T:String)
 		Select T
 			Case "Start"
-				WinExec(StartCommand , 1)
+				RunProcess(StartCommand , 1)
 			Case "End"
-				WinExec(EndCommand , 1)
+				RunProcess(EndCommand , 1)
 		End Select 
 	End Method 
 End Type 
@@ -818,9 +834,9 @@ Type VideoPluginType
 		
 		Select WinBit
 			Case 64		
-				WinExec(  WinDir + "\sysnative\cmd.exe /C "+Chr(34)+ Replace(Self.Command , "[FILENAME]" , Chr(34)+VideoName(Self.GameName , Self.Format)+Chr(34))+Chr(34) , 1)
+				RunProcess(  WinDir + "\sysnative\cmd.exe /C "+Chr(34)+ Replace(Self.Command , "[FILENAME]" , Chr(34)+VideoName(Self.GameName , Self.Format)+Chr(34))+Chr(34) , 1)
 			Case 32
-				WinExec(  WinDir + "\system32\cmd.exe /C "+Chr(34)+ Replace(Self.Command , "[FILENAME]" , Chr(34)+VideoName(Self.GameName , Self.Format)+Chr(34))+Chr(34) , 1)
+				RunProcess(  WinDir + "\system32\cmd.exe /C "+Chr(34)+ Replace(Self.Command , "[FILENAME]" , Chr(34)+VideoName(Self.GameName , Self.Format)+Chr(34))+Chr(34) , 1)
 		End Select 			
 		PlaySound(Beep)
 	End Method
@@ -848,6 +864,9 @@ Function StripSteamProcesses:TList(ProcessList:TList)
 	ListRemove(ProcessList,"streaming_client.exe")
 	ListRemove(ProcessList,"x64launcher.exe")
 	ListRemove(ProcessList,"x86launcher.exe")
+	
+	'Fix for steam launching UPlay Games
+	ListRemove(ProcessList,"uplay.exe")	
 
 	Return ProcessList	
 End Function

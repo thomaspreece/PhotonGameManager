@@ -48,12 +48,6 @@ Type ExitType Extends GeneralType
 
 End Type
 
-?Win32
-Extern "Win32"
-	Function CloseHandle(hHandle)
-EndExtern
-?
-
 Function FlushJoy(port=0)
 
 	Pub.FreeJoy.JoyHit(JOY_BIGCOVER,port)

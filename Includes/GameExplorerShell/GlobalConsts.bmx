@@ -1,3 +1,7 @@
+Global RunnerButtonCloseOnly:Int = False 
+Global OriginWaitEnabled = True 
+
+
 Const GES_GL = 1001
 Const GES_PL = 1002
 Const GES_FTB = 1003
@@ -157,7 +161,7 @@ Global Heap32Next (entry:Byte Ptr) "Win32" = GetProcAddress (k32, "Heap32Next")
 Global Heap32ListFirst (snapshot, entry:Byte Ptr) "Win32" = GetProcAddress (k32, "Heap32ListFirst")
 Global Heap32ListNext (snapshot, entry:Byte Ptr) "Win32" = GetProcAddress (k32, "Heap32ListNext")
 Global Toolhelp32ReadProcessMemory (th32processid, baseaddress, buffer:Byte Ptr, Read_bytes, _bytesread) "Win32" = GetProcAddress (k32, "Toolhelp32ReadProcessMemory")
-Global CloseHandle (_Object) "Win32" = GetProcAddress (k32, "CloseHandle")
+'Global CloseHandle (_Object) "Win32" = GetProcAddress (k32, "CloseHandle")
 
 Global PE32List:TList = CreateList ()
 

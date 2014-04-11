@@ -762,6 +762,8 @@ Type GameType Extends GameReadType
 		RootNode.addTextChild("PostBatchFileWait" , Null , Self.PostBFWait)		
 		
 		RootNode.addTextChild("GameRunnerAlwaysOn" , Null , Self.GameRunnerAlwaysOn)
+		RootNode.addTextChild("StartWaitEnabled" , Null , Self.StartWaitEnabled)
+		
 
 		RootNode.addTextChild("Mounter" , Null , Self.Mounter)
 		RootNode.addTextChild("VDriveNum" , Null , Self.VDriveNum)
