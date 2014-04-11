@@ -791,6 +791,13 @@ Type GameType Extends GameReadType
 		Else
 			CustomRuntimeError("Error 42: OEXE arrays dont match in size") 'MARK: Error 42
 		EndIf
+		
+		If Self.WatchEXEs <> Null Then 
+			For WatchEXEString:String = EachIn Self.WatchEXEs
+				EXEnode.addTextChild("WatchEXEs" , Null , WatchEXEString)
+			Next
+		EndIf 
+		
 			
 		RootNode.addTextChild("Trailer" , Null , Self.Trailer)
 		'RootNode.addTextChild("TrailerURL" , Null , Self.TrailerURL)

@@ -45,6 +45,7 @@ Type RunnerWindow Extends wxFrame
 	Field ProgramStarted:Int = False
 	
 	Field SteamProcessList:TList 
+	Field ExtraWatchEXEs:TList 
 	
 	Field TextCtrl:wxTextCtrl
 	Field EndButton:wxButton
@@ -137,6 +138,16 @@ Type RunnerWindow Extends wxFrame
 				Else
 					Running = True 
 				EndIf 	
+				
+				If Running = False Then 
+					ProcessList = ListProcesses()
+					For Process:String = EachIn ProcessList
+						If ListContains(MainWin.ExtraWatchEXEs,Low(Process)) Then
+							Running = True 
+							Exit 
+						EndIf 
+					Next 
+				EndIf 
 				Rem
 				PrintF("Printing SubProcesses")
 				For a:String = EachIn SteamProcessList
@@ -149,9 +160,8 @@ Type RunnerWindow Extends wxFrame
 			Else
 				ProcessList = ListProcesses()
 				For Process:String = EachIn ProcessList
-					If Lower(Process) = Lower(MainWin.EXEOnly) Then
+					If Lower(Process) = Lower(MainWin.EXEOnly) Or ListContains(MainWin.ExtraWatchEXEs,Low(Process)) Then
 						Running = True
-						'PrintF("Running") 
 						Exit 
 					Else
 						Running = False 
@@ -167,8 +177,6 @@ Type RunnerWindow Extends wxFrame
 				TWinProc.GetProcesses()
 				p = TWinProc.Find("Steam.exe",TWinProc._list)
 				SteamProcessList:TList = p.kidsNames
-				
-				'SteamProcessList = ListChildProcesses("Steam.exe")	
 				SteamProcessList = StripSteamProcesses(SteamProcessList)		
 				If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
 					Delay 1000
@@ -181,25 +189,6 @@ Type RunnerWindow Extends wxFrame
 					PrintF("Finished Printing Subprocesses")
 				EndIf 						
 					
-				Rem
-				ProcessList = ListProcesses()
-				For Process:String = EachIn ProcessList
-					If Lower(Process) = "steam.exe" Then
-						SteamProcessList = ListChildProcesses(Process)	
-						SteamProcessList = StripSteamProcesses(SteamProcessList)		
-						If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
-							Delay 1000
-							MainWin.ProgramStarted = True
-							PrintF("Steam - ProgramStarted")
-							PrintF("Printing SubProcesses")
-							For a:String = EachIn SteamProcessList
-								PrintF(a)
-							Next 
-							PrintF("Finished Printing Subprocesses")
-						EndIf 						
-					EndIf 
-				Next
-				EndRem
 			EndIf 
 		EndIf
 
@@ -461,7 +450,7 @@ Type RunnerWindow Extends wxFrame
 					Exit
 				EndIf 
 			Next	
-		else
+		Else
 			If GameNode.StartWaitEnabled = True Then 
 				TextCtrl.AppendText("~n~n")	
 				TextCtrl.AppendText("Waiting for 30 seconds (Advanced setting for this game)~n")
@@ -501,6 +490,7 @@ Type RunnerWindow Extends wxFrame
 	End Function 
 
 	Method SetGame(GN:String , EN:Int)
+		ExtraWatchEXEs = CreateList()
 		EXENum = EN
 		GameNode = New GameReadType
 		GameNode.GetGame(GN)
@@ -602,16 +592,15 @@ Type RunnerWindow Extends wxFrame
 			Next 
 		EndIf
 		
-		Rem
-		'OLD CODE
-		EXEOnly = StripDir(Replace(RunEXE,Chr(34),""))
-		For a:Int = 1 To Len(EXEOnly)
-			If Mid(EXEOnly , a , 1) = " " Then
-				EXEOnly = Left(EXEOnly , a - 1)
-				Exit
+		For WatchEXEString:String = EachIn GameNode.WatchEXEs
+			If FileType(WatchEXEString)=1 Then
+				ListAddLast(Self.ExtraWatchEXEs,Low(StripDir(WatchEXEString)))
+			EndIf 
+			If FileType(WatchEXEString)=2 Then 
+				GetEXEsFromFolder(WatchEXEString,Self.ExtraWatchEXEs)
 			EndIf 
 		Next
-		EndRem
+		
 		
 		?Win32
 		ScreenShotPlugin = New ScreenShotPluginType
@@ -624,6 +613,11 @@ Type RunnerWindow Extends wxFrame
 		VideoPlugin.LoadPlugin(GN)		
 		?	
 		
+		Local WatchEXEPrintString:String = "WatchEXEList: "
+		For WatchEXEString:String = EachIn Self.ExtraWatchEXEs 
+			WatchEXEPrintString = WatchEXEPrintString + WatchEXEString + ", "
+		Next
+		
 		
 		PrintF("PhotonRunner Given Following Data")
 		PrintF("RunEXE: " + RunEXE)
@@ -632,11 +626,37 @@ Type RunnerWindow Extends wxFrame
 		PrintF("PostBatch: "+PostBatch)
 		PrintF("MountCommand: "+MountCommand)
 		PrintF("UnMountCommand: "+UnMountCommand)
+		PrintF(WatchEXEPrintString)
 		PrintF("---------------------------------")
+		
 		
 		Self.StartProgram()
 	End Method 
 End Type
+
+Function GetEXEsFromFolder(Folder:String,List:TList)
+	If Right(Folder,1)="\" Or Right(Folder,1)="/" Then
+		Folder = Left(Folder,Len(Folder)-1)
+	EndIf 
+	Local Dir = ReadDir(Folder)
+	Local File:String
+	
+	Repeat
+		File = NextFile(Dir)
+		If File="." Then Continue
+		If File=".." Then Continue
+		If File="" Then Exit
+		If FileType(Folder+FolderSlash+File)=1 Then
+			If ExtractExt(File)="exe" Then
+				ListAddLast(List,Lower(File))
+			EndIf 
+		EndIf 
+		If FileType(Folder+FolderSlash+File)=2 Then 
+			GetEXEsFromFolder(Folder+FolderSlash+File,List)
+		EndIf 
+	Forever
+	CloseDir(Dir)
+End Function
 
 Function Low:String(Text:String)
 	Return Lower(Text)

@@ -149,6 +149,9 @@ Const EGL_AM_UC = 268
 Const EGL_AM_ISOP = 269
 Const EGL_AM_ISOB = 270
 Const EGL_A_SWE = 271
+Const	EGL_A_AddF = 272
+Const	EGL_A_AddE = 273
+Const	EGL_A_Del = 274
 
 Const OA_PC = 300
 Const OA_SP = 301
@@ -262,7 +265,11 @@ Const AM_ET_Text:String = "Here you can setup the AutoMounter for this game. ~n"
 "Note: Changing 'Mounter Path' will change 'Mounter Path' for all games using this Mounter! ~n" +..
 "Note2: AutoMount is not loaded when executables other than the main game executable are run. ~n"
 
-Const A_ET_Text:String = "Here are some advanced options for this game ~n"
+Const A_ET_Text:String = "Here Are Some Advanced Options For This Game "
+Const A_ET_Text2:String = "PhotonRunner looks for which executables are running and will close when it cannot find the games main executable. " +..
+"This is no good when your game uses a Launcher because the launcher closes before starting the game and hence PhotonRunner thinks your game has closed. "+..
+"To fix this add executables to the below list and then PhotonRunner will not close until your main executable and all those specified in the list below have finished. ~n"+.. 
+"Use the folder button to add all the executables within the folder to the list. "
 
 Global ShowUselessNotifys = True
 Global ExtraKeyData:String = ""

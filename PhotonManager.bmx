@@ -368,7 +368,7 @@ Type MainWindow Extends wxFrame
 	Method ResetEditGameWindow()
 		EditGameListField.Destroy()
 		EditGameListField = Null 
-		EditGameListField = EditGameList(New EditGameList.Create(Self, wxID_ANY, "Games", , , 800, 600))	
+		EditGameListField = EditGameList(New EditGameList.Create(Self, wxID_ANY, "Games", , , 900, 600))	
 		EditGameListField.PopulateGameList()		
 		EditGameListField.Show(True)
 		EditGameListField.Raise()
@@ -403,7 +403,7 @@ Type MainWindow Extends wxFrame
 	Function ShowEditGameList(event:wxEvent)
 		Local MainWin:MainWindow = MainWindow(event.parent)
 		PrintF("----------------------------Show Edit Game List----------------------------")
-		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 800, 600))	
+		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 900, 600))	
 		MainWin.EditGameListField.PopulateGameList()		
 		MainWin.EditGameListField.Show(True)
 		MainWin.Hide()
