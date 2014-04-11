@@ -181,7 +181,7 @@ Function GetEnv$(envVar$)
 End Function
 
 ?Not Win32
-Function WinExec(lpCmdLine$ , nCmdShow , nWait = False )
+Function ShellExec(lpCmdLine$ , nCmdShow , nWait = False )
 	CustomRuntimeError("WinExec should not be run on this platform")
 End Function 
 ?
@@ -236,6 +236,7 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 			If Command2="" Or Command2=" " Then Command2=Null 
 			PrintF("Command1: "+Command1+" Command2: "+Command2)
 			ex.execute(Command1,Command2)
+			'ShellExec(Chr(34)+Command1+Chr(34),1)
 			ReturnedValue = 1
 		EndIf
 	EndIf 
@@ -485,12 +486,14 @@ Type GameReadType
 		
 	Field GameRunnerAlwaysOn:Int 
 	Field StartWaitEnabled:Int 
+	Field WatchEXEs:TList 
 	
 	Method NewGame()
 		IntialiseFanartLists()
 		Self.Genres = CreateList()	
 		Self.OEXEs = CreateList()
 		Self.OEXEsName = CreateList()
+		Self.WatchEXEs = CreateList()
 		Self.GameRunnerAlwaysOn = False 
 		Self.StartWaitEnabled = False 
 	End Method
@@ -616,9 +619,12 @@ Type GameReadType
 								Case "ExtraEXE"
 									ListAddLast(Self.OEXEs , node2.getText() )
 									ListAddLast(Self.OEXEsName , node2.getAttribute("name") )
+								Case "WatchEXEs"
+									ListAddLast(Self.WatchEXEs , node2.getText() )
 							End Select	 
 						Next
 					EndIf
+				
 				Case "ReleaseDate"
 					Self.ReleaseDate = node.getText()
 				Case "Certificate"

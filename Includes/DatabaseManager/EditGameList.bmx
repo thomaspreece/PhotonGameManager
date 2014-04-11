@@ -89,6 +89,7 @@ Type EditGameList Extends wxFrame
 	
 	Field A_RunnerON:wxComboBox
 	Field A_StartWaitEnabled:wxComboBox 
+	Field A_EXEList:wxListCtrl 
 	
 	Field BF_Pre_WTF:wxComboBox 
 	Field BF_Post_WTF:wxComboBox 
@@ -642,7 +643,12 @@ Type EditGameList Extends wxFrame
 		
 		Local AdvancedPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
 		Local AdvancedSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		'Local SL3:wxStaticLine = New wxStaticLine.Create(AdvancedPanel , wxID_ANY)
 		Local A_ET_ST:wxStaticText = New wxStaticText.CreateStaticText(AdvancedPanel , wxID_ANY , A_ET_Text , - 1 , - 1 , - 1 , - 1 ,wxALIGN_CENTER)				
+		
+	'	Local font:wxFont = A_ET_ST.GetFont();
+      ' 	font.SetWeight(wxFONTWEIGHT_BOLD);
+	'	A_ET_ST.SetFont(font)
 		
 		Local Asubhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
@@ -654,15 +660,42 @@ Type EditGameList Extends wxFrame
 		Local A_SWE_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "Wait 30 seconds after starting game before checking if it has closed? (this game only): " , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		A_StartWaitEnabled = New wxComboBox.Create(AdvancedPanel, EGL_A_SWE , "No" , ["Yes","No"] , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		
+		
+		Local Asubhbox3:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		
+		Local SL1:wxStaticLine = New wxStaticLine.Create(AdvancedPanel , wxID_ANY)
+		Local A_ET_ST2:wxStaticText = New wxStaticText.CreateStaticText(AdvancedPanel , wxID_ANY , A_ET_Text2 , - 1 , - 1 , - 1 , - 1 ,wxALIGN_LEFT)	
+		
+		A_EXEList = New wxListCtrl.Create(AdvancedPanel , EGL_A_EXEL , - 1 , - 1 , - 1 , - 1 , wxLC_REPORT|wxLC_EDIT_LABELS|wxLC_SORT_ASCENDING)
+		Local A_AddFolderButton:wxButton = New wxButton.Create(AdvancedPanel , EGL_A_AddF , "Add Folder")
+		Local A_AddExecutableButton:wxButton = New wxButton.Create(AdvancedPanel , EGL_A_AddE , "Add Executable")
+		Local A_DeleteButton:wxButton = New wxButton.Create(AdvancedPanel , EGL_A_Del , "Delete")
+
+
+		Connect(EGL_A_AddF , wxEVT_COMMAND_BUTTON_CLICKED , WEXEAddF)
+		Connect(EGL_A_AddE , wxEVT_COMMAND_BUTTON_CLICKED , WEXEAddE)
+		Connect(EGL_A_Del , wxEVT_COMMAND_BUTTON_CLICKED , WEXEDelete)
+		
+		
 		Asubhbox.Add(A_RAO_Text , 0 , wxEXPAND | wxALL , 4)
 		Asubhbox.Add(A_RunnerON , 1 , wxEXPAND | wxALL , 4)
 		
 		Asubhbox2.Add(A_SWE_Text , 0 , wxEXPAND | wxALL , 4)
 		Asubhbox2.Add(A_StartWaitEnabled , 1 , wxEXPAND | wxALL , 4)
 		
+		Asubhbox3.Add(A_AddFolderButton , 0 , wxEXPAND | wxALL , 4)
+		Asubhbox3.Add(A_AddExecutableButton , 1 , wxEXPAND | wxALL , 4)
+		Asubhbox3.Add(A_DeleteButton , 0 , wxEXPAND | wxALL , 4)				
+		
+
 		AdvancedSizer.Add(A_ET_ST , 0 , wxEXPAND | wxALL , 4)
 		AdvancedSizer.AddSizer(Asubhbox , 0 , wxEXPAND | wxALL , 4)
 		AdvancedSizer.AddSizer(Asubhbox2 , 0 , wxEXPAND | wxALL , 4)
+
+		AdvancedSizer.Add(SL1 , 0 , wxEXPAND | wxALL , 0)
+		AdvancedSizer.Add(A_ET_ST2 , 1 , wxEXPAND | wxALL , 4)
+		AdvancedSizer.Add(A_EXEList , 2 , wxEXPAND | wxALL , 4)
+		AdvancedSizer.AddSizer(Asubhbox3 , 0 , wxEXPAND | wxALL , 4)
 		AdvancedPanel.SetSizer(AdvancedSizer)	
 		
 		
@@ -682,7 +715,7 @@ Type EditGameList Extends wxFrame
 		GameNotebook.AddPage(AutoMountPanel , "AutoMount" )
 		AutoMountPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
 	
-		GameNotebook.AddPage(AdvancedPanel , "Advanced" )
+		GameNotebook.AddPage(AdvancedPanel , "Runner Options" )
 		AdvancedPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )	
 						
 		SubGamePanel2Vbox.Add(GameNotebook , 14 , wxEXPAND | wxALL , 2 )
@@ -1539,7 +1572,17 @@ EndRem
 
 			EGW.EEP_LC.SetColumnWidth(0 , 150)
 			EGW.EEP_LC.SetColumnWidth(1 , wxLIST_AUTOSIZE_USEHEADER)
-				
+			
+			EGW.A_EXEList.ClearAll()
+			EGW.A_EXEList.InsertColumn(0 , "Executable")
+			EGW.A_EXEList.SetColumnWidth(0 , wxLIST_AUTOSIZE_USEHEADER)
+			
+			Local WatchEXEsArray:Object[] = ListToArray(GameNode.WatchEXEs)
+			
+			For a = 0 To Len(WatchEXEsArray) - 1
+				EGW.A_EXEList.InsertStringItem(a  , String(WatchEXEsArray[a]) )
+			Next
+			
 			PrintF("Set Details into Details Pane")
 
 		EndIf
@@ -1741,6 +1784,26 @@ EndRem
 			ListAddLast(GameNode.OEXEsName , col1.GetText() )
 			ListAddLast(GameNode.OEXEs ,col2.GetText())			
 		Forever
+		
+		
+		GameNode.WatchEXEs = CreateList()
+		item = -1
+		Repeat
+			item = EGW.A_EXEList.GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_DONTCARE)
+		
+			If item = -1 Then Exit
+			
+			'Print "Item " + item + " is selected."
+			'Print EditGameWin.EEP_LC.GetItemText(item)
+			
+			col1 = New wxListItem.Create()
+			col1.SetId(item)
+			col1.SetColumn(0)
+			col1.SetMask(wxLIST_MASK_TEXT)
+					
+			EGW.A_EXEList.GetItem(col1)
+			ListAddLast(GameNode.WatchEXEs , col1.GetText() )	
+		Forever		
 		
 		BaseDir = StandardiseSlashes(BaseDir)
 		
@@ -2217,6 +2280,86 @@ EndRem
 		EditGameWin.BackBoxArt.Changed = True
 		EditGameWin.Refresh()
 		DataChangeUpdate(event)				
+	End Function
+	
+	Function WEXEAddF(event:wxEvent)
+		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		Local SelectedFile:String
+		'Local MessageBox:wxMessageDialog	
+		
+		
+		?Not Win32		
+		Local openFileDialog:wxDirDialog = New wxDirDialog.Create(EditGameWin, "Select Folder" , Null , wxDD_DIR_MUST_EXIST)	
+		If openFileDialog.ShowModal() = wxID_OK Then
+			SelectedFile = openFileDialog.GetPath()
+		EndIf	
+		?Win32
+		SelectedFile = RequestDir("Select Folder" , Null )
+		?
+
+		If SelectedFile="" Or SelectedFile=" " Then 
+		
+		Else		
+			?Win32
+			EditGameWin.A_EXEList.InsertStringItem( -1 , SelectedFile  )
+			?Not Win32
+			EditGameWin.A_EXEList.InsertStringItem( 0 , SelectedFile  )
+			?
+			DataChangeUpdate(event)
+		EndIf 
+	
+	End Function
+	
+	Function WEXEAddE(event:wxEvent)
+		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		Local SelectedFile:String	
+
+		?Not Win32		
+		Local openFileDialog:wxFileDialog = New wxFileDialog.Create(EditGameWin, "Choose executable" , Null , "" , "*.*")
+	
+		If openFileDialog.ShowModal() = wxID_OK Then
+			SelectedFile = openFileDialog.GetPath()
+		End If	
+		?Win32
+		SelectedFile = RequestFile( "Choose executable" , "All files (*.*): *"  , False , Null)
+		?
+		
+		If SelectedFile="" Or SelectedFile=" " Then 
+		
+		Else		
+			?Win32
+			EditGameWin.A_EXEList.InsertStringItem( -1 , SelectedFile  )
+			?Not Win32
+			EditGameWin.A_EXEList.InsertStringItem( 0 , SelectedFile  )
+			?
+			DataChangeUpdate(event)
+		EndIf 
+
+	
+	
+	End Function 
+	
+	Function WEXEDelete(event:wxEvent)
+		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		Local MessageBox:wxMessageDialog
+		
+		If EditGameWin.A_EXEList.GetSelectedItemCount() = 0 Then
+			PrintF("GameList Returned: -1")
+			MessageBox = New wxMessageDialog.Create(Null, "Please select an executable/folder to delete", "Info", wxOK)
+			MessageBox.ShowModal()
+			MessageBox.Free()		
+			Return 
+		EndIf
+		
+		Local item = -1
+		Repeat
+			item = EditGameWin.A_EXEList.GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED)
+		
+			If item = -1 Then Exit
+			
+			EditGameWin.A_EXEList.DeleteItem(item)
+			DataChangeUpdate(event)			
+		Forever
 	End Function
 	
 	Function EEXEAdd(event:wxEvent)
