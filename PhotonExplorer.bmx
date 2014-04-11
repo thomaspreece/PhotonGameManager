@@ -241,7 +241,7 @@ EndIf
 SettingFile.CloseFile()
 Print "Close"
 If CmdLineGameName <> "" Then 
-	WinExec("FrontEnd.exe",1)
+	RunProcess("FrontEnd.exe",1)
 EndIf 
 End
 
@@ -1342,7 +1342,7 @@ Type GameExplorerFrame Extends wxFrame
 		EndIf
 		'GameName = 
 		PrintF("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Patch.URL+Chr(34)+" -DownloadType PScrolls -DownloadName "+Chr(34)+Patch.Name+Chr(34))
-		WinExec("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Patch.URL+Chr(34)+" -DownloadType PScrolls -DownloadName "+Chr(34)+Patch.Name+Chr(34) , 1)
+		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Patch.URL+Chr(34)+" -DownloadType PScrolls -DownloadName "+Chr(34)+Patch.Name+Chr(34) , 1)
 		
 	End Function
 
@@ -1364,7 +1364,7 @@ Type GameExplorerFrame Extends wxFrame
 			Next			
 		EndIf
 		Print "PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Cheat.URL+Chr(34)+" -DownloadType GFAQs-Cheat -DownloadName "+Chr(34)+Cheat.Name+Chr(34)
-		WinExec("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Cheat.URL+Chr(34)+" -DownloadType GFAQs-Cheat -DownloadName "+Chr(34)+Cheat.Name+Chr(34) , 1)
+		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Cheat.URL+Chr(34)+" -DownloadType GFAQs-Cheat -DownloadName "+Chr(34)+Cheat.Name+Chr(34) , 1)
 		
 	End Function
 
@@ -1386,7 +1386,7 @@ Type GameExplorerFrame Extends wxFrame
 			Next			
 		EndIf
 		Print "PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Walk.URL+Chr(34)+" -DownloadType GFAQs -DownloadName "+Chr(34)+Walk.Name+Chr(34)
-		WinExec("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Walk.URL+Chr(34)+" -DownloadType GFAQs -DownloadName "+Chr(34)+Walk.Name+Chr(34) , 1)
+		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Walk.URL+Chr(34)+" -DownloadType GFAQs -DownloadName "+Chr(34)+Walk.Name+Chr(34) , 1)
 		
 	End Function
 
@@ -1412,7 +1412,7 @@ Type GameExplorerFrame Extends wxFrame
 		EndIf
 		'GameName = 
 		Print "PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Manual.URL+Chr(34)+" -DownloadType PDocs -DownloadName "+Chr(34)+Manual.Name+Chr(34)
-		WinExec("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Manual.URL+Chr(34)+" -DownloadType RDocs -DownloadName "+Chr(34)+Manual.Name+Chr(34) , 1)
+		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Manual.URL+Chr(34)+" -DownloadType RDocs -DownloadName "+Chr(34)+Manual.Name+Chr(34) , 1)
 		
 	End Function
 
@@ -3430,6 +3430,12 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("Cabinate") <> "" Then	
 		CabinateEnable = Int(ReadSettings.GetSetting("Cabinate"))
 	EndIf 
+	If ReadSettings.GetSetting("RunnerButtonCloseOnly") <> "" Then	
+		RunnerButtonCloseOnly = Int(ReadSettings.GetSetting("RunnerButtonCloseOnly"))
+	EndIf 
+	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" Then	
+		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled"))
+	EndIf 			
 	ReadSettings.CloseFile()
 End Function
 

@@ -13,6 +13,8 @@ Global GAMECACHELIMIT:Int = 10
 Global LowMemory:Int = 0
 Global LowProcessor:Int = 0
 Global TouchKeyboardEnabled:Int = True 
+Global RunnerButtonCloseOnly:Int = False 
+Global OriginWaitEnabled = True 
 	
 
 Global EditGameName:String = ""
@@ -66,6 +68,7 @@ Const EGL_DP_TB = 106
 Const EGL_A_RAO = 107
 Const EGL_PreBF_WTF = 108
 Const EGL_PostBF_WTF = 109
+
 
 Const MI_CBL = 83
 Const MI_SA = 84
@@ -145,6 +148,7 @@ Const EGL_AM_VDC = 267
 Const EGL_AM_UC = 268
 Const EGL_AM_ISOP = 269
 Const EGL_AM_ISOB = 270
+Const EGL_A_SWE = 271
 
 Const OA_PC = 300
 Const OA_SP = 301
@@ -189,13 +193,15 @@ Const SW_LP = 510
 Const SW_TK = 511
 Const SW_SID = 512
 Const SW_SIDG = 513
-Const SW_C = 514
-Const SW_OP = 513
-Const SW_ODB = 514
-Const SW_KI = 515
-Const SW_JI = 516
-Const SW_OA1 = 517
-Const SW_OA2 = 518
+Const SW_C = 514 
+Const SW_OP = 515 
+Const SW_ODB = 516 
+Const SW_KI = 517
+Const SW_JI = 518
+Const SW_OA1 = 519
+Const SW_OA2 = 520
+Const SW_OW = 521
+Const SW_BCO = 522
 
 Const PW_BB = 600
 Const PW_OB = 601

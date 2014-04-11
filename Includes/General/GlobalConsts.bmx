@@ -1,3 +1,8 @@
+'Used in ShellExecute / Downloaders Version of ShellExecute
+Const SEE_MASK_NOCLOSEPROCESS = $00000040
+Const INFINITE = $FFFFFFFF
+'
+
 If FolderSlash = "/" Or FolderSlash = "\" Then
 	
 Else

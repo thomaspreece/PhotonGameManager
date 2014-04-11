@@ -1082,7 +1082,7 @@ Type PluginsWindow Extends wxFrame
 				ReadSettings.CloseFile()
 				If Configure = "" Then
 					'Print CurrentDir()+APPFOLDER + String(PluginTypeArray[a]) + "\" + wxComboBox(PluginNameArray[a]).GetValue() +"\PM-CONFIG.xml"
-					WinExec("Notepad.exe "+CurrentDir()+FolderSlash+APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() +FolderSlash+"PM-CONFIG.xml" , 1)
+					RunProcess("Notepad.exe "+CurrentDir()+FolderSlash+APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() +FolderSlash+"PM-CONFIG.xml" , 1)
 				ElseIf Configure = "Internal"
 					'Load internal configure
 					Select String(PluginTypeArray[a])
@@ -1095,7 +1095,7 @@ Type PluginsWindow Extends wxFrame
 					End Select 
 				Else
 					Configure = Replace(Configure,"[CURRENTDIR]",APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue())
-					WinExec(Configure,1)
+					RunProcess(Configure,1)
 				EndIf 
 				
 				Exit 
@@ -1157,6 +1157,8 @@ Type SettingsWindow Extends wxFrame
 	Field SW_GameCache:wxTextCtrl 
 	Field SW_TouchKey:wxComboBox
 	Field SW_OverridePath:wxTextCtrl 
+	Field SW_ButtonCloseOnly:wxComboBox
+	Field SW_OriginWait:wxComboBox
 	
 	Field KeyboardInputField:KeyboardInputWindow
 	Field JoyStickInputField:JoyStickInputWindow
@@ -1166,7 +1168,8 @@ Type SettingsWindow Extends wxFrame
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		
-		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(Self , wxID_ANY )
+		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(Self , wxID_ANY , -1, -1, -1 ,-1 ,wxHSCROLL)
+		
 		ScrollBox.SetScrollRate(20,20)
 		Local ScrollBoxvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		'------------------------------------------------------------------------------------
@@ -1275,7 +1278,12 @@ Type SettingsWindow Extends wxFrame
 		SW_Runner = New wxComboBox.Create(ScrollBox , SW_R , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		Local ST12 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Enable Cabinet Mode: (After Runner closed Explorer or Frontend will load back up)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 		SW_Cabinate = New wxComboBox.Create(ScrollBox , SW_C , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )						
-		
+
+		Local ST15 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Photon Runner only closes when you click close button (All Games)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_ButtonCloseOnly = New wxComboBox.Create(ScrollBox , SW_BCO , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
+	
+		Local ST14 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Enable Origin 30 second wait: (Waits 30 seconds when it detects Origin to allow game to load before PhotonRunner looks to see if game process is still running)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_OriginWait = New wxComboBox.Create(ScrollBox , SW_OW , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		
 				
 		Local wid:Int , hei:Int , dep:Int , hert:Int
@@ -1323,6 +1331,18 @@ Type SettingsWindow Extends wxFrame
 			SW_TouchKey.SetValue("No")
 		EndIf 		
 		
+		If RunnerButtonCloseOnly = 1 Then 
+			SW_ButtonCloseOnly.SetValue("Yes")
+		Else
+			SW_ButtonCloseOnly.SetValue("No")
+		EndIf 
+		
+		If OriginWaitEnabled = 1 Then 
+			SW_OriginWait.SetValue("Yes")
+		Else
+			SW_OriginWait.SetValue("No")
+		EndIf 		
+				
 		ScrollBoxvbox.Add(SL1,  0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SLT1,  0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SL2 , 0 , wxEXPAND | wxALL , 4)
@@ -1381,6 +1401,14 @@ Type SettingsWindow Extends wxFrame
 		ScrollBoxvbox.Add(SW_Runner , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(ST12 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SW_Cabinate , 0 , wxEXPAND | wxALL , 4)		
+		
+		ScrollBoxvbox.Add(ST15 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(SW_ButtonCloseOnly , 0 , wxEXPAND | wxALL , 4)	
+		
+		ScrollBoxvbox.Add(ST14 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(SW_OriginWait , 0 , wxEXPAND | wxALL , 4)	
+		
+					
 		ScrollBoxvbox.AddSpacer(50)
 		
 		ScrollBox.SetSizer(ScrollBoxvbox)
@@ -1614,6 +1642,19 @@ Type SettingsWindow Extends wxFrame
 			WriteLine(tempwrite,SW_OverridePath.GetValue())
 			CloseFile(tempwrite)
 		EndIf 
+		
+		If SW_ButtonCloseOnly.GetValue() = "Yes"
+			RunnerButtonCloseOnly = 1
+		Else
+			RunnerButtonCloseOnly = 0
+		EndIf 
+			
+		If SW_OriginWait.GetValue() = "Yes"
+			OriginWaitEnabled = 1
+		Else
+			OriginWaitEnabled = 0
+		EndIf 	
+		
 			
 		
 		SaveGlobalSettings()
@@ -2224,6 +2265,12 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("Cabinate") <> "" Then	
 		CabinateEnable = Int(ReadSettings.GetSetting("Cabinate"))
 	EndIf 		
+	If ReadSettings.GetSetting("RunnerButtonCloseOnly") <> "" Then	
+		RunnerButtonCloseOnly = Int(ReadSettings.GetSetting("RunnerButtonCloseOnly"))
+	EndIf 	
+	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" Then	
+		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled"))
+	EndIf 	
 	If ReadSettings.GetSetting("GameCache") <> "" Then	
 		GAMECACHELIMIT = Int(ReadSettings.GetSetting("GameCache"))
 	EndIf 	
@@ -2249,27 +2296,31 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("PGMOff" , PerminantPGMOff)
 	SaveSettings.SaveSetting("SilentRunOff" , SilentRunnerEnabled)
 	SaveSettings.SaveSetting("Cabinate" , CabinateEnable)	
+	SaveSettings.SaveSetting("RunnerButtonCloseOnly" , RunnerButtonCloseOnly)	
+	SaveSettings.SaveSetting("OriginWaitEnabled" , OriginWaitEnabled)	
 	SaveSettings.SaveSetting("GraphicsWidth" , GraphicsW)
 	SaveSettings.SaveSetting("GraphicsHeight" , GraphicsH)
 	SaveSettings.SaveSetting("GraphicsMode" , GMode)
 	SaveSettings.SaveSetting("GameCache" , GAMECACHELIMIT)
 	SaveSettings.SaveSetting("LowMem" , LowMemory)
 	SaveSettings.SaveSetting("LowProc" , LowProcessor)
-	SaveSettings.SaveSetting("TouchKey" , TouchKeyboardEnabled)
+	SaveSettings.SaveSetting("TouchKey" , TouchKeyboardEnabled)	
 	
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()
 	
 End Function
 
+Rem
 Function RestartProgram()
 	If Debug = True Then
-		WinExec("RestartManager-Debug.bat" , 1)
+		RunProcess("RestartManager-Debug.bat" , 1)
 	Else
-		WinExec("RestartManager.bat" , 1)
+		RunProcess("RestartManager.bat" , 1)
 	EndIf
 
 End Function
+EndRem
 		
 Include "Includes\DatabaseManager\GameExplorerExtract.bmx"
 Include "Includes\DatabaseManager\SteamExtract.bmx"
@@ -2280,7 +2331,4 @@ Include "Includes\DatabaseManager\Games.bmx"
 Include "Includes\DatabaseManager\PluginConfigs.bmx"
 Include "Includes\DatabaseManager\InputSettings.bmx"
 
-Extern "Win32"
-	Function CloseHandle(hHandle)
-EndExtern
 

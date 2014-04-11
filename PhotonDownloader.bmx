@@ -904,9 +904,9 @@ Function CreateFolder(Folder:String)
 	EndIf
 End Function
 
+
 ?Win32
-Const SEE_MASK_NOCLOSEPROCESS = $00000040
-Const INFINITE = $FFFFFFFF
+
 
 Extern"Win32"
 	Function CoInitialize(pvReserved)

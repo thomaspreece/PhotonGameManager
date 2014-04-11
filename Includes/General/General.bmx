@@ -1,34 +1,38 @@
 
 ?Win32
 Extern "win32"
-	Function EnumWindows(lpEnumFunc:Byte Ptr ,lParam )
+	
+	'Function EnumWindows(lpEnumFunc:Byte Ptr ,lParam )
 	'Function WinExec(lpCmdLine$z , nCmdShow)
 	Function GetEnvironmentVariable(lpName$z, lpBuffer:Byte Ptr, nSize) = "GetEnvironmentVariableA@12"
+
+	'Used to bring Windows to the front
 	Function SetForegroundWindow(hWnd:Int)
 	Function SetActiveWindow(hWnd:Int)
 	Function BringWindowToTop(hWnd:Int)
 
+	'Used to hook into currently active thread
 	Function GetCurrentThreadId()
 	Function GetWindowThreadProcessId(hwnd:Int,lpdwProcessId:Byte Ptr)
 	Function GetForegroundWindow()
 	Function AttachThreadInput(Thread1:Int,Thread2:Int,Attached:Int)
 	Function AllowSetForegroundWindow(dwProcessId:Int)
-End Extern
-?
-'Import "-lole32"
-'CoInitialize(0) 'Just in case COM is needed by the other App?
-
-Const SEE_MASK_NOCLOSEPROCESS = $00000040
-Const INFINITE = $FFFFFFFF
-
-?Win32
-Extern"Win32"
+	
+	'Used in ShellExecute
 	Function CoInitialize(pvReserved)
 	Function GetLastError()
 	Function ShellExecuteEx(pExecInfo:Byte Ptr)
 	Function WaitForSingleObject(hHandle,dwMilliseconds)
-	'Function CloseHandle(hHandle)
-EndExtern
+	Function CloseHandle(hHandle) 'Also used in ProcessManager, PhotonManager
+	
+	'Used in TExecuter
+	Function Win32CreateProcess (  lpApplicationName$z, lpCommandLine$z, ..
+                           lpProcessAttributes, lpThreadAttributes, ..
+						   bInheritHandles, dwCreationFlags, lpEnvironment, ..
+						   lpCurrentDirectory$z, lpStartupInfo:Byte Ptr, ..
+						   lpProcessInformation:Byte Ptr ) "WIN32" = "CreateProcessA@40"
+		
+End Extern
 
 
 Type SHELLEXECUTEINFO
@@ -49,7 +53,7 @@ Type SHELLEXECUTEINFO
 	Field hProcess
 EndType
 
-Function WinExec(lpCmdLine$ , nCmdShow , nWait = False )
+Function ShellExec(lpCmdLine$ , nCmdShow , nWait = False )
 	'If lpCmdLine = "" Or lpCmdLine = Null Or lpCmdLine = " " Then Return 
 	
 	Local ShExecInfo:SHELLEXECUTEINFO = New SHELLEXECUTEINFO
@@ -114,34 +118,20 @@ Function WinExec(lpCmdLine$ , nCmdShow , nWait = False )
 	EndIf
 End Function 
 
-
-
-Extern "Win32"
-
-	Function Win32CreateProcess (  lpApplicationName$z, lpCommandLine$z, ..
-	                           lpProcessAttributes, lpThreadAttributes, ..
-							   bInheritHandles, dwCreationFlags, lpEnvironment, ..
-							   lpCurrentDirectory$z, lpStartupInfo:Byte Ptr, ..
-							   lpProcessInformation:Byte Ptr ) "WIN32" = "CreateProcessA@40"
-							
-						
-End Extern 
-
-
 Type StartUpInfo
-Field cb:Int
-Field lpReserved:Byte Ptr, lpDesktop:Byte Ptr, lpTitle:Byte Ptr 'Pointer
-Field dwX:Int, dwY:Int, dwXSize:Int, dwYSize:Int
-Field dwXCountChars:Int, dwYCountChars:Int
-Field dwFillAttribute:Int, dwFlags:Int
-Field wShowWindow:Short, cbReserved2:Short
-Field lpReserved2:Byte Ptr 'PBYTE
-Field hStdInput:Byte Ptr, hStdOutput:Byte Ptr, hStdError:Byte Ptr
+	Field cb:Int
+	Field lpReserved:Byte Ptr, lpDesktop:Byte Ptr, lpTitle:Byte Ptr 'Pointer
+	Field dwX:Int, dwY:Int, dwXSize:Int, dwYSize:Int
+	Field dwXCountChars:Int, dwYCountChars:Int
+	Field dwFillAttribute:Int, dwFlags:Int
+	Field wShowWindow:Short, cbReserved2:Short
+	Field lpReserved2:Byte Ptr 'PBYTE
+	Field hStdInput:Byte Ptr, hStdOutput:Byte Ptr, hStdError:Byte Ptr
 End Type
 
 Type ProcessInformation
-Field hProcess:Int, hThread:Int
-Field dwProcessId:Byte Ptr, dwThreadId:Byte Ptr
+	Field hProcess:Int, hThread:Int
+	Field dwProcessId:Byte Ptr, dwThreadId:Byte Ptr
 End Type
 
 Type TExecuter 
@@ -170,18 +160,13 @@ Type TExecuter
 	Method Execute (Proc:String,CommandLine:String)
 		Local res:Int
 		Local appname:String
-		StartInf.dwFlags= 32
 		res = Win32CreateProcess (Proc, CommandLine, Null,Null,False,Null,Null,Null,StartInf, ProInf)
 		
 		lasterror = GetLastError()
-		Return(res)
+		Return(lasterror)
 	End Method
 	
 End Type
-
-
-
-
 
 Function GetEnv$(envVar$)
 		Local buff@[64]
@@ -197,23 +182,21 @@ End Function
 
 ?Not Win32
 Function WinExec(lpCmdLine$ , nCmdShow , nWait = False )
-	Return
+	CustomRuntimeError("WinExec should not be run on this platform")
 End Function 
-
 ?
 
-Function WindowsRunProcess:Int(Command:String,Program:String)
+Function PhotonSuiteRunProcess:Int(Command:String,Program:String)
 	Local cmdOpts:String
 	If Left(Command,Len(Program))=Program Then 
 		PrintF(Program)
 		cmdOpts=Right(Command,Len(Command)-Len(Program))
 		PrintF("cmdOpts: "+cmdOpts)
-		WinExec(Chr(34)+Program+Chr(34)+cmdOpts,1)
+		ShellExec(Chr(34)+Program+Chr(34)+cmdOpts,1)
 		Return 1
 	Else
 		Return 0		
 	EndIf 
-
 End Function 
 
 Function RunProcess:TProcess(Command:String,Detach:Int = 0)
@@ -232,11 +215,11 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 	'BUG: My Programs Crash and others Using CreateProcess on Windows, No Idea Why...
 	?Win32
 	If Detach = 1 Then 
-		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, FRONTENDPROGRAM)
-		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, MANAGERPROGRAM)
-		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, EXPLORERPROGRAM)
-		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, DOWNLOADERPROGRAM)
-		ReturnedValue = ReturnedValue + WindowsRunProcess(Command, UPDATEPROGRAM)
+		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, FRONTENDPROGRAM)
+		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, MANAGERPROGRAM)
+		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, EXPLORERPROGRAM)
+		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, DOWNLOADERPROGRAM)
+		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, UPDATEPROGRAM)
 		If ReturnedValue = 0 Then 
 			Local Ex:TExecuter = New TExecuter
 			If Left(Command,1)=Chr(34) Then
@@ -250,8 +233,8 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 			Else
 			
 			EndIf 			
-			
-			
+			If Command2="" Or Command2=" " Then Command2=Null 
+			PrintF("Command1: "+Command1+" Command2: "+Command2)
 			ex.execute(Command1,Command2)
 			ReturnedValue = 1
 		EndIf
@@ -270,15 +253,10 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 		Else			
 			If Detach = 1 Then ProcessDetach(Process)
 		EndIf 
+		Return Process
 	Else
 		PrintF("WinExec/TExecuter Used")
 	EndIf 
-	
-	
-	
-	Return Process	
-	
-	
 End Function
 
 Function IsntNull(a:String)
@@ -506,6 +484,7 @@ Type GameReadType
 	Field PostBFWait:Int 
 		
 	Field GameRunnerAlwaysOn:Int 
+	Field StartWaitEnabled:Int 
 	
 	Method NewGame()
 		IntialiseFanartLists()
@@ -513,6 +492,7 @@ Type GameReadType
 		Self.OEXEs = CreateList()
 		Self.OEXEsName = CreateList()
 		Self.GameRunnerAlwaysOn = False 
+		Self.StartWaitEnabled = False 
 	End Method
 	
 	Method IntialiseFanartLists()
@@ -587,8 +567,10 @@ Type GameReadType
 					Self.PreBFWait = Int(node.getText())
 				Case "PostBatchFileWait"
 					Self.PostBFWait = Int(node.getText())
+				Case "StartWaitEnabled"
+					Self.StartWaitEnabled = Int(node.getText())
 				Case "GameRunnerAlwaysOn"
-					Self.GameRunnerAlwaysOn = Int(node.getText())
+					Self.GameRunnerAlwaysOn = Int(node.getText())					
 				Case "Mounter"
 					Self.Mounter = node.getText()
 				Case "VDriveNum"
