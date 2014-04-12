@@ -369,15 +369,15 @@ Type MenuWrapperType Extends GeneralType
 				End Select
 				CurrentInterface.Clear()
 				PopulateGames()
-				ChangeInterface(CurrentInterfaceNumber , False)				
+				ChangeInterface(CurrentInterfaceNumber , False, False)				
 				Return True
 			Else
-				ChangeInterface(0)
+				ChangeInterface(0, True , False )
 				Return True 
 			EndIf 
 		EndIf
 		If FilterNameSelected = True And MouseClick = 1 Then
-			ChangeInterface(0)
+			ChangeInterface(0, True , False )
 			Return True 
 		EndIf		
 		
@@ -406,7 +406,7 @@ Type MenuWrapperType Extends GeneralType
 						Case 1 'PlayGame
 							Menu2.ActiveMenu = "PlayGame"
 						Case 2 'Filter
-							ChangeInterface(0)
+							ChangeInterface(0, True , False )
 							MenuActive = False
 						Case 3 'Extras
 							Menu2.ActiveMenu = "Extras"
@@ -546,7 +546,7 @@ Type MenuWrapperType Extends GeneralType
 							Case 5 'Filters
 								Select Menu1.Columns[Menu1.SelectedMenu].SelectedItem
 									Case 0 'Select Filter
-										ChangeInterface(0)
+										ChangeInterface(0, True , False )
 										MenuActive = False								
 									Case 1 'Search Term
 										MenuActive = False								
@@ -811,7 +811,7 @@ Type MenuWrapperType Extends GeneralType
 						Case 5 'Filters
 							Select Menu1.Columns[Menu1.SelectedMenu].SelectedItem
 								Case 0 'Select Filter
-									ChangeInterface(0)
+									ChangeInterface(0, True , False )
 									MenuActive = False								
 								Case 1 'Search Term
 									MenuActive = False								
@@ -1617,7 +1617,7 @@ Function GetNextPlatform()
 			SelectNext = 1
 		EndIf 
 	Next
-	ChangeInterface(0) 'Resets filters & Changes to menu interface temperourily
+	ChangeInterface(0, True , False ) 'Resets filters & Changes to menu interface temperourily
 	If SelectNext = 1 Then
 		PrintF("SelectNext - All Games")
 		FilterType = "All Games"
@@ -1645,7 +1645,7 @@ Function GetNextPlatform()
 	EndIf
 	
 	PopulateGames()
-	ChangeInterface(CurrentInterfaceNumber)
+	ChangeInterface(CurrentInterfaceNumber, True , False )
 End Function
 
 

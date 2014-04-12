@@ -278,7 +278,6 @@ Type TWinProc
 	Field szExeFile:String
 
 	Field kids:TList = New TList
-	Field KidsNames:TList = New TList 
 
 	Method New()
 		_list.AddLast Self
@@ -374,7 +373,6 @@ Type TWinProc
 			If p <> q
 				If p.th32ProcessID = q.th32ParentProcessID
 					p.kids.AddLast q
-					p.kidsNames.AddLast q.szExeFile
 					_list.Remove q
 					ArrangeProcess(q)
 				EndIf

@@ -455,7 +455,15 @@ Repeat
 		Text 100,  50 , GCMemAlloced()
 		Text 100,  60 , bb
 		'Text 100 , 50 , GWidth * (Float(780) / 800)
+		LockMutex(TTexture.Mutex_UsedSpace)
+		Text 100 , 70 , Int(TTexture.UsedSpace)/1000000
+		UnlockMutex(TTexture.Mutex_UsedSpace)
 		?
+		
+		LockMutex(TTexture.Mutex_UsedSpace)
+		Text 100 , 70 , (Int(TTexture.UsedSpace)/1000000) + 100
+		UnlockMutex(TTexture.Mutex_UsedSpace)
+		
 	BeginMax2D()
 		
 	'MARK: Max2D stuff
@@ -481,6 +489,7 @@ Repeat
 	tempWriteLog("MT: P2")
 	FrameLimiter()
 	RenderLimiter()
+	MemoryLimiter()
 	tempWriteLog("MT: P3")
 	
 	If MouseDown(1) Then
@@ -683,12 +692,34 @@ Function ResetFilters()
 	GamesSortFilter = "" 		
 End Function
 
-Function ChangeInterface(Number:Int,Clear:Int = True)
+Function ChangeInterface(Number:Int,Clear:Int = True, ClearAllTextures:Int = True )
 	FlushKeys()
 	FlushMouse()
 	FlushJoy()
+	Local Tex:TTexture
+	Local File:String 
+	
 	If Clear = True Then 
 		CurrentInterface.Clear()
+	EndIf	
+	
+	If ClearAllTextures = True Then 
+		'Clear out all textures 
+		LockMutex(TTexture.Mutex_tex_list)
+		For Tex = EachIn TTexture.tex_list
+			File = Tex.file
+			If Left(File , Len(GAMEDATAFOLDER) ) = GAMEDATAFOLDER Then			
+				ListRemove(TTexture.tex_list , Tex)
+				ListRemove(ProcessedTextures , File)
+				PrintF("Freed: "+File)
+				FreeTexture(Tex)
+				Tex = Null		
+			EndIf 
+		Next 
+		UnlockMutex(TTexture.Mutex_tex_list)
+		LockMutex(TTexture.Mutex_UsedSpace)
+		TTexture.UsedSpace = 0
+		UnlockMutex(TTexture.Mutex_UsedSpace)		
 	EndIf 
 	Select Number
 		Case 6
