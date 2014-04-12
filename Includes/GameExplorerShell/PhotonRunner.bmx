@@ -130,8 +130,11 @@ Type RunnerWindow Extends wxFrame
 			If Lower(MainWin.EXEOnly) = "steam.exe" Then
 				TWinProc.GetProcesses()
 				p = TWinProc.Find("Steam.exe",TWinProc._list)
-				SteamProcessList:TList = p.kidsNames				
-				'SteamProcessList = ListChildProcesses("Steam.exe")			
+				
+				SteamProcessList = CreateList()
+				GetSteamProcesses(p,SteamProcessList)
+				'SteamProcessList = p.kidsNames	
+					
 				SteamProcessList = StripSteamProcesses(SteamProcessList)		
 				If SteamProcessList = Null Or SteamProcessList.Count() < 1 Then
 					Running = False
@@ -176,7 +179,9 @@ Type RunnerWindow Extends wxFrame
 			If Lower(MainWin.EXEOnly) = "steam.exe" Then
 				TWinProc.GetProcesses()
 				p = TWinProc.Find("Steam.exe",TWinProc._list)
-				SteamProcessList:TList = p.kidsNames
+				SteamProcessList = CreateList()
+				GetSteamProcesses(p,SteamProcessList)				
+				'SteamProcessList:TList = p.kidsNames
 				SteamProcessList = StripSteamProcesses(SteamProcessList)		
 				If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
 					Delay 1000
@@ -300,14 +305,21 @@ Type RunnerWindow Extends wxFrame
 	Method StartProgram()
 		TextCtrl.Clear()
 		TextCtrl.AppendText("Loading...~n")
+		If RunnerButtonCloseOnly = True Then 
+			PrintF("Always ON Active (Global)")
+			TextCtrl.AppendText("Auto Detect Game Closing: OFF (Global):~n")
+		EndIf
+		If GameNode.GameRunnerAlwaysOn = True 
+			PrintF("Always ON Active (This Game Only)")
+			TextCtrl.AppendText("Auto Detect Game Closing: OFF (This Game Only):~n")
+		EndIf
 		EndButton.Disable()
 		PhotonRunnerApp.Yield()	
+		
+		
 	
 		Local Process:TProcess
 		PrintF("StartProgram")
-		If GameNode.GameRunnerAlwaysOn = True Then 
-			PrintF("Always ON Active")
-		EndIf 
 		Local CDir:String = StandardSlashes(CurrentDir())
 		PrintF("CWD: "+CDir)
 		
@@ -592,6 +604,8 @@ Type RunnerWindow Extends wxFrame
 			Next 
 		EndIf
 		
+		
+		
 		For WatchEXEString:String = EachIn GameNode.WatchEXEs
 			If FileType(WatchEXEString)=1 Then
 				ListAddLast(Self.ExtraWatchEXEs,Low(StripDir(WatchEXEString)))
@@ -874,6 +888,18 @@ Type VideoPluginType
 	End Function	
 End Type 
 
+Function GetSteamProcesses(p:TWinProc,List:TList)
+	'Get all child processes of p and put them into List. This includes children of child processes etc.
+	Local a:TWinProc
+	If p.kids <> Null And CountList(p.kids) <> 0 Then 
+		For a:TWinProc = EachIn p.kids
+			ListAddLast(List,a.szExeFile)
+			If a.kids <> Null And CountList(a.kids) <> 0 Then
+				GetSteamProcesses(a,List)
+			EndIf 
+		Next
+	EndIf 
+End Function 
 
 Function StripSteamProcesses:TList(ProcessList:TList)
 	ListRemove(ProcessList,"GameOverlayUI.exe")

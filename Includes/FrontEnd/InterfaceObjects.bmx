@@ -104,7 +104,7 @@ Type CoverWallType
 			MouseSwipe = 0
 			PrintF("You swiped mouse, X:" + String(MouseEnd[0] - MouseStart[0]) + " T:" + MouseSwipeTime)
 			If CurrentGamePos = GameArrayLen - 1 Or CurrentGamePos = 0 Then DoNotStopSwipe = True 
-			CurrentGamePos = CurrentGamePos + Int( ( ( (Float(MouseEnd[0] - MouseStart[0]) * 10) / 1000) * GWidth	) / MouseSwipeTime)
+			CurrentGamePos = CurrentGamePos + Int( ( ( (Float(MouseEnd[0] - MouseStart[0]) * 10) / GWidth) * 1000	) / MouseSwipeTime)
 			If DoNotStopSwipe = False Then
 				If CurrentGamePos > GameArrayLen - 1 Then CurrentGamePos = GameArrayLen - 1
 				If CurrentGamePos < 0 Then CurrentGamePos = 0
@@ -115,7 +115,7 @@ Type CoverWallType
 			Return True 
 		ElseIf MouseSwipe = 2 Then
 			MouseSwipe = 3
-			CurrentGamePos = CurrentGamePos + Int(((Float(MouseX()-(GWidth/2))/ 800)*GWidth) / 75)
+			CurrentGamePos = CurrentGamePos + Int((Float(MouseX()-(GWidth/2))/ GWidth) * 6)
 			
 			If CurrentGamePos > GameArrayLen - 1 Then CurrentGamePos = GameArrayLen - 1
 			If CurrentGamePos < 0 Then CurrentGamePos = 0		
@@ -748,7 +748,7 @@ Type CoverFlowType
 			MouseSwipe = 0
 			PrintF("You swiped mouse, X:" + String(MouseEnd[0] - MouseStart[0]) + " T:" + MouseSwipeTime)
 			If CurrentGamePos = GameArrayLen - 1 Or CurrentGamePos = 0 Then DoNotStopSwipe = True 
-			CurrentGamePos = CurrentGamePos + Int( ( ( (Float(MouseEnd[0] - MouseStart[0]) * 10) / 1000) * GWidth	) / MouseSwipeTime)
+			CurrentGamePos = CurrentGamePos + Int( ( ( (Float(MouseEnd[0] - MouseStart[0]) * 10) / GWidth) * 1000	) / MouseSwipeTime)
 			If DoNotStopSwipe = False Then
 				If CurrentGamePos > GameArrayLen - 1 Then CurrentGamePos = GameArrayLen - 1
 				If CurrentGamePos < 0 Then CurrentGamePos = 0
@@ -759,7 +759,7 @@ Type CoverFlowType
 			Return True 
 		ElseIf MouseSwipe = 2 Then
 			MouseSwipe = 3
-			CurrentGamePos = CurrentGamePos + Int(((Float(MouseX()-(GWidth/2))/ 800)*GWidth) / 75)
+			CurrentGamePos = CurrentGamePos + Int((Float(MouseX()-(GWidth/2))/ GWidth)*6 )
 			
 			If CurrentGamePos > GameArrayLen - 1 Then CurrentGamePos = GameArrayLen - 1
 			If CurrentGamePos < 0 Then CurrentGamePos = 0		
@@ -1650,7 +1650,7 @@ Type BannerFlowType
 			MouseSwipe = 0
 			PrintF("You swiped mouse, X:" + String(MouseEnd[0] - MouseStart[0]) + " T:" + MouseSwipeTime)
 			If CurrentGamePos = GameArrayLen - 1 Or CurrentGamePos = 0 Then DoNotStopSwipe = True 
-			CurrentGamePos = CurrentGamePos + Int( ( ( (Float(MouseEnd[0] - MouseStart[0]) * 10) / 1000) * GWidth	) / MouseSwipeTime)
+			CurrentGamePos = CurrentGamePos + Int( ( ( (Float(MouseEnd[0] - MouseStart[0]) * 10) / GWidth) * 1000	) / MouseSwipeTime)
 			If DoNotStopSwipe = False Then
 				If CurrentGamePos > GameArrayLen - 1 Then CurrentGamePos = GameArrayLen - 1
 				If CurrentGamePos < 0 Then CurrentGamePos = 0
@@ -1661,7 +1661,7 @@ Type BannerFlowType
 			Return True 
 		ElseIf MouseSwipe = 2 Then
 			MouseSwipe = 3
-			CurrentGamePos = CurrentGamePos + Int(((Float(MouseX()-(GWidth/2))/ 800)*GWidth) / 75)
+			CurrentGamePos = CurrentGamePos + Int((Float(MouseX()-(GWidth/2))/ GWidth) * 6)
 			
 			If CurrentGamePos > GameArrayLen - 1 Then CurrentGamePos = GameArrayLen - 1
 			If CurrentGamePos < 0 Then CurrentGamePos = 0		

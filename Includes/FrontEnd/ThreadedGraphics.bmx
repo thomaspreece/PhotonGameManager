@@ -63,6 +63,23 @@ Function RenderLimiter()
 	EndIf 
 End Function 
 
+Function MemoryLimiter()
+	LockMutex(TTexture.Mutex_UsedSpace)
+	If Int(TTexture.UsedSpace)/1000000 > 999 Then 
+		If LowMemory = True And TempLowMemoryControl = False Then 
+		
+		Else		
+			LowMemory = True 
+			TempLowMemoryControl = True 
+		EndIf 
+	Else
+		If TempLowMemoryControl = True Then
+			LowMemory = False 
+		EndIf 
+	EndIf 
+	UnlockMutex(TTexture.Mutex_UsedSpace)
+End Function 
+
 Function ProcessGraphicsQueue(Num:Int)
 	
 	Local Tex:TPixmapTexture
@@ -176,10 +193,11 @@ Function UpdateStack()
 		Local Tex:TTexture
 		Local File:String
 		Local itemsPerRow:Int = Max(Ceil(Float(GameArrayLen) / 5) , 5)
+		Local FrontCoverCount:Int = 0
 
 		c = 0
 		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
-			'If c > Ceil(Float(GAMECACHELIMIT)/2) - 1 Then Exit
+
 			If a > GameArrayLen - 1 Then
 				b = a - GameArrayLen
 			Else
@@ -196,7 +214,7 @@ Function UpdateStack()
 		
 		c = 0
 		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
-			'If c > Floor(Float(GAMECACHELIMIT)/2) - 1 Then Exit
+
 			If a > GameArrayLen - 1 Then
 				b = a - GameArrayLen
 			Else
@@ -212,9 +230,9 @@ Function UpdateStack()
 		Next 
 		
 		If VerticalCoverLoad = 1 Then
-		
+			
+			c = 0
 			For a = CurrentGamePos + itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 + itemsPerRow
-				'If c > Ceil(Float(GAMECACHELIMIT)/2) - 1 Then Exit
 
 				b=a
 				
@@ -224,29 +242,38 @@ Function UpdateStack()
 
 				If b>GameArrayLen-1 Then 
 				
-				Else	
-					ListAddLast(Row1FList , GameArray[b])
+				Else
+					
+					If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
+						ListAddLast(Row1FList , GameArray[b])
+					EndIf 
 				EndIf 
+				c = c + 1
 			Next 
 			
+			
+			c=0
 			For a = CurrentGamePos + itemsPerRow + GameArrayLen - 1 To CurrentGamePos + itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
-				'If c > Floor(Float(GAMECACHELIMIT)/2) - 1 Then Exit
 
 				b=a
 				
-				While b<0
-					b=b+GameArrayLen
+				While b > GameArrayLen-1
+					b=b-GameArrayLen
 				Wend
-
+				
 				If b>GameArrayLen-1 Then 
-				
-				Else				
-					ListAddLast(Row1BList , GameArray[b])	
+					
+				Else	
+					
+					If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then			
+						ListAddLast(Row1BList , GameArray[b])	
+					EndIf 
 				EndIf 
+				c = c + 1
 			Next 
 			
+			c=0
 			For a = CurrentGamePos - itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 - itemsPerRow
-				'If c > Ceil(Float(GAMECACHELIMIT)/2) - 1 Then Exit
 				
 				b=a
 				
@@ -257,12 +284,15 @@ Function UpdateStack()
 				If b<0 Then 
 				
 				Else
-					ListAddLast(RowM1FList , GameArray[b])
+					If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
+						ListAddLast(RowM1FList , GameArray[b])
+					EndIf 
 				EndIf 
+				c = c + 1
 			Next 
 			
+			c=0
 			For a = CurrentGamePos - itemsPerRow + GameArrayLen - 1 To CurrentGamePos - itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
-				'If c > Floor(Float(GAMECACHELIMIT)/2) - 1 Then Exit
 
 				b=a
 
@@ -273,13 +303,12 @@ Function UpdateStack()
 				If b<0 Then 
 				
 				Else
-					ListAddLast(RowM1BList , GameArray[b])	
+					If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
+						ListAddLast(RowM1BList , GameArray[b])	
+					EndIf 
 				EndIf 
+				c = c + 1
 			Next 			
-
-		
-			'Load side Covers
-			'RowM1,RowM2,Row1,Row2
 		
 		EndIf	
 		
@@ -321,6 +350,7 @@ Function UpdateStack()
 			If List6String = Null Then
 			
 			Else
+
 				ListAddLast(GameStack , List6String)
 			EndIf							
 			If List1String = Null And List2String = Null And List3String = Null And List4String = Null And List5String = Null And List6String = Null Then Exit
@@ -351,6 +381,7 @@ Function UpdateStack()
 		For File = EachIn GameStack
 			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
 				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+				FrontCoverCount = FrontCoverCount + 1
 			EndIf
 			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg") = 1 And LoadBack = 1 Then
 				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg")
@@ -374,7 +405,13 @@ Function UpdateStack()
 				If LowMemory = False Then 
 					For File = EachIn GameStack2
 						If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
-							ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+							If FrontCoverCount < MaxFrontCovers Then
+								ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+								FrontCoverCount = FrontCoverCount + 1
+							Else
+								'Print "---------------------------------------------NO MORE COVERS! NOPE----------------------------------"+FrontCoverCount
+								Exit 
+							EndIf
 						EndIf
 					Next 
 				EndIf 		
@@ -390,6 +427,7 @@ Function UpdateStack()
 				Else
 					ListRemove(TTexture.tex_list , Tex)
 					ListRemove(ProcessedTextures , File)
+					PrintF("Freed: "+File)
 					FreeTexture(Tex)
 					Tex = Null		
 				EndIf

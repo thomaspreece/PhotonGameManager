@@ -143,7 +143,7 @@ Type MainMenuType Extends GeneralType
 							PopulateGames()
 							FilterType = "All Games"
 							FilterName = ""
-							ChangeInterface(CurrentInterfaceNumber)
+							ChangeInterface(CurrentInterfaceNumber,1,0)
 						Case "Platforms"
 							MenuFlow.Clear()
 							MenuFlow.Init(PlatformList , "Platforms" , 1)
@@ -205,7 +205,7 @@ Type MainMenuType Extends GeneralType
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf
 					PopulateGames()
-					ChangeInterface(CurrentInterfaceNumber)
+					ChangeInterface(CurrentInterfaceNumber,1,0)
 				Case "Genres"
 					If MenuFlow.MenuArray[item] = "Sort By Genre" Then
 						FilterName = ""
@@ -216,7 +216,7 @@ Type MainMenuType Extends GeneralType
 					EndIf 
 					
 					PopulateGames()					
-					ChangeInterface(CurrentInterfaceNumber)
+					ChangeInterface(CurrentInterfaceNumber,1,0)
 				Case "Years"
 					If MenuFlow.MenuArray[item] = "Sort By Release Date" Then				
 						FilterName = ""
@@ -227,7 +227,7 @@ Type MainMenuType Extends GeneralType
 					EndIf 
 					
 					PopulateGames()
-					ChangeInterface(CurrentInterfaceNumber)
+					ChangeInterface(CurrentInterfaceNumber,1,0)
 				Case "Rating"
 					If MenuFlow.MenuArray[item] = "Sort By Rating" Then
 						FilterName = ""
@@ -238,7 +238,7 @@ Type MainMenuType Extends GeneralType
 					EndIf 
 					
 					PopulateGames()
-					ChangeInterface(CurrentInterfaceNumber)					
+					ChangeInterface(CurrentInterfaceNumber,1,0)					
 				Case "Completed"
 					If MenuFlow.MenuArray[item] = "Sort by Completed Status" Then				
 						FilterName = ""
@@ -248,7 +248,7 @@ Type MainMenuType Extends GeneralType
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf 
 					PopulateGames()					
-					ChangeInterface(CurrentInterfaceNumber)					
+					ChangeInterface(CurrentInterfaceNumber,1,0)					
 					
 				Case "Players"
 					If MenuFlow.MenuArray[item] = "Sort by Player Number" Then				
@@ -259,7 +259,7 @@ Type MainMenuType Extends GeneralType
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf 
 					PopulateGames()					
-					ChangeInterface(CurrentInterfaceNumber)					
+					ChangeInterface(CurrentInterfaceNumber,1,0)					
 					
 				Case "Co-Op"												
 					If MenuFlow.MenuArray[item] = "Sort by Co-Op" Then				
@@ -270,7 +270,7 @@ Type MainMenuType Extends GeneralType
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf 
 					PopulateGames()					
-					ChangeInterface(CurrentInterfaceNumber)		
+					ChangeInterface(CurrentInterfaceNumber,1,0)		
 										
 				Case "Developers"
 					If MenuFlow.MenuArray[item] = "Sort by Developer" Then				
@@ -281,7 +281,7 @@ Type MainMenuType Extends GeneralType
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf 
 					PopulateGames()					
-					ChangeInterface(CurrentInterfaceNumber)				
+					ChangeInterface(CurrentInterfaceNumber,1,0)				
 									
 				Case "Publisher"
 					If MenuFlow.MenuArray[item] = "Sort by Publisher" Then				
@@ -292,7 +292,7 @@ Type MainMenuType Extends GeneralType
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf 
 					PopulateGames()					
-					ChangeInterface(CurrentInterfaceNumber)
+					ChangeInterface(CurrentInterfaceNumber,1,0)
 					
 				Case "Certificate"
 					If MenuFlow.MenuArray[item] = "Sort by Certificate" Then				
@@ -303,7 +303,7 @@ Type MainMenuType Extends GeneralType
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf 
 					PopulateGames()					
-					ChangeInterface(CurrentInterfaceNumber)										
+					ChangeInterface(CurrentInterfaceNumber,1,0)										
 			End Select		
 		EndIf		
 		
