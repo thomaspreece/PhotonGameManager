@@ -1564,6 +1564,7 @@ Type SettingsWindow Extends wxFrame
 				Log1.AddText("Optimizing Artwork for: "+GameNode.Name)
 				GameNode.OptimizeArtwork()			
 			EndIf
+			If Log1.LogClosed = True Then Exit 
 		Forever
 		CloseDir(GameDir)
 		Self.Show(1)
