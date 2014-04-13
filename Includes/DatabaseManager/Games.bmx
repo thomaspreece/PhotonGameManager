@@ -469,7 +469,76 @@ Type GameType Extends GameReadType
 				Continue
 			EndIf
 			Select FileName
-				Case "Screen" , "Shot1" , "Shot2" , "Front" , "Back"
+				Case "Screen"
+					'background
+					PrintF(GAMEDATAFOLDER + GName + FolderSlash + File)
+					Pixmap = LoadPixmap(GAMEDATAFOLDER + GName + FolderSlash + File)
+					PixmapW = PixmapWidth(Pixmap)
+					PixmapH = PixmapHeight(Pixmap)
+					PrintF("Loading")
+					If PixmapH < 1 Or PixmapW < 1 Then
+						OptPixmap = Pixmap
+						Opt2Pixmap = Pixmap
+						SmallPixmap = Pixmap
+					Else
+						'Take Background to be biggest of 100% width of screen or 100% height of screen
+						If PixmapW > GraphicsW Or PixmapH > GraphicsH Then
+							NewWid = Max(GraphicsW , (Float(PixmapW) / PixmapH) * GraphicsH)
+							OptPixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
+						Else
+							OptPixmap = Pixmap
+						EndIf							
+							
+						If PixmapW > 512 Or PixmapH > 512 Then
+							NewWid = Min(512 , (Float(PixmapW) / PixmapH) * 512)
+							SmallPixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
+						Else
+							SmallPixmap = Pixmap
+						EndIf						
+					EndIf
+					SavePixmapJPeg(OptPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_OPT_2X.jpg" , ArtworkCompression )
+					SavePixmapJPeg(OptPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_OPT.jpg" , ArtworkCompression )
+					SavePixmapJPeg(SmallPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_THUMB.jpg" , ArtworkCompression )
+				
+				Case "Front" , "Back"
+					PrintF(GAMEDATAFOLDER + GName + FolderSlash + File)
+					Pixmap = LoadPixmap(GAMEDATAFOLDER + GName + FolderSlash + File)
+					PixmapW = PixmapWidth(Pixmap)
+					PixmapH = PixmapHeight(Pixmap)
+					PrintF("Loading")
+					If PixmapH < 1 Or PixmapW < 1 Then
+						OptPixmap = Pixmap
+						Opt2Pixmap = Pixmap
+						SmallPixmap = Pixmap
+					Else
+						'Take Large covers to be smallest of 50% width of screen or 100% height of screen
+						If PixmapW > GraphicsW Or PixmapH > GraphicsH Then
+							NewWid = Min(GraphicsW , (Float(PixmapW) / PixmapH) * GraphicsH)
+							Opt2Pixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
+						Else
+							Opt2Pixmap = Pixmap
+						EndIf	
+						
+						'Take covers to be smallest of 25% width of screen or 50% height of screen
+						If PixmapW > 0.25*GraphicsW Or PixmapH > 0.5*GraphicsH Then
+							NewWid = Min(0.25*GraphicsW , (Float(PixmapW) / PixmapH) * 0.5*GraphicsH)
+							OptPixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
+						Else
+							OptPixmap = Pixmap
+						EndIf							
+							
+						If PixmapW > 512 Or PixmapH > 512 Then
+							NewWid = Min(512 , (Float(PixmapW) / PixmapH) * 512)
+							SmallPixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
+						Else
+							SmallPixmap = Pixmap
+						EndIf						
+					EndIf
+					SavePixmapJPeg(Opt2Pixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_OPT_2X.jpg" , ArtworkCompression )
+					SavePixmapJPeg(OptPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_OPT.jpg" , ArtworkCompression )
+					SavePixmapJPeg(SmallPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_THUMB.jpg" , ArtworkCompression )
+				
+				Case "Shot1" , "Shot2"
 					PrintF(GAMEDATAFOLDER + GName + FolderSlash + File)
 					Pixmap = LoadPixmap(GAMEDATAFOLDER + GName + FolderSlash + File)
 					PixmapW = PixmapWidth(Pixmap)
@@ -511,6 +580,14 @@ Type GameType Extends GameReadType
 					If PixmapH < 1 Or PixmapW < 1 Then
 						SmallPixmap = Pixmap
 					Else
+						'Take banners to be smallest of 78% width of screen or 20% height of screen
+						If PixmapW > 0.78*GraphicsW Or PixmapH > 0.2*GraphicsH Then
+							NewWid = Min(0.78*GraphicsW , (Float(PixmapW) / PixmapH) * 0.2 * GraphicsH)
+							OptPixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
+						Else
+							OptPixmap = Pixmap
+						EndIf							
+					
 						If PixmapW > 512 Or PixmapH > 512 Then
 							NewWid = Min(512 , (Float(PixmapW) / PixmapH) * 512)
 							SmallPixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
@@ -518,7 +595,7 @@ Type GameType Extends GameReadType
 							SmallPixmap = Pixmap
 						EndIf					
 					EndIf
-					SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_OPT.jpg" , ArtworkCompression )				
+					SavePixmapJPeg(OptPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_OPT.jpg" , ArtworkCompression )				
 					SavePixmapJPeg(SmallPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_THUMB.jpg" , ArtworkCompression )					
 			End Select
 		Forever
