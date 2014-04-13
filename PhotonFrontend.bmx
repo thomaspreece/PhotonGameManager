@@ -460,10 +460,6 @@ Repeat
 		UnlockMutex(TTexture.Mutex_UsedSpace)
 		?
 		
-		LockMutex(TTexture.Mutex_UsedSpace)
-		Text 100 , 70 , (Int(TTexture.UsedSpace)/1000000) + 100
-		UnlockMutex(TTexture.Mutex_UsedSpace)
-		
 	BeginMax2D()
 		
 	'MARK: Max2D stuff
