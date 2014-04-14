@@ -31,6 +31,8 @@ Import Pub.FreeJoy
 
 
 
+
+
 ?Not Win32
 Global FolderSlash:String="/"
 
@@ -163,7 +165,22 @@ Else
 	WideScreen = 1
 EndIf
 
+Local GRAPHICS_MULTISAMPLE
 
+Select AntiAliasSetting
+	Case 2
+		GRAPHICS_MULTISAMPLE = $40
+	Case 4
+		GRAPHICS_MULTISAMPLE = $80
+	Case 8
+		GRAPHICS_MULTISAMPLE = $100
+	Case 16
+		GRAPHICS_MULTISAMPLE = $200
+	Default
+		GRAPHICS_MULTISAMPLE = 0		
+End Select
+
+'Works Perfectly with my NVIDIA CARD, doesn't work with internal graphics
 
 
 PrintF("WideScreen: "+WideScreen)
@@ -171,7 +188,8 @@ PrintF("Starting Graphics with: "+GWidth+"x"+GHeight+" "+Depth+"bit "+"mode "+GM
 Delay(StartWait)
 
 
-Graphics3D GWidth , GHeight , Depth , GMode , FRAMERATE
+Graphics3D GWidth , GHeight , Depth , GMode , FRAMERATE , GRAPHICS_BACKBUFFER|GRAPHICS_DEPTHBUFFER|GRAPHICS_ACCUMBUFFER|GRAPHICS_MULTISAMPLE
+
 
 If ForceFront=1 Then
 	hWnd=GetActiveWindow()
@@ -1079,6 +1097,9 @@ Function LoadGlobalSettings()
 	EndIf	
 	If ReadSettings.GetSetting("TouchKey") <> "" Then		
 		TouchKeyboardEnabled = Int(ReadSettings.GetSetting("TouchKey"))
+	EndIf		
+	If ReadSettings.GetSetting("AntiAlias") <> "" Then		
+		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
 	EndIf				
 	ReadSettings.CloseFile()
 End Function

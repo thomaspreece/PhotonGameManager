@@ -47,6 +47,7 @@ Global FilterMenuEnabled:Int = False
 Global GWidth:Int = 800
 Global GHeight:Int = 600
 Global GMode:Int = 0
+Global AntiAliasSetting:Int = 0
 
 Global ForceTextureReset:Int = False 
 Global TouchKeyboardEnabled:Int = True

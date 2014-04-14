@@ -275,7 +275,7 @@ Type ListViewInterface Extends GeneralType
 		Local BTex:TTexture		
 		If BigCover = 0 Then
 			Cover.GlobalPosition = True
-			Cover.y = Cover.NormY
+			Cover.y = 0
 
 			If WideScreen = 1 Then
 				Cover.z = - 2
@@ -301,8 +301,12 @@ Type ListViewInterface Extends GeneralType
 				EndIf					
 			EndIf
 		Else
-			Cover.z = Cover.Pos(Cover.CoverNum , 3)
-			Cover.y = Cover.Pos(Cover.CoverNum , 2)
+			'Rem
+
+			'EndRem 
+			
+			Cover.z = 0
+			Cover.y = Cover.NormY
 			Cover.GlobalPosition = False 
 			BigCover = 0
 		EndIf		
@@ -407,6 +411,7 @@ Type ListViewInterface Extends GeneralType
 			TextList = GetTextList(GameNode.Desc)	
 			OldCurrentGamePos = CurrentGamePos
 		EndIf 
+		
 		Cover.Update()
 		'ScaleEntity(CoverAlphaBack , 100 , Cover.NormY + 1.2 , 0)
 		'PositionEntity(CoverAlphaBack , EntityX(CoverAlphaBack) , Cover.NormY , EntityZ(CoverAlphaBack)) 
@@ -1117,8 +1122,8 @@ Type BannerFlowInterface Extends GeneralType
 				EndIf					
 			EndIf
 		Else
-			Cover.z = Cover.Pos(Cover.CoverNum , 3)
-			Cover.y = Cover.Pos(Cover.CoverNum , 2)
+			Cover.z = 0 'Cover.Pos(Cover.CoverNum , 3)
+			Cover.y = 0 'Cover.Pos(Cover.CoverNum , 2)
 			Cover.GlobalPosition = False 
 			BigCover = 0
 		EndIf		
@@ -1134,7 +1139,7 @@ Type BannerFlowInterface Extends GeneralType
 	Method Init()
 		
 		FrontNeeded = 1
-		BackNeeded = 0
+		BackNeeded = 1
 		ScreenNeeded = 1
 		BannerNeeded = 1
 		ExtraResNeeded = ""
