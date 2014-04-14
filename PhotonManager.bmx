@@ -1159,6 +1159,7 @@ Type SettingsWindow Extends wxFrame
 	Field SW_OverridePath:wxTextCtrl 
 	Field SW_ButtonCloseOnly:wxComboBox
 	Field SW_OriginWait:wxComboBox
+	Field SW_AntiAlias:wxComboBox 
 	
 	Field KeyboardInputField:KeyboardInputWindow
 	Field JoyStickInputField:JoyStickInputWindow
@@ -1261,7 +1262,11 @@ Type SettingsWindow Extends wxFrame
 		Optimizehbox2.Add(SW_OptimizeArt2 , 0 , wxEXPAND | wxALL , 4)
 		
 		Local ST6 = New wxStaticText.Create(ScrollBox , wxID_ANY , "FullScreen: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_Mode = New wxComboBox.Create(ScrollBox , SW_M , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		SW_Mode = New wxComboBox.Create(ScrollBox , SW_M , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
+		
+		Local ST16 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Anti-Aliasing: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_AntiAlias = New wxComboBox.Create(ScrollBox , SW_AA , "" , ["None","2X","4X","8X","16X"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
+			
 		Local ST7 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Low Memory Mode: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 		SW_LowMem = New wxComboBox.Create(ScrollBox , SW_LM , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
 		Local ST9 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Low Processor Mode: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
@@ -1341,7 +1346,21 @@ Type SettingsWindow Extends wxFrame
 			SW_OriginWait.SetValue("Yes")
 		Else
 			SW_OriginWait.SetValue("No")
-		EndIf 		
+		EndIf 
+		
+		Select AntiAliasSetting
+			Case 0
+				SW_AntiAlias.SetValue("None")
+			Case 2
+				SW_AntiAlias.SetValue("2X")
+			Case 4
+				SW_AntiAlias.SetValue("4X")
+			Case 8
+				SW_AntiAlias.SetValue("8X")
+			Case 16
+				SW_AntiAlias.SetValue("16X")
+		End Select
+			
 				
 		ScrollBoxvbox.Add(SL1,  0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SLT1,  0 , wxEXPAND | wxALL , 4)
@@ -1384,6 +1403,10 @@ Type SettingsWindow Extends wxFrame
 		'ScrollBoxvbox.Add(SW_Resolution , 0 , wxEXPAND | wxALL , 4)		
 		ScrollBoxvbox.Add(ST6 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SW_Mode , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(ST16 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(SW_AntiAlias , 0 , wxEXPAND | wxALL , 4)		
+		
+		
 		ScrollBoxvbox.Add(ST7 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SW_LowMem , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(ST9 , 0 , wxEXPAND | wxALL , 4)
@@ -1656,7 +1679,18 @@ Type SettingsWindow Extends wxFrame
 			OriginWaitEnabled = 0
 		EndIf 	
 		
-			
+		Select SW_AntiAlias.GetValue()
+			Case "None"
+				AntiAliasSetting = 0
+			Case "2X"
+				AntiAliasSetting = 2
+			Case "4X"
+				AntiAliasSetting = 4
+			Case "8X"
+				AntiAliasSetting = 8
+			Case "16X"
+				AntiAliasSetting = 16
+		End Select	
 		
 		SaveGlobalSettings()
 		
@@ -2284,6 +2318,11 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("TouchKey") <> "" Then		
 		TouchKeyboardEnabled = Int(ReadSettings.GetSetting("TouchKey"))
 	EndIf		
+	If ReadSettings.GetSetting("AntiAlias") <> "" Then		
+		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
+	EndIf			
+	
+	
 	ReadSettings.CloseFile()
 End Function
 
@@ -2306,6 +2345,7 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("LowMem" , LowMemory)
 	SaveSettings.SaveSetting("LowProc" , LowProcessor)
 	SaveSettings.SaveSetting("TouchKey" , TouchKeyboardEnabled)	
+	SaveSettings.SaveSetting("AntiAlias" , AntiAliasSetting)		
 	
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()

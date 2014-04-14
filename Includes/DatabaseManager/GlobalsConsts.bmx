@@ -15,6 +15,7 @@ Global LowProcessor:Int = 0
 Global TouchKeyboardEnabled:Int = True 
 Global RunnerButtonCloseOnly:Int = False 
 Global OriginWaitEnabled = True 
+Global AntiAliasSetting:Int = 0
 	
 
 Global EditGameName:String = ""
@@ -205,6 +206,7 @@ Const SW_OA1 = 519
 Const SW_OA2 = 520
 Const SW_OW = 521
 Const SW_BCO = 522
+Const SW_AA = 523
 
 Const PW_BB = 600
 Const PW_OB = 601

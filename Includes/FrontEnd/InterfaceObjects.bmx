@@ -172,6 +172,14 @@ Type CoverWallType
 	Method Update()
 		For a = 0 To GameArrayLen - 1
 			Covers[a].Update()
+			'Hack - flag to force updated position of Cover once texture loaded
+			If Covers[a].ResetCoverPosition = True Then
+				'Covers[a].x = Pos(a , 1 , Covers[a].NormY)
+				Covers[a].y = Pos(a , 2 , Covers[a].NormY)
+				'Covers[a].z = Pos(a , 3 , Covers[a].NormY)
+				PositionEntity(Covers[a].Mesh , EntityX(Covers[a].Mesh) , Covers[a].y , EntityZ(Covers[a].Mesh) )	
+				Covers[a].ResetCoverPosition = False 
+			EndIf 
 		Next
 		If OldCurrentGamePos <> CurrentGamePos Then
 			BigCover = 0		
@@ -227,7 +235,7 @@ Type CoverWallType
 			Case 1
 				Return Float(Col-CCol)*1.6
 			Case 2
-				Return Float(CRow-Row)*2.2 + NormY
+				Return Float(CRow-Row)*2.4 + NormY 'OLD VALUE - 2.2
 			Case 3
 				If (CRow - Row) = 0 And (Col - CCol) = 0 Then
 					Return - 1
@@ -264,8 +272,10 @@ Type CoverType2
 		
 	Field Positioned:Int = False
 	Field OldCurrentGamePos:Int 
-	'Field CoverMode:Int 
-	'Field CoverDistance:Float
+
+	
+	'Hack - flag to force updated position of Cover once texture loaded
+	Field ResetCoverPosition:Int = False 
 	
 	
 	Method Init(Parent:TPivot)
@@ -368,7 +378,9 @@ Type CoverType2
 														
 							ScaleEntity(Mesh , 0.75 , Hi , 0)
 							NormY = Hi - 1
-							'y = NormY
+							'Repositioning done via hack flag - ResetCoverPosition which is updated via CoverWallType-Update()							
+							ResetCoverPosition = True 
+
 							LockMutex(TTexture.Mutex_tex_list)
 							ListAddLast(InUseTextures , tex.file)
 							UnlockMutex(TTexture.Mutex_tex_list)
@@ -386,8 +398,9 @@ Type CoverType2
 							'Self.y = Hi-1
 							UnlockMutex(TTexture.Mutex_tex_list)
 							ScaleEntity(Mesh , 0.75 , Hi , 0)
+							'PositionEntity(Mesh , EntityX(Mesh) , EntityY(Mesh) + Hi - 1 , EntityZ(Mesh) )	
 							NormY = Hi - 1
-							'y = NormY
+							'y = EntityY(Mesh) + NormY
 							Textured = False
 						Else
 							RuntimeError "Loading.jpg Missing!"
@@ -405,8 +418,9 @@ Type CoverType2
 						'Self.y = Hi-1
 						UnlockMutex(TTexture.Mutex_tex_list)
 						ScaleEntity(Mesh , 0.75 , Hi , 0)
+						'PositionEntity(Mesh , EntityX(Mesh) , EntityY(Mesh) + Hi - 1 , EntityZ(Mesh) )
 						NormY = Hi - 1
-						'y = NormY
+						'y = EntityY(Mesh) + NormY
 						
 						'LockMutex(TTexture.Mutex_tex_list)
 						'ScaleEntity(Mesh , 0.75 , Float(0.75) * (Float(tex.pixHeight) / tex.pixWidth) , 0)
@@ -494,6 +508,7 @@ Type CoverType2
 		EndIf 
 		
 	End Method
+	
 	
 	Method Clear()
 		FreeEntity(Mesh)
@@ -605,12 +620,12 @@ Type CoverFlowType
 			EndIf			
 			
 		Next
-		If BigCover = 1 Then
+		If BigCover = 1 Then		
 			Local Box:Float[4]
 			Box = GetBoundingBox(Covers[CurrentGamePos].Mesh)
 			If Box[1] < 50 Or Box[3] > GHeight - 50 Or Box[3] = - 1 Or Box[1] = - 1 Then
 				Covers[CurrentGamePos].z = Covers[CurrentGamePos].z + 0.05		
-			EndIf 
+			EndIf 		
 		EndIf
 	End Method
 	
@@ -793,6 +808,7 @@ Type CoverFlowType
 		If BigCover = 0 Then
 			Covers[CurrentGamePos].GlobalPosition = True
 			Covers[CurrentGamePos].y = Covers[CurrentGamePos].NormY
+			
 
 			If WideScreen = 1 Then
 				Covers[CurrentGamePos].z = - 2
@@ -818,8 +834,10 @@ Type CoverFlowType
 				EndIf					
 			EndIf
 		Else
-			Covers[CurrentGamePos].z = Covers[CurrentGamePos].Pos(Covers[CurrentGamePos].CoverNum , 3)
-			Covers[CurrentGamePos].y = Covers[CurrentGamePos].Pos(Covers[CurrentGamePos].CoverNum , 2)
+			
+			Covers[CurrentGamePos].z = Pos(Covers[CurrentGamePos].CoverNum , 3 , Covers[CurrentGamePos].NormY)
+			Covers[CurrentGamePos].y = Pos(Covers[CurrentGamePos].CoverNum , 2 , Covers[CurrentGamePos].NormY)
+			Covers[CurrentGamePos].x = Pos(Covers[CurrentGamePos].CoverNum , 1 , Covers[CurrentGamePos].NormY)
 			Covers[CurrentGamePos].GlobalPosition = False 
 			BigCover = 0
 		EndIf		
@@ -1065,9 +1083,11 @@ Type CoverType
 		EntityFX BackMesh , 1
 		'CoverNum = Position - CurrentGamePos + 4
 		CoverNum = -1
-		PositionEntity Mesh , Pos(CoverNum , 1) , Pos(CoverNum , 2) , Pos(CoverNum , 3)
+		'PositionEntity Mesh , Pos(CoverNum , 1) , Pos(CoverNum , 2) , Pos(CoverNum , 3)
+		PositionEntity Mesh , 0 , 0 , 0
 		ScaleEntity Mesh , 0.75 , 1 , 0 
-		RotateEntity Mesh , Rot(CoverNum , 1) , Rot(CoverNum , 2) , Rot(CoverNum , 3)		
+		'RotateEntity Mesh , Rot(CoverNum , 1) , Rot(CoverNum , 2) , Rot(CoverNum , 3)		
+		'RotateEntity Mesh , 0 , 0 , 0
 		x = EntityX(Mesh)
 		y = EntityY(Mesh)
 		z = EntityZ(Mesh)
@@ -1099,6 +1119,7 @@ Type CoverType
 	End Method 
 	
 	Method Update()
+
 		If GameArrayLen <> 0 Then 
 			LoadCoverTexture()
 		EndIf
@@ -1297,6 +1318,7 @@ Type CoverType
 		UnlockMutex(TTexture.Mutex_tex_list)
 	End Method
 	
+	Rem
 	Method Pos:Float(Num:Int , Axis:Int)
 		Local CoverDistance:Float 
 		Select CoverMode
@@ -1364,7 +1386,9 @@ Type CoverType
 			
 		End Select 
 	End Method 
+	EndRem 
 	
+	Rem
 	Method Rot:Float(Num:Int , Axis:Int)
 		Select CoverMode
 			Case 1		
@@ -1393,6 +1417,7 @@ Type CoverType
 				Return 0
 		End Select
 	End Method 	
+	EndRem 
 	
 End Type
 
@@ -1871,7 +1896,7 @@ Type BannerType
 			Case 2
 				CoverDistance = 1.6
 		End select
-		endrem 
+		EndRem 
 		Mesh = CreateCover(0 , Parent)
 		BackMesh = CreateCover(0 , Mesh)
 		RotateEntity(BackMesh,0,180,0)
