@@ -12,13 +12,6 @@ Import BaH.Volumes
 Import PUB.FreeProcess
 Import Pub.FreeJoy
 
-'BUG: Mouse rating/completed not working ONLY ON BANNERFLOW
-'TODO: Save Filters/Mode
-
-'BUG: Mouse/touchscreen slide is too sensitive on large screens
-'BUG: Coverwall, allocates too much memory!!!
-
-
 'NOTHING IMPORTANT HERE!
 'Max2D - MouseX,MouseY incorrect on Ubuntu V.M - Fine on native Ubuntu!
 'BUG: Windows 8 Doesn't work - Believed to be fixed
@@ -360,6 +353,12 @@ EndIf
 If Int(SettingFile.GetSetting("KEYBOARD_PLATROTATE")) <> 0 Then
 	KEYBOARD_PLATROTATE = Int(SettingFile.GetSetting("KEYBOARD_PLATROTATE"))
 EndIf 
+If Int(SettingFile.GetSetting("KEYBOARD_SCREEN")) <> 0 Then
+	KEYBOARD_SCREEN = Int(SettingFile.GetSetting("KEYBOARD_SCREEN"))
+EndIf 
+If Int(SettingFile.GetSetting("KEYBOARD_END")) <> 0 Then
+	KEYBOARD_END = Int(SettingFile.GetSetting("KEYBOARD_END"))
+EndIf 
 
 'JoyStickRead
 If Int(SettingFile.GetSetting("JOY_BIGCOVER")) <> 0 Then
@@ -386,7 +385,12 @@ EndIf
 If Int(SettingFile.GetSetting("JOY_PLATROTATE")) <> 0 Then
 	JOY_PLATROTATE = Int(SettingFile.GetSetting("JOY_PLATROTATE"))
 EndIf 
-
+If Int(SettingFile.GetSetting("JOY_SCREEN")) <> 0 Then
+	JOY_SCREEN = Int(SettingFile.GetSetting("JOY_SCREEN"))
+EndIf 
+If Int(SettingFile.GetSetting("JOY_END")) <> 0 Then
+	JOY_END = Int(SettingFile.GetSetting("JOY_END"))
+EndIf 
 
 If RePopulate=True Then
 	PopulateGames()
@@ -433,6 +437,7 @@ Local SecondTimer = MilliSecs()
 
 'MARK: MAIN LOOP
 Repeat
+	
 	'----------------------------------CRASH-3-START
 	'----------------------------------CRASH-4-START
 	'MARK: 3D stuff
@@ -561,6 +566,8 @@ Repeat
 	EndIf
 	
 	tempWriteLog("MT: P11")
+	ExitLoop.UpdateKeyboard()
+	ExitLoop.UpdateJoy()	
 	For obj = EachIn UpdateTypeList
 		If obj.UpdateKeyboard()=True Then Exit
 	Next
@@ -570,6 +577,8 @@ Repeat
 	For obj = EachIn UpdateTypeList	
 		If obj.UpdateJoy()= True Then Exit 
 	Next		
+
+	
 	tempWriteLog("MT: P12")
 	
 	MouseClick = 0
@@ -737,26 +746,36 @@ Function ChangeInterface(Number:Int,Clear:Int = True, ClearAllTextures:Int = Tru
 		UnlockMutex(TTexture.Mutex_UsedSpace)		
 	EndIf 
 	Select Number
+		Case 7
+			CurrentInterface = GeneralType(New ScreenShotInterface)
+			HaltStack = True 
 		Case 6
 			CurrentInterface = GeneralType(New CoverWallInterface)
 			CurrentInterfaceNumber = 6
+			HaltStack = False 
 		Case 5
 			CurrentInterface = GeneralType(New BannerFlowInterface)
 			CurrentInterfaceNumber = 5
+			HaltStack = False 
 		Case 4
 			CurrentInterface = GeneralType(New ListViewInterface)
 			CurrentInterfaceNumber = 4
+			HaltStack = False 
 		Case 3
 			CurrentInterface = GeneralType(New InfoViewBannerInterface)
 			CurrentInterfaceNumber = 3
+			HaltStack = False 
 		Case 2
 			CurrentInterface = GeneralType(New InfoViewInterface)
 			CurrentInterfaceNumber = 2
+			HaltStack = False 
 		Case 1
 			CurrentInterface = GeneralType(New CoverFlowInterface)
 			CurrentInterfaceNumber = 1
+			HaltStack = False 
 		Case 0
 			CurrentInterface = GeneralType(New MainMenuType)
+			HaltStack = True 
 		Default
 			RuntimeError "Error invalid interface number"
 	End Select 
@@ -1097,7 +1116,15 @@ Function LoadGlobalSettings()
 	EndIf	
 	If ReadSettings.GetSetting("TouchKey") <> "" Then		
 		TouchKeyboardEnabled = Int(ReadSettings.GetSetting("TouchKey"))
+	EndIf	
+	
+	If ReadSettings.GetSetting("ShowInfoButton") <> "" Then		
+		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton"))
 	EndIf		
+	If ReadSettings.GetSetting("ShowScreenButton") <> "" Then		
+		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton"))
+	EndIf		
+		
 	If ReadSettings.GetSetting("AntiAlias") <> "" Then		
 		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
 	EndIf				

@@ -1,6 +1,6 @@
 Type KeyboardInputWindow Extends wxFrame 
 	Field ParentWin:SettingsWindow
-	Field InputBoxes:wxTextCtrl[12]
+	Field InputBoxes:wxTextCtrl[14]
 	Field ActiveField:Int 
 	Field ActiveValue:String 
 	Field KeyCountdown:wxTimer
@@ -32,7 +32,7 @@ Type KeyboardInputWindow Extends wxFrame
 		Local StaticText:wxStaticText
 		Local Button:KeyboardInputButton
 		
-		For a=0 To 11
+		For a=0 To 13
 			InputSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			StaticText = New wxStaticText.Create(Self , wxID_ANY , KeyboardInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 			InputBoxes[a] = New wxTextCtrl.Create(Self , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
@@ -106,7 +106,7 @@ Type KeyboardInputWindow Extends wxFrame
 			temp = Int(FrontEndSettingFile.GetSetting("KEYBOARD_ESC"))
 			InputBoxes[8].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
 		Else
-			InputBoxes[8].ChangeValue(KEY_ESCAPE+" ("+getKeyCodeChar(KEY_ESCAPE)+")")			
+			InputBoxes[8].ChangeValue(KEY_F1+" ("+getKeyCodeChar(KEY_F1)+")")			
 		EndIf 	
 		
 		If FrontEndSettingFile.GetSetting("KEYBOARD_MENU") <> "" Then
@@ -128,7 +128,21 @@ Type KeyboardInputWindow Extends wxFrame
 			InputBoxes[11].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
 		Else
 			InputBoxes[11].ChangeValue(KEY_P+" ("+getKeyCodeChar(KEY_P)+")")			
-		EndIf 																				
+		EndIf 	
+		
+		If FrontEndSettingFile.GetSetting("KEYBOARD_SCREEN") <> "" Then
+			temp = Int(FrontEndSettingFile.GetSetting("KEYBOARD_SCREEN"))
+			InputBoxes[12].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
+		Else
+			InputBoxes[12].ChangeValue(KEY_S+" ("+getKeyCodeChar(KEY_S)+")")			
+		EndIf
+		
+		If FrontEndSettingFile.GetSetting("KEYBOARD_END") <> "" Then
+			temp = Int(FrontEndSettingFile.GetSetting("KEYBOARD_END"))
+			InputBoxes[13].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
+		Else
+			InputBoxes[13].ChangeValue(KEY_ESCAPE+" ("+getKeyCodeChar(KEY_ESCAPE)+")")			
+		EndIf																			
 		
 		KeyCountdown = New wxTimer.Create(Self,KIW_T)
 			
@@ -181,6 +195,12 @@ Type KeyboardInputWindow Extends wxFrame
 		EndIf 
 		If Int(KeyboardInputWin.InputBoxes[11].GetValue())<>0
 			KeyboardInputWin.FrontEndSettingFile.SaveSetting("KEYBOARD_PLATROTATE" , Int(KeyboardInputWin.InputBoxes[11].GetValue()))		
+		EndIf 
+		If Int(KeyboardInputWin.InputBoxes[12].GetValue())<>0
+			KeyboardInputWin.FrontEndSettingFile.SaveSetting("KEYBOARD_SCREEN" , Int(KeyboardInputWin.InputBoxes[12].GetValue()))		
+		EndIf 
+		If Int(KeyboardInputWin.InputBoxes[13].GetValue())<>0
+			KeyboardInputWin.FrontEndSettingFile.SaveSetting("KEYBOARD_END" , Int(KeyboardInputWin.InputBoxes[13].GetValue()))		
 		EndIf 		
 		
 		KeyboardInputWin.FrontEndSettingFile.SaveFile()
@@ -269,7 +289,7 @@ End Type
 
 Type JoyStickInputWindow Extends wxFrame 
 	Field ParentWin:SettingsWindow
-	Field InputBoxes:wxTextCtrl[8]
+	Field InputBoxes:wxTextCtrl[10]
 	Field ActiveField:Int 
 	Field ActiveValue:String 
 	Field JoyCountdown:wxTimer
@@ -302,7 +322,7 @@ Type JoyStickInputWindow Extends wxFrame
 		Local StaticText:wxStaticText
 		Local Button:wxButton 
 		
-		For a=0 To 7
+		For a=0 To 9
 			InputSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			StaticText = New wxStaticText.Create(Self , wxID_ANY , JoyStickInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 			InputBoxes[a] = New wxTextCtrl.Create(Self , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
@@ -370,7 +390,21 @@ Type JoyStickInputWindow Extends wxFrame
 			InputBoxes[7].ChangeValue(temp)
 		Else
 			InputBoxes[7].ChangeValue("5")		
-		EndIf 																
+		EndIf 	
+		
+		If FrontEndSettingFile.GetSetting("JOY_SCREEN") <> "" Then
+			temp = Int(FrontEndSettingFile.GetSetting("JOY_SCREEN"))
+			InputBoxes[8].ChangeValue(temp)
+		Else
+			InputBoxes[8].ChangeValue("7")		
+		EndIf 
+		
+		If FrontEndSettingFile.GetSetting("JOY_END") <> "" Then
+			temp = Int(FrontEndSettingFile.GetSetting("JOY_END"))
+			InputBoxes[9].ChangeValue(temp)
+		Else
+			InputBoxes[9].ChangeValue("10")		
+		EndIf 																	
 		
 		JoyCountdown = New wxTimer.Create(Self,KIW_T)
 		JoyKeyTimer = New wxTimer.Create(Self,KIW_JKT)
@@ -414,7 +448,13 @@ Type JoyStickInputWindow Extends wxFrame
 		EndIf 
 		If Int(JoyStickInputWin.InputBoxes[7].GetValue())<>0
 			JoyStickInputWin.FrontEndSettingFile.SaveSetting("JOY_PLATROTATE" , Int(JoyStickInputWin.InputBoxes[7].GetValue()))
-		EndIf 		
+		EndIf 	
+		If Int(JoyStickInputWin.InputBoxes[8].GetValue())<>0
+			JoyStickInputWin.FrontEndSettingFile.SaveSetting("JOY_SCREEN" , Int(JoyStickInputWin.InputBoxes[8].GetValue()))
+		EndIf 
+		If Int(JoyStickInputWin.InputBoxes[9].GetValue())<>0
+			JoyStickInputWin.FrontEndSettingFile.SaveSetting("JOY_END" , Int(JoyStickInputWin.InputBoxes[9].GetValue()))
+		EndIf			
 				
 		JoyStickInputWin.FrontEndSettingFile.SaveFile()
 		

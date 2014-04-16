@@ -1,3 +1,187 @@
+Type ScreenType
+	Field Mesh:TMesh
+	
+	Field Position:Int
+	Field TexturePath:String 
+	
+	Field x:Float
+	Field y:Float
+	Field z:Float
+	Field Rotx:Float
+	Field Roty:Float
+	Field Rotz:Float
+	Field NormY:Float
+	Field GlobalPosition:Int = False 
+	
+	Field Textured:Int
+	Field Tex:TTexture
+			
+	Field Positioned:Int = False
+	Field OldCurrentGamePos:Int 
+	Field ResetCoverPosition:Int = False 
+
+	Method Init(Parent:TPivot)
+		Mesh = CreateCover(0 , Parent)
+		Textured = False
+		EntityFX Mesh , 1
+'		CoverNum = -1
+		ScaleEntity Mesh , 0.75 , 1 , 0 
+		'x = EntityX(Mesh)
+		'y = EntityY(Mesh)
+		'z = EntityZ(Mesh)
+		'Rotx = EntityPitch(Mesh)
+		'Roty = EntityYaw(Mesh)
+		'Rotz = EntityRoll(Mesh)
+	End Method
+	
+	Method MouseOver()
+		Local Box:Float[4]
+		Box = GetBoundingBox(Mesh)
+		If MouseX() > Box[0] And MouseX() < Box[2] And MouseY() > Box[1] And MouseY() < Box[3] Then
+			Return True
+		Else
+			Return False
+		EndIf
+	End Method 
+	
+	Method Update()
+		LoadCoverTexture()
+		
+		If LowProcessor = False Then
+			
+			'If Positioned = True And OldCurrentGamePos <> CurrentGamePos Then
+			'	Positioned = False
+			'EndIf
+			
+			'If (x - EntityX(Mesh , GlobalPosition) ) < 0.05 And (y - EntityY(Mesh , GlobalPosition) ) < 0.05 And (z - EntityZ(Mesh , GlobalPosition) ) < 0.05 Then
+			'	If (Rotx - EntityPitch(Mesh) ) < 0.1 And (Roty - EntityYaw(Mesh) ) < 0.1 And (Rotz - EntityRoll(Mesh) ) < 0.1 Then
+			'		Positioned = True
+			'	EndIf 
+			'EndIf 
+				
+			'RotateEntity(Mesh , 0 , 0 , 0 )
+			MoveEntity(Mesh , ((x - EntityX(Mesh,GlobalPosition) ) / 10^(1/SpeedRatio)), ((y - EntityY(Mesh,GlobalPosition) ) / 2^(1/SpeedRatio)) , ((z - EntityZ(Mesh,GlobalPosition) ) / 2^(1/SpeedRatio)) )
+		EndIf 
+		
+		Rem
+		If GameArrayLen <> 0 Then 
+			LoadCoverTexture()
+		EndIf
+		If Positioned = False Then 
+			OldCurrentGamePos = CurrentGamePos
+		EndIf 
+		
+		
+		EndRem
+	End Method
+	
+	Method LoadCoverTexture()
+		Local Hi:Float
+		Local BHi:Float
+		
+		If EntityInView(Mesh , Camera)>0 Then
+			If Textured = False Then
+				If FileType(GAMEDATAFOLDER + GameArray[CurrentGamePos] +FolderSlash + TexturePath) = 1 Then
+					If ListContains(ProcessedTextures , GAMEDATAFOLDER + GameArray[CurrentGamePos] +FolderSlash+ TexturePath) = True Then
+						Tex = LoadPreloadedTexture(GAMEDATAFOLDER + GameArray[CurrentGamePos] +FolderSlash+ TexturePath)
+						If Tex <> Null
+							EntityTexture(Mesh , Tex)
+
+							LockMutex(TTexture.Mutex_tex_list)
+							Hi = Float(0.75) * (Float(tex.pixHeight) / tex.pixWidth)
+							'Self.y = Hi-1
+							UnlockMutex(TTexture.Mutex_tex_list)
+														
+							ScaleEntity(Mesh , 0.75 , Hi , 0)
+							NormY = Hi - 1
+							'Repositioning done via hack flag - ResetCoverPosition which is updated via CoverWallType-Update()							
+							ResetCoverPosition = True 
+
+							LockMutex(TTexture.Mutex_tex_list)
+							ListAddLast(InUseTextures , tex.file)
+							UnlockMutex(TTexture.Mutex_tex_list)
+							Textured = True 
+						EndIf	
+					Else
+						Tex = LoadPreloadedTexture(RESFOLDER + "Loading.jpg")	
+						If Tex <> Null Then
+							EntityTexture(Mesh , Tex)
+							LockMutex(TTexture.Mutex_tex_list)
+							Hi = Float(0.75) * (Float(tex.pixHeight) / tex.pixWidth) /2
+							'Self.y = Hi-1
+							UnlockMutex(TTexture.Mutex_tex_list)
+							ScaleEntity(Mesh , 0.75 , Hi , 0)
+							'PositionEntity(Mesh , EntityX(Mesh) , EntityY(Mesh) + Hi - 1 , EntityZ(Mesh) )	
+							NormY = Hi - 1
+							
+							ResetCoverPosition = True 
+							'y = EntityY(Mesh) + NormY
+							Textured = False
+						Else
+							RuntimeError "Loading.jpg Missing!"
+						EndIf							
+					EndIf
+				Else
+					Tex = LoadPreloadedTexture(RESFOLDER + "NoCover.jpg")	
+					If Tex <> Null Then
+						EntityTexture(Mesh , tex)
+						LockMutex(TTexture.Mutex_tex_list)
+						Hi = Float(0.75) * (Float(tex.pixHeight) / tex.pixWidth) /2
+						'Self.y = Hi-1
+						UnlockMutex(TTexture.Mutex_tex_list)
+						ScaleEntity(Mesh , 0.75 , Hi , 0)
+						'PositionEntity(Mesh , EntityX(Mesh) , EntityY(Mesh) + Hi - 1 , EntityZ(Mesh) )
+						NormY = Hi - 1
+						'y = EntityY(Mesh) + NormY
+						
+						'LockMutex(TTexture.Mutex_tex_list)
+						'ScaleEntity(Mesh , 0.75 , Float(0.75) * (Float(tex.pixHeight) / tex.pixWidth) , 0)
+						'UnlockMutex(TTexture.Mutex_tex_list)
+						Textured = True
+					Else
+						RuntimeError "NoCover.jpg Missing!"
+					EndIf
+				EndIf	
+
+				
+			EndIf
+			
+		Else
+			If LowMemory = True Then
+				If Textured = True Then
+					LockMutex(TTexture.Mutex_tex_list)
+					ListRemove(InUseTextures , Tex.file)
+					UnlockMutex(TTexture.Mutex_tex_list)
+					Tex = LoadPreloadedTexture(RESFOLDER + "Loading.jpg")	
+					If Tex <> Null Then
+						EntityTexture(Mesh , Tex)
+						Textured = False
+					Else
+						RuntimeError "Loading.jpg Missing!"
+					EndIf		
+				EndIf			
+			EndIf
+		EndIf 
+
+	End Method
+	
+	
+	Method Clear()
+		Rem
+		FreeEntity(Mesh)
+		LockMutex(TTexture.Mutex_tex_list)
+		If Tex <> Null Then
+			ListRemove(InUseTextures , Tex.file)
+		EndIf
+		UnlockMutex(TTexture.Mutex_tex_list)
+		EndRem
+	End Method
+	
+End Type
+
+
+
+
 Type CoverWallType
 	Field Covers:CoverType2[GameArrayLen]
 	Field Parent:TPivot
@@ -1073,7 +1257,7 @@ Type CoverType
 			Case 2
 				CoverDistance = 1.6
 		End select
-		endrem 
+		EndRem 
 		Mesh = CreateCover(0 , Parent)
 		BackMesh = CreateCover(0 , Mesh)
 		RotateEntity(BackMesh,0,180,0)

@@ -1,7 +1,5 @@
 'SUPER IMPORTANT
 'TODO: Fix the way platforms are done...
-'TODO: Joystick Code Mapper
-'TODO: Keyboard Code Mapper
 
 'END OF SUPER IMPORTANT
 
@@ -1160,6 +1158,8 @@ Type SettingsWindow Extends wxFrame
 	Field SW_ButtonCloseOnly:wxComboBox
 	Field SW_OriginWait:wxComboBox
 	Field SW_AntiAlias:wxComboBox 
+	Field SW_ShowTouchScreen:wxComboBox
+	Field SW_ShowTouchInfo:wxComboBox 
 	
 	Field KeyboardInputField:KeyboardInputWindow
 	Field JoyStickInputField:JoyStickInputWindow
@@ -1273,8 +1273,15 @@ Type SettingsWindow Extends wxFrame
 		SW_LowProc = New wxComboBox.Create(ScrollBox , SW_LP , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
 		Local ST8 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Game Cache Number: (The number of games around the selected game to keep artwork in memory, larger will be smoother but use more memory) " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 		SW_GameCache = New wxTextCtrl.Create(ScrollBox , SW_GC , String(GAMECACHELIMIT) , - 1 , - 1 , - 1 , - 1 , 0 )
-		Local ST10 = New wxStaticText.Create(ScrollBox , wxID_ANY , "TouchScreen/JoyStick Keyboard Enabled: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		
+		Local ST10 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Show TouchScreen/JoyStick Keyboard: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 		SW_TouchKey = New wxComboBox.Create(ScrollBox , SW_TK , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		
+		Local ST17 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Show Touchscreen Info Button: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_ShowTouchInfo = New wxComboBox.Create(ScrollBox , SW_STI , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		
+		Local ST18 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Show Touchscreen ScreenShot Button: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_ShowTouchScreen = New wxComboBox.Create(ScrollBox , SW_STS , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
 
 		Local SL7:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
 		Local SLT4 = New wxStaticText.Create(ScrollBox , wxID_ANY , "PhotonRunner Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
@@ -1334,7 +1341,21 @@ Type SettingsWindow Extends wxFrame
 			SW_TouchKey.SetValue("Yes")
 		Else
 			SW_TouchKey.SetValue("No")
-		EndIf 		
+		EndIf 	
+
+		If ShowScreenButton = 1 Then 
+			SW_ShowTouchScreen.SetValue("Yes")
+		Else
+			SW_ShowTouchScreen.SetValue("No")
+		EndIf 	
+		
+		If ShowInfoButton = 1 Then 
+			SW_ShowTouchInfo.SetValue("Yes")
+		Else
+			SW_ShowTouchInfo.SetValue("No")
+		EndIf 			
+		
+			
 		
 		If RunnerButtonCloseOnly = 1 Then 
 			SW_ButtonCloseOnly.SetValue("Yes")
@@ -1414,7 +1435,12 @@ Type SettingsWindow Extends wxFrame
 		ScrollBoxvbox.Add(ST8 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SW_GameCache , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(ST10 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_TouchKey , 0 , wxEXPAND | wxALL , 4)						
+		ScrollBoxvbox.Add(SW_TouchKey , 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox.Add(ST17 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(SW_ShowTouchInfo , 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox.Add(ST18 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(SW_ShowTouchScreen , 0 , wxEXPAND | wxALL , 4)							
+						
 		ScrollBoxvbox.AddSpacer(50)
 				
 		ScrollBoxvbox.Add(SL7,  0 , wxEXPAND | wxALL , 4)
@@ -1458,7 +1484,7 @@ Type SettingsWindow Extends wxFrame
 	Function KeyboardWinFun(event:wxEvent)
 		Local SettingsWin:SettingsWindow = SettingsWindow(event.parent)
 		PrintF("----------------------------Show Keyboard----------------------------")
-		SettingsWin.KeyboardInputField = KeyboardInputWindow(New KeyboardInputWindow.Create(SettingsWin, wxID_ANY, "FrontEnd Keyboard Input", , , 340, 560))	
+		SettingsWin.KeyboardInputField = KeyboardInputWindow(New KeyboardInputWindow.Create(SettingsWin, wxID_ANY, "FrontEnd Keyboard Input", , , 340, 630))	
 		SettingsWin.KeyboardInputField.Show(True)
 		SettingsWin.Hide()
 		SettingsWin.KeyboardInputField.Raise()
@@ -1467,7 +1493,7 @@ Type SettingsWindow Extends wxFrame
 	Function JoyStickWinFun(event:wxEvent)
 		Local SettingsWin:SettingsWindow = SettingsWindow(event.parent)
 		PrintF("----------------------------Show Keyboard----------------------------")
-		SettingsWin.JoyStickInputField = JoyStickInputWindow(New JoyStickInputWindow.Create(SettingsWin, wxID_ANY, "FrontEnd JoyStick Input", , , 340, 400))	
+		SettingsWin.JoyStickInputField = JoyStickInputWindow(New JoyStickInputWindow.Create(SettingsWin, wxID_ANY, "FrontEnd JoyStick Input", , , 340, 480))	
 		SettingsWin.JoyStickInputField.Show(True)
 		SettingsWin.Hide()
 		SettingsWin.JoyStickInputField.Raise()
@@ -1657,6 +1683,18 @@ Type SettingsWindow Extends wxFrame
 		Else
 			TouchKeyboardEnabled = 0
 		EndIf 	
+		
+		If SW_ShowTouchScreen.GetValue() = "Yes" Then 
+			ShowScreenButton = 1
+		Else
+			ShowScreenButton = 0
+		EndIf 	
+
+		If SW_ShowTouchInfo.GetValue() = "Yes" Then 
+			ShowInfoButton = 1
+		Else
+			ShowInfoButton = 0
+		EndIf 		
 	
 		If SW_OverridePath.GetValue()="" Then
 			DeleteFile("SaveLocationOverride.txt")
@@ -2321,7 +2359,12 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("AntiAlias") <> "" Then		
 		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
 	EndIf			
-	
+	If ReadSettings.GetSetting("ShowInfoButton") <> "" Then		
+		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton"))
+	EndIf		
+	If ReadSettings.GetSetting("ShowScreenButton") <> "" Then		
+		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton"))
+	EndIf			
 	
 	ReadSettings.CloseFile()
 End Function
@@ -2346,6 +2389,8 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("LowProc" , LowProcessor)
 	SaveSettings.SaveSetting("TouchKey" , TouchKeyboardEnabled)	
 	SaveSettings.SaveSetting("AntiAlias" , AntiAliasSetting)		
+	SaveSettings.SaveSetting("ShowInfoButton" , ShowInfoButton)	
+	SaveSettings.SaveSetting("ShowScreenButton" , ShowScreenButton)	
 	
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()

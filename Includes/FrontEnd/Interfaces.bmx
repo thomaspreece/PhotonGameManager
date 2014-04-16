@@ -1,9 +1,476 @@
+Type ScreenShotInterface Extends GeneralType
+	'Field ScreenShotWall:ScreenShotType
+	Field KeyDelayTimer:Int
+	Field ScreenShots:String[]
+	Field ScreenShotNumber:Int 
+	Field Screens:ScreenType[]
+	Field CurrentScreenShot:Int 
+	Field OldCurrentScreenShot:Int 
+	Field itemsPerRow:Int 
+	Field Parent:TPivot 
+	Field BigCover:Int = 0
+	Field Screen:ScreenShotButtonType
+	
+	Method Init()
+		
+		Screen:ScreenShotButtonType = New ScreenShotButtonType
+		If WideScreen = 1 Then
+			Screen.DrawX = GWidth * (Float(30) / 800)
+		Else
+			Screen.DrawX = GWidth * (Float(20) / 800)
+		EndIf 
+		Screen.DrawY = GHeight * (Float(560) / 600) - GWidth * (Float(15) / 800)
+		Screen.Mode = 1
+		Screen.Init()
+		
+		Local File:String
+		Local ScreenShotList:TList = CreateList()
+		Local LocalTextureStack:TList = CreateList()
+		
+		Local ReadScreenShotFolder = ReadDir(GAMEDATAFOLDER+GameArray[CurrentGamePos]+FolderSlash+"ScreenShots")
+		Repeat
+			File = NextFile(ReadScreenShotFolder)
+			If File=".." Then Continue
+			If File="." Then Continue
+			If FileType(GAMEDATAFOLDER+GameArray[CurrentGamePos]+FolderSlash+"ScreenShots"+FolderSlash+File)=2 Then Continue 
+			If File="" Then Exit
+			If ExtractExt(File)="jpg" Then
+				ListAddLast(ScreenShotList,"ScreenShots"+FolderSlash+File)
+			EndIf 
+		Forever
+		CloseDir(ReadScreenShotFolder)
+		
+		If CountList(ScreenShotList)=0 Then 
+			If FileType(GAMEDATAFOLDER+GameArray[CurrentGamePos]+FolderSlash+"Shot1_OPT.jpg")=1 Then
+				ListAddLast(ScreenShotList,"Shot1_OPT.jpg")
+			EndIf 
+			If FileType(GAMEDATAFOLDER+GameArray[CurrentGamePos]+FolderSlash+"Shot2_OPT.jpg")=1 Then
+				ListAddLast(ScreenShotList,"Shot2_OPT.jpg")
+			EndIf 			
+		EndIf 
+		
+		If CountList(ScreenShotList)<>0 Then
+			ScreenShotNumber = CountList(ScreenShotList)
+			ScreenShots = New String[ScreenShotNumber]
+			For a = 0 To ScreenShotNumber - 1
+				ScreenShots[a] = String(ScreenShotList.RemoveFirst())
+				ListAddLast(LocalTextureStack,GAMEDATAFOLDER+GameArray[CurrentGamePos]+FolderSlash+ScreenShots[a])
+			Next
+		Else
+			ScreenShotNumber = 0
+		EndIf
+		
+		CurrentScreenShot = 0
+		OldCurrentScreenShot = 0
+		
+		LockMutex(Mutex_ProcessStack)
+		ProcessStack = LocalTextureStack
+		UnlockMutex(Mutex_ProcessStack)	
+		
+		itemsPerRow = Max(Ceil(Float(ScreenShotNumber) / 5) , 5)
+		
+		Parent = CreatePivot()
+		PositionEntity Parent , 0 , 0 , 2
+		
+		Screens = New ScreenType[ScreenShotNumber]
+		
+		For a = 0 To ScreenShotNumber - 1
+			Screens[a] = New ScreenType
+			Screens[a].Position = a
+			Screens[a].TexturePath = ScreenShots[a]
+			Screens[a].Init(Parent)
+			Screens[a].x = Pos(a , 1 , Screens[a].NormY)
+			Screens[a].y = Pos(a , 2 , Screens[a].NormY)
+			Screens[a].z = Pos(a , 3 , Screens[a].NormY)
+			Screens[a].Rotx = 0
+			Screens[a].Roty = 0
+			Screens[a].Rotz = 0
+			PositionEntity(Screens[a].Mesh , Screens[a].x , Screens[a].y , Screens[a].z , Screens[a].GlobalPosition)
+		Next
+		
+		ListAddLast(UpdateTypeList , Self)	
+		
+	End Method	
+
+	Method LoadBigCover()
+		Rem
+		Local BTex:TTexture		
+		If BigCover = 0 Then
+		
+			For a = 0 To ScreenShotNumber - 1
+				Screens[a].GlobalPosition = True
+				'Screens[a].y = Screens[a].NormY
+	
+				If WideScreen = 1 Then
+					Screens[a].z = - 2
+				Else
+					Screens[a].z = - 2.3
+				EndIf
+			
+			Next
+			
+			BigCover = 1	
+			'Rem	
+			If FileType(GAMEDATAFOLDER + GameArray[CurrentGamePos] + FolderSlash+Screens[CurrentScreenShot].TexturePath) = 1 Then
+				BTex = LoadTexture(GAMEDATAFOLDER + GameArray[CurrentGamePos] +FolderSlash +"Front_OPT_2X.jpg")
+				LockMutex(TTexture.Mutex_tex_list)
+				ListAddLast(InUseTextures , BTex.file)
+				UnlockMutex(TTexture.Mutex_tex_list)
+				EntityTexture(Covers[CurrentGamePos].Mesh , BTex)
+			EndIf				
+			'EndRem
+		Else
+			For a = 0 To ScreenShotNumber - 1
+				Screens[a].z = Pos(Screens[a].Position , 3 , Screens[a].NormY)
+				'Screens[a].y = Pos(Screens[a].Position , 2 , Screens[a].NormY)
+				Screens[a].GlobalPosition = False 
+			Next	
+			BigCover = 0
+		EndIf	
+		EndRem 
+		If BigCover = 0 Then
+			BigCover = 1
+		Else
+			BigCover = 0
+		EndIf 
+		OldCurrentScreenShot = -1
+	End Method
+
+
+
+	Method Max2D()
+		Screen.Max2D()
+	End Method 
+	
+	Method Update()
+		Screen.Update()
+		For a = 0 To ScreenShotNumber - 1
+			Screens[a].Update()
+			If Screens[a].ResetCoverPosition = True Then
+				Screens[a].y = Pos(a , 2 , Screens[a].NormY)
+				PositionEntity(Screens[a].Mesh , EntityX(Screens[a].Mesh) , Screens[a].y , EntityZ(Screens[a].Mesh) )	
+				Screens[a].ResetCoverPosition = False 			
+			EndIf 
+		Next	
+		If OldCurrentScreenShot <> CurrentScreenShot Then
+			For a = 0 To ScreenShotNumber - 1
+				Screens[a].x = Pos(a , 1 , Screens[a].NormY)
+				Screens[a].y = Pos(a , 2 , Screens[a].NormY)
+				Screens[a].z = Pos(a , 3 , Screens[a].NormY)				
+			Next 
+			If LowProcessor = True Then
+				PositionEntity(Screens[a].Mesh , Screens[a].x , Screens[a].y , Screens[a].z , Screens[a].GlobalPosition)
+			EndIf 
+			OldCurrentScreenShot = CurrentScreenShot
+		EndIf 
+	End Method
+	
+	Method Clear()
+		For a = 0 To ScreenShotNumber - 1		
+			Screens[a].Clear()
+			Screens[a] = Null 
+		Next
+		FreeEntity(Parent)
+		
+		'ScreenShotWall.Clear()
+		'ScreenShotWall = Null
+		Screen.Clear()
+		Screen = Null 
+		ListRemove(UpdateTypeList , Self)
+	End Method 
+	
+	Method UpdateMouse()
+		If Screen.UpdateMouse() = True Then Return True
+		'MouseSwipe 1: Swipe left/right
+		'MouseSwipe 2: Hold Down mouse browse
+		'MouseSwipe 3: Hold state for '2' allowing swipemode interface to be drawn
+		'MouseSwipe 4: Swipe up/down
+		Local DoNotStopSwipe:Int = False
+		Local a:Int = 0
+		Local b:Object
+		Local SelectedCover:Int = - 1
+		Local ClickCoverList:TList = CreateList()
+		If MouseClick = 1 Then
+			MouseClick = 0
+			For a = 0 To ScreenShotNumber - 1
+				If Screens[a].MouseOver() = True
+					ListAddLast(ClickCoverList , String(a) )
+				EndIf
+			Next	
+			If ClickCoverList.Count() > 0 Then
+				If ListContains(ClickCoverList , String(CurrentScreenShot) ) Then
+					LoadBigCover()
+				Else
+					For b = EachIn ClickCoverList
+						a = Int(String(b))
+						If a > CurrentScreenShot Then
+							If a < SelectedCover Or SelectedCover = - 1 Then
+								SelectedCover = a
+							EndIf
+						ElseIf a < CurrentScreenShot Then
+							If a > SelectedCover Or SelectedCover = - 1 Then
+								SelectedCover = a
+							EndIf						
+						EndIf
+					Next
+					CurrentScreenShot = SelectedCover
+				EndIf	
+			EndIf
+			Return True 
+		EndIf
+		If MouseClick = 2 Then
+			MouseClick = 0
+			Return True 
+		EndIf		
+		If MouseSwipe = 1 Then
+			MouseSwipe = 0
+			PrintF("You swiped mouse, X:" + String(MouseEnd[0] - MouseStart[0]) + " T:" + MouseSwipeTime)
+			If CurrentScreenShot = ScreenShotNumber - 1 Or CurrentScreenShot = 0 Then DoNotStopSwipe = True 
+			CurrentScreenShot = CurrentScreenShot + Int( ( ( (Float(MouseEnd[0] - MouseStart[0]) * 10) / GWidth) * 1000	) / MouseSwipeTime)
+			If DoNotStopSwipe = False Then
+				If CurrentScreenShot > ScreenShotNumber - 1 Then CurrentScreenShot = ScreenShotNumber - 1
+				If CurrentScreenShot < 0 Then CurrentScreenShot = 0
+			Else
+				If CurrentScreenShot > ScreenShotNumber - 1 Then CurrentScreenShot = 0
+				If CurrentScreenShot < 0 Then CurrentScreenShot = ScreenShotNumber - 1
+			EndIf
+			Return True 
+		ElseIf MouseSwipe = 2 Then
+			MouseSwipe = 3
+			CurrentScreenShot = CurrentScreenShot + Int((Float(MouseX()-(GWidth/2))/ GWidth) * 6)
+			
+			If CurrentScreenShot > ScreenShotNumber - 1 Then CurrentScreenShot = ScreenShotNumber - 1
+			If CurrentScreenShot < 0 Then CurrentScreenShot = 0		
+			Return True
+		ElseIf MouseSwipe = 4 Then
+			MouseSwipe = 0
+			If MouseEnd[1] - MouseStart[1] > 0 Then
+				LoadBigCover()		
+			ElseIf MouseEnd[1] - MouseStart[1] < 0
+				
+			EndIf
+			Return True
+		EndIf
+		Return False
+	End Method
+		
+	Method UpdateJoy()
+		If Screen.UpdateJoy() = True Then Return True
+		For J=0 To JoyCount()-1 
+			If JoyHit(JOY_CANCEL,J) Then 
+				ChangeInterface(CurrentInterfaceNumber,1,0)
+				Return True
+			EndIf 
+			
+			If JoyHit(JOY_BIGCOVER,J) Then
+				LoadBigCover()
+				Return True 
+			EndIf
+			
+			If Tol(JoyY(J),0,0.2) <> 1 Then 
+				If JoyY(J) > 0 Then 
+					If MilliSecs() - KeyDelayTimer > 100/(JoyY(J)*1.5)
+						If CurrentScreenShot + itemsPerRow > ScreenShotNumber - 1 Then
+					
+						Else
+							CurrentScreenShot = CurrentScreenShot + itemsPerRow
+						EndIf 
+						KeyDelayTimer = MilliSecs()	
+					EndIf
+					Return True 
+				Else
+					If MilliSecs() - KeyDelayTimer > 100/(-JoyY(J)*1.5)
+						If CurrentScreenShot - itemsPerRow < 0 Then
+					
+						Else
+							CurrentScreenShot = CurrentScreenShot - itemsPerRow
+						EndIf  
+						KeyDelayTimer = MilliSecs()	
+					EndIf 
+					Return True 			
+				EndIf 
+			EndIf 
+			
+			If Tol(JoyX(J),0,0.2) <> 1 Then 
+				If JoyX(J) > 0 Then 
+					If MilliSecs() - KeyDelayTimer > 100/(JoyX(J)*1.5)
+						CurrentScreenShot = CurrentScreenShot + 1
+						KeyDelayTimer = MilliSecs()
+						If CurrentScreenShot > ScreenShotNumber - 1 Then CurrentScreenShot = ScreenShotNumber - 1 'CurrentGamePos - GameArrayLen
+					EndIf
+					Return True 
+				Else
+					If MilliSecs() - KeyDelayTimer > 100/(-JoyX(J)*1.5)
+						CurrentScreenShot = CurrentScreenShot - 1
+						KeyDelayTimer = MilliSecs()		
+						If CurrentScreenShot < 0 Then CurrentScreenShot = 0
+					EndIf
+					Return True 			
+				EndIf 
+			EndIf 			
+		
+			If Tol(JoyHat(J),0.5,0.1) Then 
+				If MilliSecs() - KeyDelayTimer > 100
+					If CurrentScreenShot + itemsPerRow > ScreenShotNumber - 1 Then
+					
+					Else
+						CurrentScreenShot = CurrentScreenShot + itemsPerRow
+					EndIf 
+					KeyDelayTimer = MilliSecs()	
+				EndIf
+				Return True			
+			EndIf 
+			If Tol(JoyHat(J),0,0.1) Then 
+				If MilliSecs() - KeyDelayTimer > 100
+					If CurrentScreenShot - itemsPerRow < 0 Then
+					
+					Else
+						CurrentScreenShot = CurrentScreenShot - itemsPerRow
+					EndIf 
+					KeyDelayTimer = MilliSecs()	
+				EndIf 
+				Return True 		
+			EndIf 		
+			If Tol(JoyHat(J),0.25,0.1) Then 	
+				If MilliSecs() - KeyDelayTimer > 100 
+					CurrentScreenShot = CurrentScreenShot + 1
+					KeyDelayTimer = MilliSecs()
+					If CurrentScreenShot > ScreenShotNumber - 1 Then CurrentScreenShot = ScreenShotNumber - 1 'CurrentGamePos - GameArrayLen
+				EndIf
+				Return True 			
+			EndIf 
+			If Tol(JoyHat(J),0.75,0.1) Then 
+				If MilliSecs() - KeyDelayTimer > 100 
+					CurrentScreenShot = CurrentScreenShot - 1
+					KeyDelayTimer = MilliSecs()		
+					If CurrentScreenShot < 0 Then CurrentScreenShot = 0
+				EndIf		
+			EndIf 
+		Next 	
+
+	End Method 	
+		
+	Method UpdateKeyboard()
+		If Screen.UpdateKeyboard() = True Then Return True
+		If KeyHit(KEYBOARD_ESC) Then 
+			ChangeInterface(CurrentInterfaceNumber,1,0)
+			Return True
+		EndIf 
+
+		If KeyHit(KEYBOARD_BIGCOVER) Then
+			LoadBigCover()
+			Return True 
+		EndIf
+					
+		If KeyDown(KEYBOARD_RIGHT) Then
+			If MilliSecs() - KeyDelayTimer > 100 
+				CurrentScreenShot = CurrentScreenShot + 1
+				KeyDelayTimer = MilliSecs()
+				If CurrentScreenShot > ScreenShotNumber - 1 Then CurrentScreenShot = ScreenShotNumber - 1 'CurrentGamePos - GameArrayLen
+			EndIf
+			Return True 
+		EndIf
+		If KeyDown(KEYBOARD_LEFT) Then
+			If MilliSecs() - KeyDelayTimer > 100 
+				CurrentScreenShot = CurrentScreenShot - 1
+				KeyDelayTimer = MilliSecs()		
+				If CurrentScreenShot < 0 Then CurrentScreenShot = 0
+			EndIf
+		EndIf
+	
+		If KeyDown(KEYBOARD_UP) Then
+			If MilliSecs() - KeyDelayTimer > 100 
+				If CurrentScreenShot - itemsPerRow < 0 Then
+					
+				Else
+					CurrentScreenShot = CurrentScreenShot - itemsPerRow
+				EndIf 
+				KeyDelayTimer = MilliSecs()		
+			EndIf
+		EndIf		
+		If KeyDown(KEYBOARD_DOWN) Then
+			If MilliSecs() - KeyDelayTimer > 100
+				If CurrentScreenShot + itemsPerRow > ScreenShotNumber - 1 Then
+					
+				Else
+					CurrentScreenShot = CurrentScreenShot + itemsPerRow
+				EndIf 
+				KeyDelayTimer = MilliSecs()		
+
+			EndIf
+		EndIf			
+	End Method
+
+	Method Pos:Float(Num:Int , Axis:Int , NormY:Float)
+		Local Row:Int = - 1 , CRow:Int = - 1
+		Local Col:Int = - 1 , CCol:Int = - 1
+		If Num < itemsPerRow Then
+			Row = 1
+			Col = Num
+		ElseIf Num < (itemsPerRow * 2)  Then
+			Row = 2
+			Col = Num - itemsPerRow
+		ElseIf Num < (itemsPerRow * 3) Then
+			Row = 3
+			Col = Num - itemsPerRow * 2
+		ElseIf Num < (itemsPerRow * 4) Then
+			Row = 4
+			Col = Num -  itemsPerRow * 3
+		ElseIf Num < (itemsPerRow * 5) Then
+			Row = 5
+			Col = Num - itemsPerRow *4
+		EndIf
+
+		If CurrentScreenShot < itemsPerRow Then
+			CRow = 1
+			CCol = CurrentScreenShot
+		ElseIf CurrentScreenShot < (itemsPerRow * 2) Then
+			CRow = 2
+			CCol = CurrentScreenShot - itemsPerRow
+		ElseIf CurrentScreenShot < (itemsPerRow * 3) Then
+			CRow = 3
+			CCol = CurrentScreenShot - itemsPerRow * 2
+		ElseIf CurrentScreenShot < (itemsPerRow * 4) Then
+			CRow = 4
+			CCol = CurrentScreenShot -  itemsPerRow * 3
+		ElseIf CurrentScreenShot < (itemsPerRow * 5) Then
+			CRow = 5
+			CCol = CurrentScreenShot - itemsPerRow *4
+		EndIf
+		
+		Select Axis
+			Case 1
+				Return Float(Col-CCol)*1.6
+			Case 2
+				Return Float(CRow-Row)*1.5 '+ NormY 
+			Case 3
+				If BigCover = 1 Then
+					If (CRow - Row) = 0 And (Col - CCol) = 0 Then
+						Return - 4.8
+					Else
+						Return - 4.8
+					EndIf 
+				Else
+					If (CRow - Row) = 0 And (Col - CCol) = 0 Then
+						Return - 2
+					Else
+						Return -1
+					EndIf 
+				EndIf 
+		End Select 
+	End Method 
+
+	  
+End Type
+
+
 Type CoverWallInterface Extends GeneralType
 	Field CoverWall:CoverWallType
 	Field KeyDelayTimer:Int
 	Field Info:InfoType
 	Field Completed:CompletedType
 	Field Rating:RatingType
+	Field Screen:ScreenShotButtonType
 	
 	Method Init()
 		CoverWall = New CoverWallType
@@ -20,12 +487,21 @@ Type CoverWallInterface Extends GeneralType
 		BannerNeeded = 0	
 						
 		
+		Screen:ScreenShotButtonType = New ScreenShotButtonType
+		If WideScreen = 1 Then
+			Screen.DrawX = GWidth * (Float(80) / 800)
+		Else
+			Screen.DrawX = GWidth * (Float(60) / 800)
+		EndIf 
+		Screen.DrawY = GHeight * (Float(560) / 600) - GWidth * (Float(15) / 800)
+		Screen.Init()
+		
 		
 		Info:InfoType = New InfoType
 		If WideScreen = 1 Then
-			Info.DrawX = GWidth * (Float(60) / 800)
-		Else
 			Info.DrawX = GWidth * (Float(40) / 800)
+		Else
+			Info.DrawX = GWidth * (Float(20) / 800)
 		EndIf 
 		Info.DrawY = GHeight * (Float(560) / 600) - GWidth * (Float(15) / 800)
 		Info.Init()				
@@ -51,6 +527,7 @@ Type CoverWallInterface Extends GeneralType
 	
 	Method Max2D()
 		If CoverWall.BigCover <> 1 Then
+			Screen.Max2D()
 			Completed.Max2D()
 			Rating.Max2D()
 			SetImageFont(NameFont)
@@ -74,10 +551,12 @@ Type CoverWallInterface Extends GeneralType
 		tempWriteLog3("CoverWall Wrapper")
 		CoverWall.Update()
 		Completed.Update()
-		Rating.Update()				
+		Rating.Update()	
+		Screen.Update()			
 	End Method
 	
 	Method Clear()
+		Screen.Clear()
 		CoverWall.Clear()
 		CoverWall = Null
 		ListRemove(UpdateTypeList , Self)
@@ -87,9 +566,11 @@ Type CoverWallInterface Extends GeneralType
 		Rating = Null
 		Info.Clear()
 		Info = Null 
+		Screen = Null 
 	End Method 
 	
 	Method UpdateMouse()
+		If Screen.UpdateMouse() = True Then Return True
 		If Completed.UpdateMouse() = True Then Return True
 		If Rating.UpdateMouse() = True Then Return True			
 		If CoverWall.UpdateMouse() = True Then Return True
@@ -97,6 +578,7 @@ Type CoverWallInterface Extends GeneralType
 	End Method
 		
 	Method UpdateJoy()
+		If Screen.UpdateJoy() = True Then Return True			
 		For J=0 To JoyCount()-1 
 			If JoyHit(JOY_BIGCOVER,J) Then
 				If CoverWall.BigCoverEnabled = True Then
@@ -194,6 +676,7 @@ Type CoverWallInterface Extends GeneralType
 	End Method 	
 		
 	Method UpdateKeyboard()
+		If Screen.UpdateKeyboard() = True Then Return True	
 		If KeyHit(KEYBOARD_BIGCOVER) Then
 			If CoverWall.BigCoverEnabled = True Then
 				CoverWall.LoadBigCover()
@@ -260,6 +743,7 @@ Type ListViewInterface Extends GeneralType
 	Field Info:InfoType
 	Field Completed:CompletedType
 	Field Rating:RatingType
+	Field Screen:ScreenShotButtonType
 	
 	Field BigCover:Int = 0
 	
@@ -339,7 +823,16 @@ Type ListViewInterface Extends GeneralType
 			Info.DrawX = GWidth * (Float(700) / 800)
 		EndIf 
 		Info.DrawY = GHeight * (Float(560) / 600) - GWidth * (Float(15) / 800)
-		Info.Init()				
+		Info.Init()		
+		
+		Screen:ScreenShotButtonType = New ScreenShotButtonType
+		If WideScreen = 1 Then
+			Screen.DrawX = GWidth * (Float(680) / 800)
+		Else
+			Screen.DrawX = GWidth * (Float(660) / 800)
+		EndIf 
+		Screen.DrawY = GHeight * (Float(560) / 600) - GWidth * (Float(15) / 800)
+		Screen.Init()			
 		
 		Completed = New CompletedType
 		Rating = New RatingType
@@ -401,6 +894,8 @@ Type ListViewInterface Extends GeneralType
 		Info = Null 
 		Back = Null
 		GameList = Null
+		Screen.Clear()
+		Screen = Null 		
 	End Method 
 	
 	Method Update()
@@ -418,10 +913,12 @@ Type ListViewInterface Extends GeneralType
 		Back.Update()
 		GameList.Update()
 		Completed.Update()
-		Rating.Update()		
+		Rating.Update()	
+		Screen.Update()	
 	End Method
 	
 	Method UpdateJoy()
+		If Screen.UpdateJoy() = True Then Return True			
 		For J=0 To JoyCount()-1 
 			If JoyHit(JOY_BIGCOVER,J) Then
 				LoadBigCover()
@@ -469,6 +966,7 @@ Type ListViewInterface Extends GeneralType
 	End Method 
 	
 	Method UpdateKeyboard()
+		If Screen.UpdateKeyboard() = True Then Return True	
 		If KeyHit(KEYBOARD_BIGCOVER) Then
 			LoadBigCover()
 			Return True 
@@ -499,6 +997,7 @@ Type ListViewInterface Extends GeneralType
 	End Method
 	
 	Method UpdateMouse()
+		If Screen.UpdateMouse() = True Then Return True
 		If Completed.UpdateMouse() = True Then Return True
 		If Rating.UpdateMouse() = True Then Return True			
 		If Cover.MouseOver() = True Then
@@ -524,6 +1023,7 @@ Type ListViewInterface Extends GeneralType
 	
 	Method Max2D()
 		If BigCover <> 1 Then 
+			Screen.Max2D()
 			Completed.Max2D()
 			Rating.Max2D()		
 			Local DescLine:String
@@ -590,6 +1090,7 @@ Type InfoViewBannerInterface Extends GeneralType
 	
 	Field Completed:CompletedType
 	Field Rating:RatingType	
+	Field Screen:ScreenShotButtonType
 	
 	Field TextList:TList
 	Field FontHeight2:Int
@@ -632,7 +1133,12 @@ Type InfoViewBannerInterface Extends GeneralType
 		'GWidth * (Float(30) / 800)
 		Info.DrawY = GHeight * (Float(375) / 600)
 		'GHeight* (1-(Float(50) / 600))
-		Info.Init()				
+		Info.Init()	
+		
+		Screen:ScreenShotButtonType = New ScreenShotButtonType
+		Screen.DrawX = GWidth * (Float(90) / 800)
+		Screen.DrawY = GHeight * (Float(375) / 600)
+		Screen.Init()						
 		
 		TempVal1 = GWidth * (Float(30) / 800)
 		TempVal2 = GWidth * (Float(20) / 800)
@@ -737,6 +1243,7 @@ Type InfoViewBannerInterface Extends GeneralType
 		
 			Completed.Max2D()
 			Rating.Max2D()
+			Screen.Max2D()
 		EndIf 		
 	End Method
 	
@@ -746,17 +1253,21 @@ Type InfoViewBannerInterface Extends GeneralType
 		Rating.Update()		
 		CoverFlow.Update()
 		Back.Update()
+		Screen.Update()
 	End Method
 	
 	Method UpdateJoy()
+		If Screen.UpdateJoy() = True Then Return True			
 		CoverFlow.UpdateJoy()
 	End Method 
 	
 	Method UpdateKeyboard()
+		If Screen.UpdateKeyboard() = True Then Return True	
 		CoverFlow.UpdateKeyboard()
 	End Method
 	
 	Method UpdateMouse()
+		If Screen.UpdateMouse() = True Then Return True
 		If Completed.UpdateMouse() = True Then Return True
 		If Rating.UpdateMouse() = True Then Return True		
 		CoverFlow.UpdateMouse()
@@ -774,6 +1285,8 @@ Type InfoViewBannerInterface Extends GeneralType
 		Rating = Null 
 		CoverFlow = Null
 		Back = Null 	
+		Screen.Clear()
+		Screen = Null 
 	End Method	
 	
 End Type 
@@ -791,6 +1304,7 @@ Type InfoViewInterface Extends GeneralType
 	
 	Field Completed:CompletedType
 	Field Rating:RatingType	
+	Field Screen:ScreenShotButtonType
 	
 	Field TextList:TList
 	Field FontHeight2:Int
@@ -833,7 +1347,12 @@ Type InfoViewInterface Extends GeneralType
 		'GWidth * (Float(30) / 800)
 		Info.DrawY = GHeight * (Float(375) / 600)
 		'GHeight* (1-(Float(50) / 600))
-		Info.Init()				
+		Info.Init()			
+		
+		Screen:ScreenShotButtonType = New ScreenShotButtonType
+		Screen.DrawX = GWidth * (Float(90) / 800)
+		Screen.DrawY = GHeight * (Float(375) / 600)
+		Screen.Init()				
 		
 		TempVal1 = GWidth * (Float(30) / 800)
 		TempVal2 = GWidth * (Float(20) / 800)
@@ -938,6 +1457,7 @@ Type InfoViewInterface Extends GeneralType
 		
 			Completed.Max2D()
 			Rating.Max2D()
+			Screen.Max2D()
 		EndIf 		
 	End Method
 	
@@ -947,19 +1467,23 @@ Type InfoViewInterface Extends GeneralType
 		Rating.Update()		
 		CoverFlow.Update()
 		Back.Update()
+		Screen.Update()
 	End Method
 	
 	Method UpdateJoy()
+		If Screen.UpdateJoy() = True Then Return True			
 		CoverFlow.UpdateJoy()
 	End Method 
 	
 	Method UpdateKeyboard()
+		If Screen.UpdateKeyboard() = True Then Return True	
 		CoverFlow.UpdateKeyboard()
 	End Method
 	
 	Method UpdateMouse()
 		If Completed.UpdateMouse() = True Then Return True
-		If Rating.UpdateMouse() = True Then Return True		
+		If Rating.UpdateMouse() = True Then Return True	
+		If Screen.UpdateMouse() = True Then Return True	
 		CoverFlow.UpdateMouse()
 	End Method
 	
@@ -975,6 +1499,8 @@ Type InfoViewInterface Extends GeneralType
 		Rating = Null 
 		CoverFlow = Null
 		Back = Null 	
+		Screen.Clear()
+		Screen = Null 		
 	End Method	
 	
 End Type 
@@ -985,6 +1511,7 @@ Type CoverFlowInterface Extends GeneralType
 	Field Info:InfoType
 	Field Completed:CompletedType
 	Field Rating:RatingType
+	Field Screen:ScreenShotButtonType
 
 	Method Init()
 		CoverFlow = New CoverFlowType
@@ -996,7 +1523,13 @@ Type CoverFlowInterface Extends GeneralType
 		Info:InfoType = New InfoType
 		Info.DrawX = GWidth * (Float(30) / 800)
 		Info.DrawY = GHeight* (1-(Float(50) / 600))
-		Info.Init()				
+		Info.Init()			
+		
+		Screen:ScreenShotButtonType = New ScreenShotButtonType
+		Screen.DrawX = GWidth * (Float(70) / 800)
+		Screen.DrawY = GHeight* (1-(Float(50) / 600))
+		Screen.Init()		
+					
 		CoverFlow.Init(0 , 0 , 0)
 		ListAddLast(UpdateTypeList , Self)		
 		FrontNeeded = 1
@@ -1014,6 +1547,7 @@ Type CoverFlowInterface Extends GeneralType
 	
 	Method Max2D()
 		If CoverFlow.BigCover <> 1 Then
+			Screen.Max2D()
 			Completed.Max2D()
 			Rating.Max2D()
 			SetImageFont(NameFont)
@@ -1036,24 +1570,29 @@ Type CoverFlowInterface Extends GeneralType
 		tempWriteLog3("CoverFlowWrapper")	
 		Completed.Update()
 		Rating.Update()		
+		Screen.Update()
 		CoverFlow.Update()
 	End Method
 	
 	Method UpdateJoy()
+		If Screen.UpdateJoy() = True Then Return True			
 		If CoverFlow.UpdateJoy() = True Then Return True
 	End Method 
 	
 	Method UpdateKeyboard()
+		If Screen.UpdateKeyboard() = True Then Return True
 		If CoverFlow.UpdateKeyboard() = True Then Return True
 	End Method
 	
 	Method UpdateMouse()
+		If Screen.UpdateMouse() = True Then Return True
 		If Completed.UpdateMouse() = True Then Return True
 		If Rating.UpdateMouse() = True Then Return True		
 		CoverFlow.UpdateMouse()
 	End Method
 	
 	Method Clear()
+		Screen.Clear()
 		Completed.Clear()
 		Rating.Clear()
 		Info.Clear()		
@@ -1063,6 +1602,7 @@ Type CoverFlowInterface Extends GeneralType
 		Rating = Null 
 		Completed = Null 
 		Info = Null 
+		Screen = Null 
 	End Method	
 End Type
 
@@ -1080,7 +1620,8 @@ Type BannerFlowInterface Extends GeneralType
 	Field BannerFlow:BannerFlowType
 	Field Info:InfoType
 	Field Completed:CompletedType
-	Field Rating:RatingType			
+	Field Rating:RatingType	
+	Field Screen:ScreenShotButtonType		
 
 	Field BigCover:Int = 0
 	
@@ -1168,6 +1709,15 @@ Type BannerFlowInterface Extends GeneralType
 		Info.DrawY = GHeight * (Float(560) / 600) - GWidth * (Float(15) / 800)
 		Info.Init()				
 		
+		Screen:ScreenShotButtonType = New ScreenShotButtonType
+		If WideScreen = 1 Then
+			Screen.DrawX = GWidth * (Float(680) / 800)
+		Else
+			Screen.DrawX = GWidth * (Float(660) / 800)
+		EndIf 
+		Screen.DrawY = GHeight * (Float(560) / 600) - GWidth * (Float(15) / 800)
+		Screen.Init()		
+		
 		Completed = New CompletedType
 		Rating = New RatingType
 		
@@ -1226,6 +1776,8 @@ Type BannerFlowInterface Extends GeneralType
 		Rating = Null
 		Info = Null 
 		Back = Null
+		Screen.Clear()
+		Screen = Null 		
 	End Method 
 	
 	Method Update()
@@ -1243,13 +1795,16 @@ Type BannerFlowInterface Extends GeneralType
 		Back.Update()
 		Completed.Update()
 		Rating.Update()		
+		Screen.Update()
 	End Method
 	
 	Method UpdateJoy()
+		If Screen.UpdateJoy() = True Then Return True			
 		BannerFlow.UpdateJoy()
 	End Method 
 	
 	Method UpdateKeyboard()
+		If Screen.UpdateKeyboard() = True Then Return True	
 		If KeyHit(KEYBOARD_BIGCOVER) Then
 			LoadBigCover()
 			Return True 
@@ -1288,7 +1843,9 @@ Type BannerFlowInterface Extends GeneralType
 				Return True					
 			EndIf 
 		EndIf		
-		
+		If Completed.UpdateMouse() = True Then Return True
+		If Rating.UpdateMouse() = True Then Return True				
+		If Screen.UpdateMouse() = True Then Return True
 		BannerFlow.UpdateMouse()
 		Return False 
 	End Method 
@@ -1296,7 +1853,8 @@ Type BannerFlowInterface Extends GeneralType
 	Method Max2D()
 		If BigCover <> 1 Then 
 			Completed.Max2D()
-			Rating.Max2D()		
+			Rating.Max2D()	
+			Screen.Max2D()	
 			Local DescLine:String
 			Local a:Int = 1
 			SetImageFont(NameFont)
