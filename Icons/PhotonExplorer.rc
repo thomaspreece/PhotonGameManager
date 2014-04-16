@@ -1,8 +1,8 @@
 101 ICON "Controller.ico"
 
 1 VERSIONINFO 
-FILEVERSION 4,0,9,0 
-PRODUCTVERSION 4,0,9,0 
+FILEVERSION 4,1,0,0 
+PRODUCTVERSION 4,1,0,0 
 FILEOS 0x40004
 FILETYPE 0x1
 { 
@@ -12,14 +12,14 @@ BLOCK "StringFileInfo"
  { 
   VALUE "Comments", "Photon Explorer allows you to view, update and play your games from a friendly windowed interface. It is part of the Photon GameManager Suite."
   VALUE "CompanyName", "Photon Software" 
-  VALUE "FileVersion", "4.0.9.0" 
+  VALUE "FileVersion", "4.1.0.0" 
   VALUE "FileDescription", "PhotonExplorer" 
   VALUE "InternalName", "PhotonExplorer" 
   VALUE "LegalCopyright", "" 
   VALUE "LegalTrademarks", "" 
   VALUE "OriginalFilename", "PhotonExplorer.exe" 
   VALUE "ProductName", "Photon GameManager" 
-  VALUE "ProductVersion", "4.0.9.0" 
+  VALUE "ProductVersion", "4.1.0.0" 
  } 
 }
 BLOCK "VarFileInfo"

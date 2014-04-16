@@ -1,8 +1,8 @@
 101 ICON "GamesCab.ico"
 
 1 VERSIONINFO 
-FILEVERSION 4,0,9,0 
-PRODUCTVERSION 4,0,9,0 
+FILEVERSION 4,1,0,0 
+PRODUCTVERSION 4,1,0,0 
 FILEOS 0x40004
 FILETYPE 0x1
 { 
@@ -12,14 +12,14 @@ BLOCK "StringFileInfo"
  { 
   VALUE "Comments", "Photon FrontEnd allows you to view, update and play your games from a friendly fullscreen interface. It is part of the Photon GameManager Suite."
   VALUE "CompanyName", "Photon Software" 
-  VALUE "FileVersion", "4.0.9.0" 
+  VALUE "FileVersion", "4.1.0.0" 
   VALUE "FileDescription", "PhotonFrontEnd" 
   VALUE "InternalName", "PhotonFrontEnd" 
   VALUE "LegalCopyright", "" 
   VALUE "LegalTrademarks", "" 
   VALUE "OriginalFilename", "PhotonFrontEnd.exe" 
   VALUE "ProductName", "Photon GameManager" 
-  VALUE "ProductVersion", "4.0.9.0" 
+  VALUE "ProductVersion", "4.1.0.0" 
  } 
 }
 BLOCK "VarFileInfo"
