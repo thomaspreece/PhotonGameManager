@@ -167,7 +167,206 @@ Function MainTextureLoadThread:Object(in:Object)
 End Function
 
 Function UpdateStack()
-	If HaltStack <> True Then 'FilterMenuEnabled <> True And
+	If HaltStack <> True Then 
+		Select CurrentInterfaceNumber
+			Case 6 'CoverWall
+				CoverWallUpdateStack()
+			Case 5 'BannerFlow
+				BannerFlowUpdateStack()
+			Case 4 'ListView
+				GeneralUpdateStack()
+			Case 3 'InfoView Banner
+				BannerFlowUpdateStack()
+			Case 2 'InfoView
+				CoverFlowUpdateStack()
+			Case 1 'CoverFlow
+				CoverFlowUpdateStack()
+			Default 
+		End Select 
+	EndIf 
+End Function
+
+Function BannerFlowUpdateStack()
+		Local LoadFront:Int = FrontNeeded
+		Local LoadBack:Int = BackNeeded
+		Local LoadScreen:Int = ScreenNeeded
+		Local LoadBanner:Int = BannerNeeded
+		
+		Local FrontList:TList = CreateList()
+		Local BackList:TList = CreateList()
+		Local FrontList2:TList = CreateList()
+		Local BackList2:TList = CreateList()
+					
+		Local GameStack:TList = CreateList()
+		Local GameStack2:TList = CreateList()		
+		Local TextureStack:TList = CreateList()
+		Local TextureStack2:TList = CreateList()
+		Local a:Int , b:Int , c:Int 
+		Local Tex:TTexture
+		Local File:String
+		Local BannerCount:Int = 0
+
+		c = 0
+		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
+
+			If a > GameArrayLen - 1 Then
+				b = a - GameArrayLen
+			Else
+				b = a
+			EndIf
+			
+			If c > Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then
+				ListAddLast(FrontList2 , GameArray[b])
+			Else
+				ListAddLast(FrontList , GameArray[b])
+			EndIf 
+			c = c + 1
+		Next 
+		
+		c = 0
+		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
+
+			If a > GameArrayLen - 1 Then
+				b = a - GameArrayLen
+			Else
+				b = a
+			EndIf
+			
+			If c > Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
+				ListAddLast(BackList2 , GameArray[b])
+			Else
+				ListAddLast(BackList , GameArray[b])	
+			EndIf 
+			c = c + 1
+		Next 
+		
+		Local List1String:String , List2String:String
+		Repeat
+			List1String = String(FrontList.RemoveFirst())
+			If List1String = Null Then
+			
+			Else
+				ListAddLast(GameStack , List1String)
+			EndIf
+			List2String = String(BackList.RemoveFirst())
+			If List2String = Null Then
+			
+			Else
+				ListAddLast(GameStack , List2String)
+			EndIf	
+			
+			If List1String = Null And List2String = Null Then Exit
+		Forever
+		
+		Repeat
+			List1String = String(FrontList2.RemoveFirst())
+			If List1String = Null Then
+			
+			Else
+				ListAddLast(GameStack2 , List1String)
+			EndIf
+			List2String = String(BackList2.RemoveFirst())
+			If List2String = Null Then
+			
+			Else
+				ListAddLast(GameStack2 , List2String)
+			EndIf	
+			If List1String = Null And List2String = Null Then Exit
+		Forever
+				
+		FrontList = Null
+		BackList = Null
+		FrontList2 = Null
+		BackList2 = Null		
+		a = Null
+		b = Null
+		'Load First Cover
+		File = String(GameStack.First())
+		If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
+			ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+		EndIf	
+
+		'Load intial 10 games Banners			
+		For File = EachIn GameStack
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg") = 1 And LoadBanner = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg")
+				BannerCount = BannerCount + 1
+			EndIf
+		Next
+		
+		'Load First Back and Screen
+		File = String(GameStack.First())
+		If FileType(GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg") = 1 And LoadScreen = 1 Then
+			ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg")
+		EndIf
+		If FileType(GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg") = 1 And LoadBack = 1 Then
+			ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg")
+		EndIf			
+		
+		'Load intial 10 games remaining resources
+		For File = EachIn GameStack
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+			EndIf
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg") = 1 And LoadBack = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg")
+			EndIf		
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg") = 1 And LoadScreen = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg")
+			EndIf				
+		Next
+		
+		'Load all other banners
+		If LowMemory = False Then 
+			For File = EachIn GameStack2
+				If FileType(GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg") = 1 And LoadBanner = 1 Then
+					If BannerCount < MaxFrontCovers Then
+						ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg")
+						BannerCount = BannerCount + 1
+					Else
+						Exit 
+					EndIf
+				EndIf
+			Next 
+		EndIf 		
+
+		
+		'PrintF("Clearing Unused Textures")
+		LockMutex(TTexture.Mutex_tex_list)
+		For Tex = EachIn TTexture.tex_list
+			File = Tex.file
+			If Left(File , Len(GAMEDATAFOLDER) ) = GAMEDATAFOLDER Then
+				If ListContains(TextureStack , File) Or ListContains(InUseTextures,File) Then
+				
+				Else
+					ListRemove(TTexture.tex_list , Tex)
+					ListRemove(ProcessedTextures , File)
+					PrintF("Freed: "+File)
+					FreeTexture(Tex)
+					Tex = Null		
+				EndIf
+			EndIf
+		Next
+		UnlockMutex(TTexture.Mutex_tex_list)
+	
+		'PrintF("Final Filter")
+		For File = EachIn TextureStack
+			If ListContains(ProcessedTextures , File) <> True And ListContains(TextureStack2 , File) <> True Then
+				ListAddLast(TextureStack2 , File)
+				?Debug
+				PrintF("STACK: "+File)
+				?
+			EndIf
+		Next		
+		'PrintF("TextureStack Finish")	
+		'Return TextureStack2
+		
+		LockMutex(Mutex_ProcessStack)
+		ProcessStack = TextureStack2
+		UnlockMutex(Mutex_ProcessStack)	
+End Function
+
+Function CoverWallUpdateStack()
 		Local LoadFront:Int = FrontNeeded
 		Local LoadBack:Int = BackNeeded
 		Local LoadScreen:Int = ScreenNeeded
@@ -229,88 +428,86 @@ Function UpdateStack()
 			c = c + 1
 		Next 
 		
-		If VerticalCoverLoad = 1 Then
+
+		c = 0
+		For a = CurrentGamePos + itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 + itemsPerRow
+
+			b=a
 			
-			c = 0
-			For a = CurrentGamePos + itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 + itemsPerRow
+			While b<0
+				b=b+GameArrayLen
+			Wend
 
-				b=a
+			If b>GameArrayLen-1 Then 
+			
+			Else
 				
-				While b<0
-					b=b+GameArrayLen
-				Wend
-
-				If b>GameArrayLen-1 Then 
-				
-				Else
-					
-					If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
-						ListAddLast(Row1FList , GameArray[b])
-					EndIf 
+				If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
+					ListAddLast(Row1FList , GameArray[b])
 				EndIf 
-				c = c + 1
-			Next 
-			
-			
-			c=0
-			For a = CurrentGamePos + itemsPerRow + GameArrayLen - 1 To CurrentGamePos + itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
-
-				b=a
-				
-				While b > GameArrayLen-1
-					b=b-GameArrayLen
-				Wend
-				
-				If b>GameArrayLen-1 Then 
-					
-				Else	
-					
-					If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then			
-						ListAddLast(Row1BList , GameArray[b])	
-					EndIf 
-				EndIf 
-				c = c + 1
-			Next 
-			
-			c=0
-			For a = CurrentGamePos - itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 - itemsPerRow
-				
-				b=a
-				
-				While b > GameArrayLen-1
-					b=b-GameArrayLen
-				Wend
-				
-				If b<0 Then 
-				
-				Else
-					If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
-						ListAddLast(RowM1FList , GameArray[b])
-					EndIf 
-				EndIf 
-				c = c + 1
-			Next 
-			
-			c=0
-			For a = CurrentGamePos - itemsPerRow + GameArrayLen - 1 To CurrentGamePos - itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
-
-				b=a
-
-				While b > GameArrayLen-1
-					b=b-GameArrayLen
-				Wend
-				
-				If b<0 Then 
-				
-				Else
-					If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
-						ListAddLast(RowM1BList , GameArray[b])	
-					EndIf 
-				EndIf 
-				c = c + 1
-			Next 			
+			EndIf 
+			c = c + 1
+		Next 
 		
-		EndIf	
+		
+		c=0
+		For a = CurrentGamePos + itemsPerRow + GameArrayLen - 1 To CurrentGamePos + itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
+
+			b=a
+			
+			While b > GameArrayLen-1
+				b=b-GameArrayLen
+			Wend
+			
+			If b>GameArrayLen-1 Then 
+				
+			Else	
+				
+				If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then			
+					ListAddLast(Row1BList , GameArray[b])	
+				EndIf 
+			EndIf 
+			c = c + 1
+		Next 
+		
+		c=0
+		For a = CurrentGamePos - itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 - itemsPerRow
+			
+			b=a
+			
+			While b > GameArrayLen-1
+				b=b-GameArrayLen
+			Wend
+			
+			If b<0 Then 
+			
+			Else
+				If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
+					ListAddLast(RowM1FList , GameArray[b])
+				EndIf 
+			EndIf 
+			c = c + 1
+		Next 
+		
+		c=0
+		For a = CurrentGamePos - itemsPerRow + GameArrayLen - 1 To CurrentGamePos - itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
+
+			b=a
+
+			While b > GameArrayLen-1
+				b=b-GameArrayLen
+			Wend
+			
+			If b<0 Then 
+			
+			Else
+				If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
+					ListAddLast(RowM1BList , GameArray[b])	
+				EndIf 
+			EndIf 
+			c = c + 1
+		Next 			
+
 		
 		Local List1String:String , List2String:String , List3String:String , List4String:String, List5String:String, List6String:String
 		Repeat
@@ -392,30 +589,22 @@ Function UpdateStack()
 			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg") = 1 And LoadBanner = 1 Then
 				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg")
 			EndIf		
-			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Shot1_OPT.jpg") = 1 And LoadShot1 = 1 Then
-				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Shot1_OPT.jpg")
-			EndIf	
-			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Shot2_OPT.jpg") = 1 And LoadShot2 = 1 Then
-				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Shot2_OPT.jpg")
-			EndIf									
+									
 		Next
 		
-		Select ExtraResNeeded
-			Case "AllCovers"
-				If LowMemory = False Then 
-					For File = EachIn GameStack2
-						If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
-							If FrontCoverCount < MaxFrontCovers Then
-								ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
-								FrontCoverCount = FrontCoverCount + 1
-							Else
-								'Print "---------------------------------------------NO MORE COVERS! NOPE----------------------------------"+FrontCoverCount
-								Exit 
-							EndIf
-						EndIf
-					Next 
-				EndIf 		
-		End Select 
+		If LowMemory = False Then 
+			For File = EachIn GameStack2
+				If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
+					If FrontCoverCount < MaxFrontCovers Then
+						ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+						FrontCoverCount = FrontCoverCount + 1
+					Else
+						
+						Exit 
+					EndIf
+				EndIf
+			Next 
+		EndIf 		
 		
 		'PrintF("Clearing Unused Textures")
 		LockMutex(TTexture.Mutex_tex_list)
@@ -450,5 +639,294 @@ Function UpdateStack()
 		LockMutex(Mutex_ProcessStack)
 		ProcessStack = TextureStack2
 		UnlockMutex(Mutex_ProcessStack)	
-	EndIf 
 End Function
+
+Function CoverFlowUpdateStack()
+		Local LoadFront:Int = FrontNeeded
+		Local LoadBack:Int = BackNeeded
+		Local LoadScreen:Int = ScreenNeeded
+		Local LoadBanner:Int = BannerNeeded
+		
+		Local FrontList:TList = CreateList()
+		Local BackList:TList = CreateList()
+		Local FrontList2:TList = CreateList()
+		Local BackList2:TList = CreateList()
+				
+		Local GameStack:TList = CreateList()
+		Local GameStack2:TList = CreateList()		
+		Local TextureStack:TList = CreateList()
+		Local TextureStack2:TList = CreateList()
+		Local a:Int , b:Int , c:Int , d:Int
+		Local Tex:TTexture
+		Local File:String
+		Local FrontCoverCount:Int = 0
+
+		c = 0
+		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
+
+			If a > GameArrayLen - 1 Then
+				b = a - GameArrayLen
+			Else
+				b = a
+			EndIf
+			
+			If c > Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then
+				ListAddLast(FrontList2 , GameArray[b])
+			Else
+				ListAddLast(FrontList , GameArray[b])
+			EndIf 
+			c = c + 1
+		Next 
+		
+		c = 0
+		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
+
+			If a > GameArrayLen - 1 Then
+				b = a - GameArrayLen
+			Else
+				b = a
+			EndIf
+			
+			If c > Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
+				ListAddLast(BackList2 , GameArray[b])
+			Else
+				ListAddLast(BackList , GameArray[b])	
+			EndIf 
+			c = c + 1
+		Next 
+		
+	
+		
+		Local List1String:String , List2String:String 
+		Repeat
+			List1String = String(FrontList.RemoveFirst())
+			If List1String = Null Then
+			
+			Else
+				ListAddLast(GameStack , List1String)
+			EndIf
+			List2String = String(BackList.RemoveFirst())
+			If List2String = Null Then
+			
+			Else
+				ListAddLast(GameStack , List2String)
+			EndIf	
+			
+			
+			If List1String = Null And List2String = Null Then Exit
+		Forever
+		
+		Repeat
+			List1String = String(FrontList2.RemoveFirst())
+			If List1String = Null Then
+			
+			Else
+				ListAddLast(GameStack2 , List1String)
+			EndIf
+			List2String = String(BackList2.RemoveFirst())
+			If List2String = Null Then
+			
+			Else
+				ListAddLast(GameStack2 , List2String)
+			EndIf	
+			If List1String = Null And List2String = Null Then Exit
+		Forever
+				
+		FrontList = Null
+		BackList = Null
+		FrontList2 = Null
+		BackList2 = Null		
+		a = Null
+		b = Null
+		
+		For File = EachIn GameStack
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+				FrontCoverCount = FrontCoverCount + 1
+			EndIf
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg") = 1 And LoadBack = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg")
+			EndIf		
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg") = 1 And LoadScreen = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg")
+			EndIf		
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg") = 1 And LoadBanner = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg")
+			EndIf										
+		Next
+		
+		If LowMemory = False Then 
+			For File = EachIn GameStack2
+				If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
+					If FrontCoverCount < MaxFrontCovers Then
+						ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+						FrontCoverCount = FrontCoverCount + 1
+					Else
+						Exit 
+					EndIf
+				EndIf
+			Next 
+		EndIf 		
+		
+		
+		'PrintF("Clearing Unused Textures")
+		LockMutex(TTexture.Mutex_tex_list)
+		For Tex = EachIn TTexture.tex_list
+			File = Tex.file
+			If Left(File , Len(GAMEDATAFOLDER) ) = GAMEDATAFOLDER Then
+				If ListContains(TextureStack , File) Or ListContains(InUseTextures,File) Then
+				
+				Else
+					ListRemove(TTexture.tex_list , Tex)
+					ListRemove(ProcessedTextures , File)
+					PrintF("Freed: "+File)
+					FreeTexture(Tex)
+					Tex = Null		
+				EndIf
+			EndIf
+		Next
+		UnlockMutex(TTexture.Mutex_tex_list)
+	
+		'PrintF("Final Filter")
+		For File = EachIn TextureStack
+			If ListContains(ProcessedTextures , File) <> True Then
+				ListAddLast(TextureStack2 , File)
+				?Debug
+				PrintF("STACK: "+File)
+				?
+			EndIf
+		Next		
+		'PrintF("TextureStack Finish")	
+		'Return TextureStack2
+		
+		LockMutex(Mutex_ProcessStack)
+		ProcessStack = TextureStack2
+		UnlockMutex(Mutex_ProcessStack)	
+End Function
+
+Function GeneralUpdateStack()
+		Local LoadFront:Int = FrontNeeded
+		Local LoadBack:Int = BackNeeded
+		Local LoadScreen:Int = ScreenNeeded
+		Local LoadBanner:Int = BannerNeeded
+		
+		Local FrontList:TList = CreateList()
+		Local BackList:TList = CreateList()
+					
+		Local GameStack:TList = CreateList()
+
+		Local TextureStack:TList = CreateList()
+		Local TextureStack2:TList = CreateList()
+		
+		Local a:Int , b:Int , c:Int 
+		Local Tex:TTexture
+		Local File:String
+
+		c = 0
+		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
+
+			If a > GameArrayLen - 1 Then
+				b = a - GameArrayLen
+			Else
+				b = a
+			EndIf
+			
+			If c > Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then
+				Exit
+			Else
+				ListAddLast(FrontList , GameArray[b])
+			EndIf 
+			c = c + 1
+		Next 
+		
+		c = 0
+		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
+
+			If a > GameArrayLen - 1 Then
+				b = a - GameArrayLen
+			Else
+				b = a
+			EndIf
+			
+			If c > Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
+				Exit
+			Else
+				ListAddLast(BackList , GameArray[b])	
+			EndIf 
+			c = c + 1
+		Next 
+		
+		
+		
+		Local List1String:String , List2String:String 
+		Repeat
+			List1String = String(FrontList.RemoveFirst())
+			If List1String = Null Then
+			
+			Else
+				ListAddLast(GameStack , List1String)
+			EndIf
+			List2String = String(BackList.RemoveFirst())
+			If List2String = Null Then
+			
+			Else
+				ListAddLast(GameStack , List2String)
+			EndIf	
+				
+			If List1String = Null And List2String = Null Then Exit
+		Forever
+					
+		FrontList = Null
+		BackList = Null
+		a = Null
+		b = Null
+		For File = EachIn GameStack
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg")
+			EndIf
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg") = 1 And LoadBack = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Back_OPT.jpg")
+			EndIf		
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg") = 1 And LoadScreen = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Screen_OPT.jpg")
+			EndIf		
+			If FileType(GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg") = 1 And LoadBanner = 1 Then
+				ListAddLast(TextureStack , GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg")
+			EndIf										
+		Next
+				
+		'PrintF("Clearing Unused Textures")
+		LockMutex(TTexture.Mutex_tex_list)
+		For Tex = EachIn TTexture.tex_list
+			File = Tex.file
+			If Left(File , Len(GAMEDATAFOLDER) ) = GAMEDATAFOLDER Then
+				If ListContains(TextureStack , File) Or ListContains(InUseTextures,File) Then
+				
+				Else
+					ListRemove(TTexture.tex_list , Tex)
+					ListRemove(ProcessedTextures , File)
+					PrintF("Freed: "+File)
+					FreeTexture(Tex)
+					Tex = Null		
+				EndIf
+			EndIf
+		Next
+		UnlockMutex(TTexture.Mutex_tex_list)
+	
+		'PrintF("Final Filter")
+		For File = EachIn TextureStack
+			If ListContains(ProcessedTextures , File) <> True Then
+				ListAddLast(TextureStack2 , File)
+				?Debug
+				PrintF("STACK: "+File)
+				?
+			EndIf
+		Next		
+		'PrintF("TextureStack Finish")	
+		'Return TextureStack2
+		
+		LockMutex(Mutex_ProcessStack)
+		ProcessStack = TextureStack2
+		UnlockMutex(Mutex_ProcessStack)	
+
+End Function 

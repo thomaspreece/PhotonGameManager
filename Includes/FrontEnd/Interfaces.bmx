@@ -479,8 +479,6 @@ Type CoverWallInterface Extends GeneralType
 		CoverWall.Init()	
 		ListAddLast(UpdateTypeList , Self)	
 		
-		ExtraResNeeded = "AllCovers"
-		VerticalCoverLoad = 1
 		FrontNeeded = 1
 		BackNeeded = 1
 		ScreenNeeded = 0
@@ -802,8 +800,6 @@ Type ListViewInterface Extends GeneralType
 		BackNeeded = 1
 		ScreenNeeded = 1
 		BannerNeeded = 0
-		ExtraResNeeded = ""	
-		VerticalCoverLoad = 0 
 				
 		GameList = New GameListType
 		If WideScreen = 1 Then
@@ -1125,8 +1121,7 @@ Type InfoViewBannerInterface Extends GeneralType
 		BackNeeded = 0
 		ScreenNeeded = 1
 		BannerNeeded = 1
-		ExtraResNeeded = ""
-		VerticalCoverLoad = 0
+
 		
 		Info:InfoType = New InfoType
 		Info.DrawX = GWidth * (Float(50) / 800)
@@ -1339,8 +1334,7 @@ Type InfoViewInterface Extends GeneralType
 		BackNeeded = 1
 		ScreenNeeded = 1
 		BannerNeeded = 0
-		ExtraResNeeded = ""
-		VerticalCoverLoad = 0
+
 		
 		Info:InfoType = New InfoType
 		Info.DrawX = GWidth * (Float(50) / 800)
@@ -1536,8 +1530,7 @@ Type CoverFlowInterface Extends GeneralType
 		BackNeeded = 1
 		ScreenNeeded = 0
 		BannerNeeded = 0	
-		ExtraResNeeded = ""
-		VerticalCoverLoad = 0 
+
 		
 		Completed = New CompletedType
 		Rating = New RatingType
@@ -1683,8 +1676,7 @@ Type BannerFlowInterface Extends GeneralType
 		BackNeeded = 1
 		ScreenNeeded = 1
 		BannerNeeded = 1
-		ExtraResNeeded = ""
-		VerticalCoverLoad = 0
+
 		
 		BannerFlow = New BannerFlowType
 		BannerFlow.CoverMode = 1
@@ -1750,9 +1742,9 @@ Type BannerFlowInterface Extends GeneralType
 		
 		
 		ScaleEntity(CoverAlphaBack,100,1.3,0)
-		MoveEntity(CoverAlphaBack , 0 , 0 , 0.01)
+		MoveEntity(CoverAlphaBack , 0 , 0 , 0.01) 'was 0.01
 		If WideScreen = 1 Then
-			PositionEntity(CoverPivot , - 6.2 , - 2.8 , 3.5)
+			PositionEntity(CoverPivot , - 6.2 , - 2.8 , 3.5) 
 		Else
 			PositionEntity(CoverPivot , - 4.5 , - 3 , 2)
 		EndIf 
