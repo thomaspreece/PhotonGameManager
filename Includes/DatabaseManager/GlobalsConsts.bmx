@@ -13,6 +13,8 @@ Global GAMECACHELIMIT:Int = 10
 Global LowMemory:Int = 0
 Global LowProcessor:Int = 0
 Global TouchKeyboardEnabled:Int = True 
+Global ShowScreenButton:Int = True
+Global ShowInfoButton:Int = True 
 Global RunnerButtonCloseOnly:Int = False 
 Global OriginWaitEnabled = True 
 Global AntiAliasSetting:Int = 0
@@ -207,6 +209,8 @@ Const SW_OA2 = 520
 Const SW_OW = 521
 Const SW_BCO = 522
 Const SW_AA = 523
+Const SW_STI = 524
+Const SW_STS = 525
 
 Const PW_BB = 600
 Const PW_OB = 601
@@ -230,12 +234,12 @@ Const EGL_OPT = 850
 Const KIW_BB = 900
 Const KIW_OB = 901
 Const KIW_B = 902 
-'Researved 902-915
-Const KIW_T = 916
-Const KIW_JKT = 917
+'Researved 902-999
+Const KIW_T = 1001
+Const KIW_JKT = 1002
 
-Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back/End", "Menu", "Search", "Rotate Platforms" ]
-Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info", "Rotate Platforms" ]
+Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back", "Menu", "Search", "Rotate Platforms", "View ScreenShots", "End" ]
+Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info", "Rotate Platforms", "View ScreenShots", "End" ]
 
 Const EP_EXE_DescribeText1:String = "Below you can select what file GameManager will run for this game ~n" + ..
 "and any other command line options you require for this game. ~n" + ..

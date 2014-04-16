@@ -35,15 +35,24 @@ End Function
 
 Type ExitType Extends GeneralType
 	Method Init()
-		ListAddLast(UpdateTypeList , Self)
+		'ListAddLast(UpdateTypeList , Self)
 	End Method
 	
 	Method UpdateKeyboard:Int()
-		If KeyHit(KEYBOARD_ESC) Then 
+		If KeyHit(KEYBOARD_END) Then 
 			ExitProgramCall = True 
 		EndIf 
 		Return False
 	End Method	
+	
+	Method UpdateJoy:Int()
+		For J=0 To JoyCount()-1 
+			If JoyHit(JOY_END,J) Then 
+				ExitProgramCall = True 
+			EndIf
+		Next
+		Return False
+	End Method 
 	
 
 End Type

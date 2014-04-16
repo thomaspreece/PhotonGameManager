@@ -1,3 +1,4 @@
+
 Type InfoType Extends GeneralType
 	Field InfoImage:TImage
 	Field InfoSImage:TImage	
@@ -189,22 +190,23 @@ Type InfoType Extends GeneralType
 		EndIf
 		SetColor 255 , 255 , 255
 		
-		If InfoSelected = True And MenuActivated = False Then
-			If InfoActive = True Then	
-				DrawImage(InfoSImage , TempVal2 , TempVal3 - InfoSImage.Height )
+		If ShowInfoButton = True Then
+			If InfoSelected = True And MenuActivated = False Then
+				If InfoActive = True Then	
+					DrawImage(InfoSImage , TempVal2 , TempVal3 - InfoSImage.Height )
+				Else
+					DrawImage(InfoSImage , DrawX , DrawY)
+				EndIf 
+				'TempVal2 , TempVal3 - InfoSImage.Height )
 			Else
-				DrawImage(InfoSImage , DrawX , DrawY)
-			EndIf 
-			'TempVal2 , TempVal3 - InfoSImage.Height )
-		Else
-			If InfoActive = True Then
-				DrawImage(InfoImage , TempVal2 ,  TempVal3 - InfoImage.Height )
-			Else
-				DrawImage(InfoImage , DrawX , DrawY)
-			EndIf 
-			'TempVal2 ,  TempVal3 - InfoImage.Height )
-		EndIf
-
+				If InfoActive = True Then
+					DrawImage(InfoImage , TempVal2 ,  TempVal3 - InfoImage.Height )
+				Else
+					DrawImage(InfoImage , DrawX , DrawY)
+				EndIf 
+				'TempVal2 ,  TempVal3 - InfoImage.Height )
+			EndIf
+		EndIf 
 
 		
 	
@@ -362,15 +364,15 @@ Type InfoType Extends GeneralType
 				BackAlpha = 0.95
 			EndIf		
 		Else
-
-			If MouseX() > DrawX And MouseX() < DrawX + InfoImage.Width And ..
-			MouseY() > DrawY And MouseY() < DrawY + InfoImage.Height Then
-				InfoSelected = True
-			Else
-				InfoSelected = False 
-			EndIf	
-			initial = True 
+			If ShowInfoButton = True Then 
+				If MouseX() > DrawX And MouseX() < DrawX + InfoImage.Width And ..
+				MouseY() > DrawY And MouseY() < DrawY + InfoImage.Height Then
+					InfoSelected = True
+				Else
+					InfoSelected = False 
+				EndIf	
+				initial = True 
+			EndIf 
 		EndIf
-				
 	End Method 		
 End Type

@@ -7,6 +7,9 @@ Global JOY_FILTER = 8
 Global JOY_CANCEL = 3
 Global JOY_INFO = 1
 Global JOY_PLATROTATE = 5
+Global JOY_SCREEN = 7
+Global JOY_END = 10
+
 
 'MARK: Keyboard
 Global KEYBOARD_BIGCOVER = KEY_1
@@ -17,10 +20,13 @@ Global KEYBOARD_UP = KEY_UP
 Global KEYBOARD_DOWN = KEY_DOWN
 Global KEYBOARD_ENTER = KEY_ENTER
 Global KEYBOARD_INFO = KEY_I
-Global KEYBOARD_ESC = KEY_ESCAPE
+Global KEYBOARD_ESC = KEY_F1 'Now the back Button
 Global KEYBOARD_MENU = KEY_M
 Global KEYBOARD_FILTER = KEY_F
 Global KEYBOARD_PLATROTATE = KEY_P
+Global KEYBOARD_SCREEN = KEY_S
+Global KEYBOARD_END = KEY_ESCAPE
+
 
 
 'MARK: System
@@ -42,6 +48,7 @@ Global CurrentInterface:GeneralType
 Global CurrentInterfaceNumber:Int
 
 Global FilterMenuEnabled:Int = False
+Global HaltStack:Int = False
 
 
 Global GWidth:Int = 800
@@ -51,6 +58,8 @@ Global AntiAliasSetting:Int = 0
 
 Global ForceTextureReset:Int = False 
 Global TouchKeyboardEnabled:Int = True
+Global ShowScreenButton:Int = True
+Global ShowInfoButton:Int = True 
 
 Global KeyboardLayout:String[] = ["1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" , "0" ,..
 			"q" , "w" , "e" , "r" , "t" , "y" , "u" , "i" , "o" , "p" ,..

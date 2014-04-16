@@ -1,3 +1,144 @@
+Type ScreenShotButtonType Extends GeneralType
+	Field CameraImage:TImage
+	Field CameraSImage:TImage	
+
+	Field BackImage:TImage
+	Field BackSImage:TImage	
+	
+	Field TempVal1:Int 
+	
+	Field DrawX:Int
+	Field DrawY:Int
+	
+	Field Selected:Int = 0
+	
+	Field Mode:Int = 0
+	Field Show:Int = 1
+		
+	Method Clear()
+		CameraImage = Null
+		CameraSImage = Null	
+		BackImage = Null
+		BackSImage = Null	
+	End Method 	
+		
+	Method Init()
+		
+		TempVal1 = GWidth * (Float(30) / 800)
+		
+		Local CameraPix:TPixmap = LoadPixmap(RESFOLDER + "ScreenShot_UnSelected.png")
+		CameraPix = ResizePixmap(CameraPix , TempVal1 , TempVal1 )
+		CameraImage = LoadImage(CameraPix)
+		If CameraImage = Null Then RuntimeError "ScreenShot_UnSelected.png Missing!"
+		
+		Local CameraSPix:TPixmap = LoadPixmap(RESFOLDER + "ScreenShot.png")
+		CameraSPix = ResizePixmap(CameraSPix , TempVal1 , TempVal1 )
+		CameraSImage = LoadImage(CameraSPix)		
+		If CameraSImage = Null Then RuntimeError "ScreenShot.png Missing!"
+		
+		
+		Local BackPix:TPixmap = LoadPixmap(RESFOLDER + "Back_UnSelected.png")
+		BackPix = ResizePixmap(BackPix , TempVal1 , TempVal1 )
+		BackImage = LoadImage(BackPix)
+		If BackImage = Null Then RuntimeError "Back_UnSelected.png Missing!"
+		
+		Local BackSPix:TPixmap = LoadPixmap(RESFOLDER + "Back.png")
+		BackSPix = ResizePixmap(BackSPix , TempVal1 , TempVal1 )
+		BackSImage = LoadImage(BackSPix)		
+		If BackSImage = Null Then RuntimeError "Back.png Missing!"
+	End Method
+	
+	Method Max2D()
+		If ShowScreenButton = True Then 
+			If Self.Show = True Then
+				If Self.Selected = True Then
+					If Mode = 0 Then 
+						DrawImage(CameraSImage , DrawX ,  DrawY )
+					ElseIf Mode = 1 Then 
+						DrawImage(BackSImage , DrawX ,  DrawY )
+					EndIf 
+				Else
+					If Mode = 0 Then 
+						DrawImage(CameraImage , DrawX ,  DrawY )
+					ElseIf Mode = 1 Then 
+						DrawImage(BackImage , DrawX ,  DrawY )
+					EndIf 
+				EndIf
+			EndIf 
+		EndIf 
+	End Method 
+	
+	Method UpdateMouse()
+		If ShowScreenButton = True Then 
+			If Self.Selected = True Then
+				If MouseClick = 1 Then 
+					If Mode = 0 Then 
+						ChangeInterface(7,1,0)
+					Else
+						ChangeInterface(CurrentInterfaceNumber,1,0)
+					EndIf 
+					Return True
+				EndIf
+			EndIf 
+		EndIf
+		Return False
+	End Method
+	
+	Method UpdateKeyboard()
+		If FilterMenuEnabled <> 1 And MenuActivated <> 1  Then 
+			If KeyHit(KEYBOARD_SCREEN) Then 
+				If Self.Show = True Then 
+					If Mode = 0 Then 
+						ChangeInterface(7,1,0)
+					Else
+						ChangeInterface(CurrentInterfaceNumber,1,0)
+					EndIf
+				EndIf 
+				'Flush key by returning True
+				Return True
+			EndIf
+		EndIf 
+		Return False
+	End Method
+	
+	Method UpdateJoy()
+		If FilterMenuEnabled <> 1 And MenuActivated <> 1 Then 
+			For J=0 To JoyCount()-1 
+				If JoyHit(JOY_SCREEN,J) Then 
+					If Self.Show = True Then 
+						If Mode = 0 Then 
+							ChangeInterface(7,1,0)
+						Else
+							ChangeInterface(CurrentInterfaceNumber,1,0)
+						EndIf 
+					EndIf
+					'Flush key by returning True
+					Return True
+				EndIf
+				Return False
+			Next 	
+		EndIf 
+	End Method 
+	
+		
+	Method Update()
+		If GameNode.ScreenShotNumber = 0 Then 
+			Self.Show = False 
+		Else
+			Self.Show = True
+		EndIf 
+		
+		If Self.Show = True Then 
+			If MouseX() > DrawX And MouseX() < DrawX + TempVal1 And MouseY() > DrawY And MouseY() < DrawY + TempVal1 Then
+				Self.Selected = True
+			Else
+				Self.Selected = False 
+			EndIf	
+		EndIf
+	End Method
+	
+End Type 
+
 Type CompletedType
 	Field Ticked:TImage
 	Field UnTicked:TImage

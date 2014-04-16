@@ -442,8 +442,10 @@ Type MenuWrapperType Extends GeneralType
 							RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Walkthroughs",1)		
 							ExitProgramCall = True						
 						Case 4 'ScreenShots
-							RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
-							ExitProgramCall = True						
+							ChangeInterface(7, True, 0 )
+							MenuActive = False	
+							'RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
+							'ExitProgramCall = True						
 						Case 5 'Cheats
 							RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Cheats",1)		
 							ExitProgramCall = True	
@@ -561,8 +563,10 @@ Type MenuWrapperType Extends GeneralType
 										RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Walkthroughs",1)		
 										ExitProgramCall = True						
 									Case 2 'ScreenShots
-										RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
-										ExitProgramCall = True						
+										ChangeInterface(7, True, 0 )
+										MenuActive = False	
+										'RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
+										'ExitProgramCall = True						
 									Case 3 'Cheats
 										RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Cheats",1)		
 										ExitProgramCall = True	
@@ -826,8 +830,10 @@ Type MenuWrapperType Extends GeneralType
 									RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Walkthroughs",1)		
 									ExitProgramCall = True						
 								Case 2 'ScreenShots
-									RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
-									ExitProgramCall = True						
+									ChangeInterface(7, True, 0 )
+									MenuActive = False	
+									'RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
+									'ExitProgramCall = True						
 								Case 3 'Cheats
 									RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Cheats",1)		
 									ExitProgramCall = True	

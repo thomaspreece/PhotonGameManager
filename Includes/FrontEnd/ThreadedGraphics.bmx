@@ -167,7 +167,7 @@ Function MainTextureLoadThread:Object(in:Object)
 End Function
 
 Function UpdateStack()
-	If FilterMenuEnabled <> True Then 
+	If HaltStack <> True Then 'FilterMenuEnabled <> True And
 		Local LoadFront:Int = FrontNeeded
 		Local LoadBack:Int = BackNeeded
 		Local LoadScreen:Int = ScreenNeeded
