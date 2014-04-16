@@ -1660,6 +1660,10 @@ Type BannerFlowType
 			Covers[a].Rotx = Rot(b , 1)
 			Covers[a].Roty = Rot(b , 2)
 			Covers[a].Rotz = Rot(b , 3)
+			
+			If CoverMode = 1 Then 
+				ScaleEntity(Covers[a].Mesh , 6 , 1.1 , 0  )			
+			EndIf 
 			PositionEntity(Covers[a].Mesh , Covers[a].x , Covers[a].y , Covers[a].z , Covers[a].GlobalPosition)
 			RotateEntity(Covers[a].Mesh , Covers[a].Rotx , Covers[a].Roty , Covers[a].Rotz)			
 			
@@ -1940,7 +1944,7 @@ Type BannerFlowType
 		Local CoverDistance:Float 
 		Select CoverMode
 			Case 1
-				CoverDistance = 1 
+				CoverDistance = 2
 			Case 2
 				CoverDistance = 5
 		End Select
@@ -1959,7 +1963,7 @@ Type BannerFlowType
 							Case 3
 								Return 1.2*CoverDistance
 							Case 4
-								Return -0.25
+								Return -0.125
 							Case 5
 								Return -1.2* CoverDistance
 							Case 6
@@ -1977,10 +1981,10 @@ Type BannerFlowType
 					Case 3
 						Select Num
 							Case 4
-								Return 0
+								Return 4
 							Default
 								If Num <> 4 Then
-									Return 1
+									Return 5
 								Else
 									RuntimeError "Invalid Cover Num"					
 								EndIf

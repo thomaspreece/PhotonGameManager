@@ -126,8 +126,8 @@ Global FrontNeeded:Int = 1
 Global BackNeeded:Int = 1
 Global ScreenNeeded:Int = 1
 Global BannerNeeded:Int = 1
-Global ExtraResNeeded:String = ""
-Global VerticalCoverLoad:Int = 0
+'Global ExtraResNeeded:String = ""
+'Global VerticalCoverLoad:Int = 0
 'Global Shot1Needed:Int = 1
 'Global Shot2Needed:Int = 1
 
