@@ -488,7 +488,8 @@ Type GameReadType
 	Field StartWaitEnabled:Int 
 	Field WatchEXEs:TList 
 	
-	Field ScreenShotNumber:Int 
+	'Field ScreenShotNumber:Int '1 if there is screenshots/0 otherwise
+	Field ScreenShotsAvailable:Int 
 	
 	Method NewGame()
 		IntialiseFanartLists()
@@ -690,29 +691,29 @@ Type GameReadType
 			End Select
 			
 			'Gather number of screenshots
-			Self.ScreenShotNumber=0
+			Self.ScreenShotsAvailable=0
 			
 			Local File:String 
-			Local ReadScreenShotFolder = ReadDir(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots")
-			Repeat
-				File = NextFile(ReadScreenShotFolder)
-				If File=".." Then Continue
-				If File="." Then Continue
-				If FileType(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots"+FolderSlash+File)=2 Then Continue 
-				If File="" Then Exit
-				If ExtractExt(File)="jpg" Then
-					Self.ScreenShotNumber = Self.ScreenShotNumber + 1
-				EndIf 
-			Forever
-			CloseDir(ReadScreenShotFolder)
 			
-			If Self.ScreenShotNumber=0 Then 
-				If FileType(GAMEDATAFOLDER + GName +FolderSlash+"Shot1_OPT.jpg")=1 Then
-					Self.ScreenShotNumber = Self.ScreenShotNumber + 1
-				EndIf 
-				If FileType(GAMEDATAFOLDER + GName +FolderSlash+"Shot2_OPT.jpg")=1 Then
-					Self.ScreenShotNumber = Self.ScreenShotNumber + 1
-				EndIf 			
+			If FileType(GAMEDATAFOLDER + GName +FolderSlash+"Shot1_OPT.jpg")=1 Then
+				Self.ScreenShotsAvailable =  1
+			ElseIf FileType(GAMEDATAFOLDER + GName +FolderSlash+"Shot2_OPT.jpg")=1 Then
+				Self.ScreenShotsAvailable =  1
+			EndIf 	
+			If Self.ScreenShotsAvailable=0 Then 
+				Local ReadScreenShotFolder = ReadDir(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots")
+				Repeat
+					File = NextFile(ReadScreenShotFolder)
+					If File=".." Then Continue
+					If File="." Then Continue
+					If FileType(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots"+FolderSlash+File)=2 Then Continue 
+					If File="" Then Exit
+					If ExtractExt(File)="jpg" Then
+						Self.ScreenShotsAvailable = 1
+						Exit
+					EndIf 
+				Forever
+				CloseDir(ReadScreenShotFolder)
 			EndIf 
 			
 		Next	

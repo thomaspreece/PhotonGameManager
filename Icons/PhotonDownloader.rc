@@ -1,8 +1,8 @@
 101 ICON "Internet.ico"
 
 1 VERSIONINFO 
-FILEVERSION 4,0,9,0 
-PRODUCTVERSION 4,0,9,0 
+FILEVERSION 4,1,1,0 
+PRODUCTVERSION 4,1,1,0 
 FILEOS 0x40004
 FILETYPE 0x1
 { 
@@ -12,14 +12,14 @@ BLOCK "StringFileInfo"
  { 
   VALUE "Comments", "CommandLine tool for PhotonExplorer and PhotonFrontEnd"
   VALUE "CompanyName", "Photon Software" 
-  VALUE "FileVersion", "4.0.9.0" 
+  VALUE "FileVersion", "4.1.1.0" 
   VALUE "FileDescription", "PhotonDownloader" 
   VALUE "InternalName", "PhotonDownloader" 
   VALUE "LegalCopyright", "" 
   VALUE "LegalTrademarks", "" 
   VALUE "OriginalFilename", "PhotonDownloader.exe" 
   VALUE "ProductName", "Photon GameManager" 
-  VALUE "ProductVersion", "4.0.9.0" 
+  VALUE "ProductVersion", "4.1.1.0" 
  } 
 }
 BLOCK "VarFileInfo"
