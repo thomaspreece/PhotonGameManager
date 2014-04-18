@@ -122,7 +122,7 @@ Type ScreenShotButtonType Extends GeneralType
 	
 		
 	Method Update()
-		If GameNode.ScreenShotNumber = 0 Then 
+		If GameNode.ScreenShotsAvailable = 0 Then 
 			Self.Show = False 
 		Else
 			Self.Show = True

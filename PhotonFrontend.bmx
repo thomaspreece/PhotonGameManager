@@ -411,9 +411,26 @@ ExitLoop.Init()
 Local TexThread:TThread = CreateThread(MainTextureLoadThread , "2")
 DetachThread(TexThread)
 
-UpdateStack()
+Local StackThread:TThread = CreateThread(UpdateStackThread , "3")
+DetachThread(StackThread)
+
+'UpdateStack()
 WaitSemaphore(WaitingThread) 'Wait for thread to be ready
 PostSemaphore(StartupThread) 'Signal to start
+
+LockMutex(Mutex_UpdateStackThreadResources)
+USTR_CGP = CurrentGamePos
+USTR_GAL = GameArrayLen
+USTR_GA = GameArray
+USTR_UGA = True 
+GameArrayUpdated = False 
+USTR_CIN = CurrentInterfaceNumber
+USTR_GCL = GAMECACHELIMIT
+USTR_LM = LowMemory
+UnlockMutex(Mutex_UpdateStackThreadResources)
+
+WaitSemaphore(WaitingThread2)
+PostSemaphore(StartupThread2)
 
 Local obj:GeneralType
 Local OldCurrentGamePos:Int = - 1
@@ -614,7 +631,22 @@ Repeat
 		ResetTextureThread = 1	
 		UnlockMutex(Mutex_ResetTextureThread)	
 		OldCurrentGamePos = CurrentGamePos
-		UpdateStack()
+		
+		'Update Stack Thread stuff
+		LockMutex(Mutex_UpdateStackThreadResources)
+		USTR_CGP = CurrentGamePos
+		If GameArrayUpdated = True Then
+			USTR_GA = GameArray
+			USTR_UGA = True 
+			GameArrayUpdated = False 
+		EndIf 
+		UnlockMutex(Mutex_UpdateStackThreadResources)
+		
+		If HaltStack <> True Then
+			PostSemaphore(StartupThread2)	
+		EndIf 
+		
+		
 		If GameArrayLen > 0 Then
 			GameNode.GetGame(GameArray[CurrentGamePos])
 		Else
@@ -779,6 +811,11 @@ Function ChangeInterface(Number:Int,Clear:Int = True, ClearAllTextures:Int = Tru
 		Default
 			RuntimeError "Error invalid interface number"
 	End Select 
+	
+	LockMutex(Mutex_UpdateStackThreadResources)
+	USTR_CIN = CurrentInterfaceNumber
+	UnlockMutex(Mutex_UpdateStackThreadResources)
+	
 	CurrentInterface.Init()
 	ForceTextureReset = True 
 End Function
@@ -889,6 +926,7 @@ Function PopulateGames()
 	
 	
 	GameArray = GameArray[..tempGameList.count()]
+	GameArrayUpdated = True 
 	For temp = EachIn tempGameList
 		GameArray[a] = temp
 		a = a + 1

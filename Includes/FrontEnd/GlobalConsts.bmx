@@ -69,6 +69,7 @@ Global KeyboardLayout:String[] = ["1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" 
 'MARK: Game
 Global GameArray:String[0]
 Global GameArrayLen:Int
+Global GameArrayUpdated:Int = 0 
 
 Global UsedPlatformList:TList 
 
@@ -151,6 +152,19 @@ Global ResetTextureThread:Int = 0
 Global CloseTextureThread:Int = 0
 Global ThreadStatus:Int = 0
 
+Global WaitingThread2:TSemaphore = CreateSemaphore(0)
+Global StartupThread2:TSemaphore = CreateSemaphore(0)
+
+Global Mutex_UpdateStackThreadResources:TMutex = CreateMutex()
+
+
+Global USTR_CGP:Int = 0
+Global USTR_GCL:Int = 0
+Global USTR_GAL:Int = 0
+Global USTR_LM:Int = 0
+Global USTR_CIN:Int = 0
+Global USTR_GA:String[]
+Global USTR_UGA:Int = 0 'Update GameArray?
 
 Rem
 Global RTextureQueue:TList = CreateList()

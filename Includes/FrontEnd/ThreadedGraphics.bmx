@@ -70,11 +70,17 @@ Function MemoryLimiter()
 		
 		Else		
 			LowMemory = True 
+			LockMutex(Mutex_UpdateStackThreadResources)
+			USTR_LM = LowMemory
+			UnlockMutex(Mutex_UpdateStackThreadResources)			
 			TempLowMemoryControl = True 
 		EndIf 
 	Else
 		If TempLowMemoryControl = True Then
 			LowMemory = False 
+			LockMutex(Mutex_UpdateStackThreadResources)
+			USTR_LM = LowMemory
+			UnlockMutex(Mutex_UpdateStackThreadResources)
 		EndIf 
 	EndIf 
 	UnlockMutex(TTexture.Mutex_UsedSpace)
@@ -166,32 +172,45 @@ Function MainTextureLoadThread:Object(in:Object)
 	Forever
 End Function
 
-Function UpdateStack()
-	If HaltStack <> True Then 
-		Select CurrentInterfaceNumber
+Function UpdateStackThread:Object(in:Object) 'UpdateStack()
+	Local GAL:Int
+	Local GA:String[]
+	Local CGP:Int
+	Local CIN:Int
+	
+	PostSemaphore(WaitingThread2)
+	Repeat
+		WaitSemaphore(StartupThread2)
+		LockMutex(Mutex_UpdateStackThreadResources)
+		CGP = USTR_CGP
+		CIN = USTR_CIN	
+		If USTR_UGA = True Then
+			GA = USTR_GA
+			GAL = GA.length
+			USTR_UGA = False
+		EndIf 
+		UnlockMutex(Mutex_UpdateStackThreadResources)
+	 
+		Select CIN
 			Case 6 'CoverWall
-				CoverWallUpdateStack()
+				CoverWallUpdateStack(CGP,GAL,GA,USTR_GCL,USTR_LM,1,1,0,0)
 			Case 5 'BannerFlow
-				BannerFlowUpdateStack()
+				BannerFlowUpdateStack(CGP,GAL,GA,USTR_GCL,USTR_LM,1,1,1,1)
 			Case 4 'ListView
-				GeneralUpdateStack()
+				GeneralUpdateStack(CGP,GAL,GA,USTR_GCL,USTR_LM,1,1,1,0)
 			Case 3 'InfoView Banner
-				BannerFlowUpdateStack()
+				BannerFlowUpdateStack(CGP,GAL,GA,USTR_GCL,USTR_LM,0,0,1,1)
 			Case 2 'InfoView
-				CoverFlowUpdateStack()
+				CoverFlowUpdateStack(CGP,GAL,GA,USTR_GCL,USTR_LM,1,1,1,0)
 			Case 1 'CoverFlow
-				CoverFlowUpdateStack()
+				CoverFlowUpdateStack(CGP,GAL,GA,USTR_GCL,USTR_LM,1,1,0,0)
 			Default 
 		End Select 
-	EndIf 
+	Forever	
+	
 End Function
 
-Function BannerFlowUpdateStack()
-		Local LoadFront:Int = FrontNeeded
-		Local LoadBack:Int = BackNeeded
-		Local LoadScreen:Int = ScreenNeeded
-		Local LoadBanner:Int = BannerNeeded
-		
+Function BannerFlowUpdateStack(CGP:Int,GAL:Int,GA:String[],GCL:Int,LM:Int,LoadFront:Int,LoadBack:Int,LoadScreen:Int,LoadBanner:Int)
 		Local FrontList:TList = CreateList()
 		Local BackList:TList = CreateList()
 		Local FrontList2:TList = CreateList()
@@ -207,35 +226,35 @@ Function BannerFlowUpdateStack()
 		Local BannerCount:Int = 0
 
 		c = 0
-		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
+		For a = CGP To CGP + (GAL / 2) - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then
-				ListAddLast(FrontList2 , GameArray[b])
+			If c > Ceil(Float(GCL) / 2) - 1 Then
+				ListAddLast(FrontList2 , GA[b])
 			Else
-				ListAddLast(FrontList , GameArray[b])
+				ListAddLast(FrontList , GA[b])
 			EndIf 
 			c = c + 1
 		Next 
 		
 		c = 0
-		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
+		For a = CGP + GAL - 1 To CGP + GAL / 2 Step - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
-				ListAddLast(BackList2 , GameArray[b])
+			If c > Floor(Float(GCL) / 2) - 1 Then
+				ListAddLast(BackList2 , GA[b])
 			Else
-				ListAddLast(BackList , GameArray[b])	
+				ListAddLast(BackList , GA[b])	
 			EndIf 
 			c = c + 1
 		Next 
@@ -317,7 +336,7 @@ Function BannerFlowUpdateStack()
 		Next
 		
 		'Load all other banners
-		If LowMemory = False Then 
+		If LM = False Then 
 			For File = EachIn GameStack2
 				If FileType(GAMEDATAFOLDER + File + FolderSlash+"Banner_OPT.jpg") = 1 And LoadBanner = 1 Then
 					If BannerCount < MaxFrontCovers Then
@@ -366,14 +385,8 @@ Function BannerFlowUpdateStack()
 		UnlockMutex(Mutex_ProcessStack)	
 End Function
 
-Function CoverWallUpdateStack()
-		Local LoadFront:Int = FrontNeeded
-		Local LoadBack:Int = BackNeeded
-		Local LoadScreen:Int = ScreenNeeded
-		Local LoadBanner:Int = BannerNeeded
-		Local LoadShot1:Int = 0
-		Local LoadShot2:Int = 0
-		
+Function CoverWallUpdateStack(CGP:Int,GAL:Int,GA:String[],GCL:Int,LM:Int,LoadFront:Int,LoadBack:Int,LoadScreen:Int,LoadBanner:Int)
+
 		Local FrontList:TList = CreateList()
 		Local BackList:TList = CreateList()
 		Local FrontList2:TList = CreateList()
@@ -391,124 +404,121 @@ Function CoverWallUpdateStack()
 		Local a:Int , b:Int , c:Int , d:Int
 		Local Tex:TTexture
 		Local File:String
-		Local itemsPerRow:Int = Max(Ceil(Float(GameArrayLen) / 5) , 5)
+		Local itemsPerRow:Int = Max(Ceil(Float(GAL) / 5) , 5)
 		Local FrontCoverCount:Int = 0
 
 		c = 0
-		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
+		For a = CGP To CGP + (GAL / 2) - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then
-				ListAddLast(FrontList2 , GameArray[b])
+			If c > Ceil(Float(GCL) / 2) - 1 Then
+				ListAddLast(FrontList2 , GA[b])
 			Else
-				ListAddLast(FrontList , GameArray[b])
+				ListAddLast(FrontList , GA[b])
 			EndIf 
 			c = c + 1
 		Next 
 		
 		c = 0
-		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
+		For a = CGP + GAL - 1 To CGP + GAL / 2 Step - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
-				ListAddLast(BackList2 , GameArray[b])
+			If c > Floor(Float(GCL) / 2) - 1 Then
+				ListAddLast(BackList2 , GA[b])
 			Else
-				ListAddLast(BackList , GameArray[b])	
+				ListAddLast(BackList , GA[b])	
 			EndIf 
 			c = c + 1
 		Next 
-		
 
 		c = 0
-		For a = CurrentGamePos + itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 + itemsPerRow
+		For a = CGP + itemsPerRow To CGP + Ceil(Float(GCL) / 2) - 1 + itemsPerRow
 
 			b=a
 			
 			While b<0
-				b=b+GameArrayLen
+				b=b+GAL
 			Wend
 
-			If b>GameArrayLen-1 Then 
+			If b>GAL-1 Then 
 			
 			Else
 				
-				If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
-					ListAddLast(Row1FList , GameArray[b])
+				If c < Ceil(Float(GCL) / 2) - 1 Then 
+					ListAddLast(Row1FList , GA[b])
 				EndIf 
 			EndIf 
 			c = c + 1
 		Next 
 		
-		
 		c=0
-		For a = CurrentGamePos + itemsPerRow + GameArrayLen - 1 To CurrentGamePos + itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
+		For a = CGP + itemsPerRow + GAL - 1 To CGP + itemsPerRow + Ceil(Float(GCL) / 2) Step - 1
 
 			b=a
 			
-			While b > GameArrayLen-1
-				b=b-GameArrayLen
+			While b > GAL-1
+				b=b-GAL
 			Wend
 			
-			If b>GameArrayLen-1 Then 
+			If b>GAL-1 Then 
 				
 			Else	
 				
-				If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then			
-					ListAddLast(Row1BList , GameArray[b])	
+				If c < Floor(Float(GCL) / 2) - 1 Then			
+					ListAddLast(Row1BList , GA[b])	
+				EndIf 
+			EndIf 
+			c = c + 1
+		Next 
+
+		c=0
+		For a = CGP - itemsPerRow To CGP + Ceil(Float(GCL) / 2) - 1 - itemsPerRow
+			
+			b=a
+			
+			While b > GAL-1
+				b=b-GAL
+			Wend
+			
+			If b<0 Then 
+			
+			Else
+				If c < Ceil(Float(GCL) / 2) - 1 Then 
+					ListAddLast(RowM1FList , GA[b])
 				EndIf 
 			EndIf 
 			c = c + 1
 		Next 
 		
 		c=0
-		For a = CurrentGamePos - itemsPerRow To CurrentGamePos + Ceil(Float(GAMECACHELIMIT) / 2) - 1 - itemsPerRow
-			
+		For a = CGP - itemsPerRow + GAL - 1 To CGP - itemsPerRow + Ceil(Float(GCL) / 2) Step - 1
+
 			b=a
-			
-			While b > GameArrayLen-1
-				b=b-GameArrayLen
+
+			While b > GAL-1
+				b=b-GAL
 			Wend
 			
 			If b<0 Then 
 			
 			Else
-				If c < Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then 
-					ListAddLast(RowM1FList , GameArray[b])
-				EndIf 
-			EndIf 
-			c = c + 1
-		Next 
-		
-		c=0
-		For a = CurrentGamePos - itemsPerRow + GameArrayLen - 1 To CurrentGamePos - itemsPerRow + Ceil(Float(GAMECACHELIMIT) / 2) Step - 1
-
-			b=a
-
-			While b > GameArrayLen-1
-				b=b-GameArrayLen
-			Wend
-			
-			If b<0 Then 
-			
-			Else
-				If c < Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
-					ListAddLast(RowM1BList , GameArray[b])	
+				If c < Floor(Float(GCL) / 2) - 1 Then
+					ListAddLast(RowM1BList , GA[b])	
 				EndIf 
 			EndIf 
 			c = c + 1
 		Next 			
 
-		
 		Local List1String:String , List2String:String , List3String:String , List4String:String, List5String:String, List6String:String
 		Repeat
 			List1String = String(FrontList.RemoveFirst())
@@ -552,7 +562,7 @@ Function CoverWallUpdateStack()
 			EndIf							
 			If List1String = Null And List2String = Null And List3String = Null And List4String = Null And List5String = Null And List6String = Null Then Exit
 		Forever
-		
+
 		Repeat
 			List1String = String(FrontList2.RemoveFirst())
 			If List1String = Null Then
@@ -568,7 +578,7 @@ Function CoverWallUpdateStack()
 			EndIf	
 			If List1String = Null And List2String = Null Then Exit
 		Forever
-				
+		
 		FrontList = Null
 		BackList = Null
 		FrontList2 = Null
@@ -592,7 +602,7 @@ Function CoverWallUpdateStack()
 									
 		Next
 		
-		If LowMemory = False Then 
+		If LM = False Then 
 			For File = EachIn GameStack2
 				If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
 					If FrontCoverCount < MaxFrontCovers Then
@@ -639,13 +649,10 @@ Function CoverWallUpdateStack()
 		LockMutex(Mutex_ProcessStack)
 		ProcessStack = TextureStack2
 		UnlockMutex(Mutex_ProcessStack)	
+	
 End Function
 
-Function CoverFlowUpdateStack()
-		Local LoadFront:Int = FrontNeeded
-		Local LoadBack:Int = BackNeeded
-		Local LoadScreen:Int = ScreenNeeded
-		Local LoadBanner:Int = BannerNeeded
+Function CoverFlowUpdateStack(CGP:Int,GAL:Int,GA:String[],GCL:Int,LM:Int,LoadFront:Int,LoadBack:Int,LoadScreen:Int,LoadBanner:Int)
 		
 		Local FrontList:TList = CreateList()
 		Local BackList:TList = CreateList()
@@ -662,35 +669,35 @@ Function CoverFlowUpdateStack()
 		Local FrontCoverCount:Int = 0
 
 		c = 0
-		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
+		For a = CGP To CGP + (GAL / 2) - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then
-				ListAddLast(FrontList2 , GameArray[b])
+			If c > Ceil(Float(GCL) / 2) - 1 Then
+				ListAddLast(FrontList2 , GA[b])
 			Else
-				ListAddLast(FrontList , GameArray[b])
+				ListAddLast(FrontList , GA[b])
 			EndIf 
 			c = c + 1
 		Next 
 		
 		c = 0
-		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
+		For a = CGP + GAL - 1 To CGP + GAL / 2 Step - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
-				ListAddLast(BackList2 , GameArray[b])
+			If c > Floor(Float(GCL) / 2) - 1 Then
+				ListAddLast(BackList2 , GA[b])
 			Else
-				ListAddLast(BackList , GameArray[b])	
+				ListAddLast(BackList , GA[b])	
 			EndIf 
 			c = c + 1
 		Next 
@@ -755,7 +762,7 @@ Function CoverFlowUpdateStack()
 			EndIf										
 		Next
 		
-		If LowMemory = False Then 
+		If LM = False Then 
 			For File = EachIn GameStack2
 				If FileType(GAMEDATAFOLDER + File + FolderSlash+"Front_OPT.jpg") = 1 And LoadFront = 1 Then
 					If FrontCoverCount < MaxFrontCovers Then
@@ -804,11 +811,7 @@ Function CoverFlowUpdateStack()
 		UnlockMutex(Mutex_ProcessStack)	
 End Function
 
-Function GeneralUpdateStack()
-		Local LoadFront:Int = FrontNeeded
-		Local LoadBack:Int = BackNeeded
-		Local LoadScreen:Int = ScreenNeeded
-		Local LoadBanner:Int = BannerNeeded
+Function GeneralUpdateStack(CGP:Int,GAL:Int,GA:String[],GCL:Int,LM:Int,LoadFront:Int,LoadBack:Int,LoadScreen:Int,LoadBanner:Int)
 		
 		Local FrontList:TList = CreateList()
 		Local BackList:TList = CreateList()
@@ -823,35 +826,35 @@ Function GeneralUpdateStack()
 		Local File:String
 
 		c = 0
-		For a = CurrentGamePos To CurrentGamePos + (GameArrayLen / 2) - 1
+		For a = CGP To CGP + (GAL / 2) - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Ceil(Float(GAMECACHELIMIT) / 2) - 1 Then
+			If c > Ceil(Float(GCL) / 2) - 1 Then
 				Exit
 			Else
-				ListAddLast(FrontList , GameArray[b])
+				ListAddLast(FrontList , GA[b])
 			EndIf 
 			c = c + 1
 		Next 
 		
 		c = 0
-		For a = CurrentGamePos + GameArrayLen - 1 To CurrentGamePos + GameArrayLen / 2 Step - 1
+		For a = CGP + GAL - 1 To CGP + GAL / 2 Step - 1
 
-			If a > GameArrayLen - 1 Then
-				b = a - GameArrayLen
+			If a > GAL - 1 Then
+				b = a - GAL
 			Else
 				b = a
 			EndIf
 			
-			If c > Floor(Float(GAMECACHELIMIT) / 2) - 1 Then
+			If c > Floor(Float(GCL) / 2) - 1 Then
 				Exit
 			Else
-				ListAddLast(BackList , GameArray[b])	
+				ListAddLast(BackList , GA[b])	
 			EndIf 
 			c = c + 1
 		Next 
