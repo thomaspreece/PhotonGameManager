@@ -50,7 +50,7 @@ Global SevenZipPath:String = APPFOLDER + "critical/7zip/7z"
 ?
 Global ResourceExtractPath:String = APPFOLDER + "critical\ResourcesExtract\ResourcesExtract.exe"
 
-Global CurrentVersion:String = "V4.10"
+Global CurrentVersion:String = "V4.12"
 
 Global WinDir:String = ""
 Global WinBit:Int

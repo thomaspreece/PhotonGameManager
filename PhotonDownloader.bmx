@@ -838,10 +838,12 @@ Function PrintF(Tex:String)
 	If Debug = True Then
 		Print Tex
 	Else
-		WriteLog = OpenFile(LOGFOLDER + LogName)
-		SeekStream(WriteLog,StreamSize(WriteLog))
-		WriteLog.WriteLine(Tex)
-		CloseFile(WriteLog)
+		If DebugLogEnabled = True Then 
+			WriteLog = OpenFile(LOGFOLDER + LogName)
+			SeekStream(WriteLog,StreamSize(WriteLog))
+			WriteLog.WriteLine(Tex)
+			CloseFile(WriteLog)
+		EndIf
 	EndIf
 End Function
 
