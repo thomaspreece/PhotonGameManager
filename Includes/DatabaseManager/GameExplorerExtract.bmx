@@ -23,7 +23,7 @@ Function ExtractMults:String(Tex:String , StartTag:String , EndTag:String , Star
 	CurrentSearchLine = Tex
 	Local ReturnValues:String = ""
 	Local temp:String = "" , temp2:String = "" , tempCSL:String = ""
-	If StartTagEnd = "" And EndTagEnd = "" Then
+	If StartTagEnd = "" And EndTagEnd = "" then
 		Repeat
 			temp = ReturnTagInfo(CurrentSearchLine , StartTag , EndTag)
 			If temp = "" Then Exit
@@ -57,7 +57,7 @@ Function StripSpaces:String(Tex:String)
 	Repeat
 		If Right(Tex , 1) = " " Then
 			Tex = Left(Tex , Len(Tex)-1 )
-		Else
+		else
 			Exit
 		EndIf
 	Forever	
@@ -92,7 +92,7 @@ Function WriteRawGDF(Log1:LogWindow)
 	Local GDFFile:String,File:String,GDFFileString:String
 	RegKeys = ReturnReg("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\GameUX")
 	Repeat
-		For a=1 To Len(RegKeys)
+		For a = 1 To Len(RegKeys)
 			If Mid(RegKeys,a,1)="|" Then
 				Game$=Left(RegKeys,a-1)
 				GameRegs=GameRegs+ ReturnReg(Game)
@@ -105,10 +105,13 @@ Function WriteRawGDF(Log1:LogWindow)
 	Forever
 
 	Repeat
-		For a=1 To Len(GameRegs)
+		For a = 1 To Len(GameRegs)
 			If Mid(GameRegs , a , 1) = "|" Then
 				PrintF("Searching New Reg")
 				Game$ = Left(GameRegs , a - 1)
+				
+				'DebugStop()
+				
 				Dir$ = StripSlash(ReturnGDFDatas(Game , "ConfigApplicationPath") ) + FolderSlash
 				Dir = StandardiseSlashes(Dir)
 				GDF$=ReturnGDFDatas(Game,"ConfigGDFBinaryPath")
@@ -135,7 +138,7 @@ Function WriteRawGDF(Log1:LogWindow)
 					Title = ""
 				EndIf
 							
-				If Title = "" Then
+				If Title = "" then
 					PrintF("No File/Title for "+Game)
 				Else
 					PrintF("Title: " + Title)
@@ -143,6 +146,7 @@ Function WriteRawGDF(Log1:LogWindow)
 					Local GDesc:String = ""
 					Local GGens:String = ""
 					Local GEXEs:String = ""
+					Local GEXE2:String = ""
 					Local GPubs:String = ""
 					Local GDevs:String = ""
 					Local GRel:String = ""
@@ -153,7 +157,7 @@ Function WriteRawGDF(Log1:LogWindow)
 						Delay 10
 						If ProcessStatus(ExtractGDFProcess)=0 Then Exit
 					Forever	
-					ReadExtractDir = ReadDir(TEMPFOLDER + "GDFExtract"+FolderSlash)			
+					ReadExtractDir = ReadDir(TEMPFOLDER + "GDFExtract" + FolderSlash)			
 					Repeat
 						File = NextFile(ReadExtractDir)
 						If File = "" Then Exit
@@ -167,21 +171,32 @@ Function WriteRawGDF(Log1:LogWindow)
 							EndIf
 						Next
 						If GDFFound = True Then Exit
-					Forever
-
+					Forever 
+					CloseDir(ReadExtractDir)
+					
 					GDFFileString = ""
 					If GDFFound = False Then
 						PrintF("No GDF Found")
 					Else
+						
+						Rem
 						ReadGDFData = ReadFile(GDFFile)
+						Local emptynum = 0 
 						Repeat
 							Local temp:String
 							temp = ReadLine(ReadGDFData)
 							If Eof(ReadGDFData) Then Exit
+							If temp="" Then 
+								emptynum = emptynum + 1
+							Else
+								emptynum = 0 
+							EndIf 
+							If emptynum = 10 Then Exit 
 							GDFFileString = GDFFileString + temp
 						Forever
 						CloseFile(ReadGDFData)
-						
+						'DebugStop()
+						GDFFileString = Replace(GDFFileString,"~t","")
 						GDesc = ReturnTagInfo(GDFFileString , "<Description>" , "</Description>")
 						GGens = ReturnTagInfo(GDFFileString , "<Genres>" , "</Genres>")
 						GGens = ExtractMults(GGens , "<Genre>" , "</Genre>")
@@ -193,54 +208,231 @@ Function WriteRawGDF(Log1:LogWindow)
 						GDevs = ReturnTagInfo(GDFFileString , "<Developers>" , "</Developers>")
 						GDevs = ExtractMults(GDevs , "<Developer " , "/Developer>" , ">" , "<")
 						GRel = ReturnTagInfo(GDFFileString , "<ReleaseDate>" , "</ReleaseDate>")
+						EndRem
 						
+						'No repeat needed but used so we can use exit command.
+						Repeat
+
+							Local Gamedoc:TxmlDoc
+							Local RootNode:TxmlNode, SubRootNode:TxmlNode , node:TxmlNode , SubNode:TxmlNode , SubSubNode:TxmlNode, SubSubSubNode:TxmlNode , SubSubSubSubNode:TxmlNode
+							
+									
+							Local ChildrenList:TList, ChildrenList2:TList, ChildrenList3:TList, ChildrenList4:TList , ChildrenList5:TList , ChildrenList6:TList
+									
+							Gamedoc = TxmlDoc.parseFile(GDFFile)
+							PrintF("Parsed File")
+							If Gamedoc = Null then
+								PrintF("XML Document not parsed successfully, GameExplorerExtract. " + GName)
+								Exit			
+								
+							End If
+									
+							RootNode = Gamedoc.getRootElement()
+							PrintF("Root Element")
+							If RootNode = Null Then
+								Gamedoc.free()
+								Gamedoc = Null 
+								PrintF("Empty document, GetGameXML. "+ GName)
+								Exit				
+								
+							End If		
+
+							If RootNode.getName() <> "GameDefinitionFile" then
+								Gamedoc.free()
+								Gamedoc = Null 
+								PrintF("Document of the wrong type, root node <> GameDefinitionFile, GameExplorerExtract. "+ GName)
+								Exit		
+								
+							End If
+									
+							PrintF("Retrieved Child List")
+							ChildrenList = RootNode.getChildren()
+							If ChildrenList = Null Or ChildrenList.IsEmpty() Then
+								Gamedoc.free()
+								Gamedoc = Null
+								PrintF("Document error, no data contained within, GameExplorerExtract. " + GName)
+								Exit
+									
+							EndIf
+
+							For SubRootNode = EachIn ChildrenList
+								If SubRootNode.getName() = "GameDefinition" then
+									ChildrenList2 = SubRootNode.getChildren()
+									If ChildrenList2 = Null Or ChildrenList2.IsEmpty() then
+										Gamedoc.free()
+										Gamedoc = Null
+										PrintF("Document error, no data contained within, GameExplorerExtract. " + GName)
+										Exit
+												
+									EndIf
+									For node = EachIn ChildrenList2
+										Select node.getName()
+											Case "Description"
+												GDesc = node.GetText()
+											Case "ReleaseDate"
+												GRel = node.GetText()
+											Case "Genres"
+												ChildrenList3 = node.getChildren()
+												If ChildrenList3 = Null Or ChildrenList3.IsEmpty() then
+												
+												else
+													GGens = ""
+													For SubNode = EachIn ChildrenList3
+														If SubNode.getName() = "Genre" then
+															GGens = GGens + SubNode.GetText() + "/"
+														EndIf
+													Next
+													If Len(GGens) > 0 then GGens = Left(GGens, Len(GGens) - 1)
+												EndIf
+											Case "Developers"
+												ChildrenList3 = node.getChildren()
+												If ChildrenList3 = Null Or ChildrenList3.IsEmpty() then
+												
+												else
+													GDevs = ""
+													For SubNode = EachIn ChildrenList3
+														If SubNode.getName() = "Developer" then
+															GDevs = GDevs + SubNode.GetText() + "/"
+														EndIf
+													Next
+													If Len(GDevs) > 0 then GDevs = Left(GDevs, Len(GDevs) - 1)
+												EndIf				
+											Case "Publishers"
+												ChildrenList3 = node.getChildren()
+												If ChildrenList3 = Null Or ChildrenList3.IsEmpty() then
+												
+												else
+													GPubs = ""
+													For SubNode = EachIn ChildrenList3
+														If SubNode.getName() = "Publisher" then
+															GPubs = GPubs + SubNode.GetText() + "/"
+														EndIf
+													Next
+													If Len(GPubs) > 0 then GPubs = Left(GPubs, Len(GPubs) - 1)
+												EndIf					
+											Case "GameExecutables"
+												ChildrenList3 = node.getChildren()
+												If ChildrenList3 = Null Or ChildrenList3.IsEmpty() then
+												
+												else
+													GEXEs = ""
+													For SubNode = EachIn ChildrenList3
+														If SubNode.getName() = "GameExecutable" then
+															GEXEs = GEXEs + SubNode.getAttribute("path") + "|"
+															
+														EndIf
+													Next
+													If Len(GEXEs) > 0 then GEXEs = Left(GEXEs, Len(GEXEs) - 1)
+												EndIf	
+											Case "ExtendedProperties"
+												ChildrenList3 = node.getChildren()
+												If ChildrenList3 = Null Or ChildrenList3.IsEmpty() then
+												
+												else
+													For SubNode = EachIn ChildrenList3
+														If SubNode.getName() = "GameTasks"
+															ChildrenList4 = SubNode.getChildren()
+															If ChildrenList4 = Null Or ChildrenList4.IsEmpty() then
+													
+															else
+																For SubSubNode = EachIn ChildrenList4
+																	If SubSubNode.getName() = "Play" then
+																		ChildrenList5 = SubSubNode.getChildren()
+																		If ChildrenList5 = Null Or ChildrenList5.IsEmpty() then
+																
+																		else
+																			For SubSubSubNode = EachIn ChildrenList5
+																				If SubSubSubNode.getName() = "Primary" then
+																					ChildrenList6 = SubSubSubNode.getChildren()
+																					If ChildrenList6 = Null Or ChildrenList6.IsEmpty() then
+																
+																					else
+																						For SubSubSubSubNode = EachIn ChildrenList6
+																							Select SubSubSubSubNode.getName()
+																								Case "URLTask"
+																									GEXE2 = SubSubSubSubNode.getAttribute("Link")
+																								Case "FileTask"
+																									GEXE2 = SubSubSubSubNode.getAttribute("path")
+																							End Select
+																						Next
+																					EndIf
+																				EndIf
+																			Next
+																		EndIf
+																	EndIf 
+																Next
+															EndIf
+														EndIf
+													Next
+												EndIf
+												
+										End Select
+									Next
+									
+									Exit
+								EndIf
+							Next
+
+							Exit
+						Forever						
+						
+					
 						GDesc = GameDescriptionSanitizer(GDesc)
 										
 					EndIf
-					CloseDir(ReadExtractDir)
 					
-					If IsntNull(GDesc) Then Desc = GDesc
-					If IsntNull(GEXEs) Then EXE = GEXEs
-					If IsntNull(GRel) Then Rel = GRel
-					If IsntNull(GDevs) Then Dev = GDevs
-					If IsntNull(GPubs) Then Pub = GPubs
-					If IsntNull(GGens) Then Gen = GGens
+					
+					If IsntNull(GDesc) then Desc = GDesc
+					If IsntNull(GEXEs) then EXE = GEXEs
+					If IsntNull(GEXE2) then EXE = GEXE2
+					If IsntNull(GRel) then Rel = GRel
+					If IsntNull(GDevs) then Dev = GDevs
+					If IsntNull(GPubs) then Pub = GPubs
+					If IsntNull(GGens) then Gen = GGens
 					
 				
-					PrintF( "Dir: "+Dir$)
+					PrintF( "Dir: " + Dir$)
 					PrintF( "GDF: "+GDF$)
 					PrintF( "Desc: "+Desc$)
 					PrintF( "EXE: "+EXE$)
 					PrintF( "Dev: "+Dev$)
 					PrintF( "Gen: "+Gen$)
 					PrintF( "Pub: "+Pub$)
-					PrintF( "Rel: "+Rel$)	
+					PrintF( "Rel: " + Rel$)	
 					
 					tempEXE = ""
-					tempString = ""
 					
-					j = 1
-					For k = 1 To Len(EXE)
-						If Mid(EXE , k , 1) = "|" Then
-							tempString = Mid(EXE , j , k - j)
-							If FileType(StripSlash(Dir) + FolderSlash + tempString)=1 Then
-								tempEXE = tempEXE + tempString + "|"
-							EndIf
-							j = k + 1
+					If Left(EXE, Len("desura://") ) = "desura://" then
+						If Left(EXE, Len("desura://launch/games") ) = "desura://launch/games" then
+							tempEXE = EXE
 						EndIf
-					Next	
-					tempString = Mid(EXE , j , k - j)
-					If FileType(StripSlash(Dir) + FolderSlash + tempString)=1 Then
-						tempEXE = tempEXE + tempString + "|"
+					else
+						tempString = ""
+						
+						j = 1
+						For k = 1 To Len(EXE)
+							If Mid(EXE , k , 1) = "|" Then
+								tempString = Mid(EXE , j , k - j)
+								If FileType(StripSlash(Dir) + FolderSlash + tempString)=1 Then
+									tempEXE = tempEXE + tempString + "|"
+								EndIf
+								j = k + 1
+							EndIf
+						Next	
+						tempString = Mid(EXE , j , k - j)
+						If FileType(StripSlash(Dir) + FolderSlash + tempString)=1 Then
+							tempEXE = tempEXE + tempString + "|"
+						EndIf
+						tempEXE = Left(tempEXE , Len(tempEXE) - 1)
 					EndIf
-					tempEXE = Left(tempEXE , Len(tempEXE) - 1)
-					If tempEXE = "" Then
+					
+					If tempEXE = "" then
 						PrintF("tempEXE null")
-					Else
+					else
 						Log1.AddText("Found: "+Title)
 						CreateDir(TEMPFOLDER + "GDF" + FolderSlash + Title)
 						PrintF("Writing Data to file")
-						DirFile = WriteFile(TEMPFOLDER + "GDF" + FolderSlash + Title + FolderSlash +"Data.txt")
+						DirFile = WriteFile(TEMPFOLDER + "GDF" + FolderSlash + Title + FolderSlash + "Data.txt")
 						WriteLine(DirFile , Title ) 'Name
 						WriteLine(DirFile , Desc ) 'Description
 						WriteLine(DirFile , Dir ) 'Path
@@ -313,7 +505,7 @@ Function ReturnReg:String(Reg$)
 		If Eof(tempRead) Then Exit
 		temp:String = ReadLine(tempRead)
 		PrintF("Reg.exe Output: "+temp)
-		If Left(temp,Len(Reg))=Reg Then
+		If Left(temp, Len(Reg) ) = Reg then
 			If temp=Reg Then
 			
 			Else

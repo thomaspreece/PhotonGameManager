@@ -1,4 +1,4 @@
-Type SteamOnlineImport2 Extends wxFrame 
+Type SteamOnlineImport2 Extends wxFrame
 	Field ParentWin:MainWindow
 	Field SourceItemsList:wxListCtrl 
 	Field OA_SourcePath:wxTextCtrl
@@ -105,7 +105,7 @@ Type SteamOnlineImport2 Extends wxFrame
 			Local SteamEXE:String
 			
 			ReadSteamFolder = ReadDir(TEMPFOLDER + "Steam")
-			
+			'FIX: FolderSlash not used here at all
 			Repeat
 				File = NextFile(ReadSteamFolder)
 				If File = "" Then Exit
@@ -122,7 +122,7 @@ Type SteamOnlineImport2 Extends wxFrame
 				SteamEXE = ReadLine(ReadSteamData)
 				CloseFile(ReadSteamData)
 				
-				index = SourceItemsList.InsertStringItem( a , "")
+				Index = SourceItemsList.InsertStringItem( a , "")
 				SourceItemsList.SetStringItem(index , 2 , GameName)
 				SourceItemsList.SetStringItem(index , 3 , SteamEXE)				
 				a = a + 1
@@ -163,7 +163,17 @@ Type SteamOnlineImport2 Extends wxFrame
 				Local GameNode:GameType = New GameType
 				
 				GameNode.RunEXE = col3.GetText()
+				
+				?Win32
 				GameNode.Plat = "PC"
+				GameNode.PlatformNum = 24
+				?MacOS
+				GameNode.Plat = "Mac OS"
+				GameNode.PlatformNum = 12	
+				?Linux
+				GameNode.Plat = "Linux"
+				GameNode.PlatformNum = 40
+				?
 				
 				Local Start:Int = - 1
 				Local Middle:Int = -1
@@ -235,6 +245,7 @@ Type SteamOnlineImport2 Extends wxFrame
 			GNameConv = SanitiseForInternet(GName)
 			
 			WriteGameList(GNameConv , "PC")
+			DatabaseApp.Yield()
 			SortGameList(GName)
 			ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
 			
@@ -251,6 +262,7 @@ Type SteamOnlineImport2 Extends wxFrame
 			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
 			CloseFile(ReadGameSearch)
 			If Log1.LogClosed = True Then Exit
+			DatabaseApp.Yield()
 		Forever
 		OnlineWin.SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
 		OnlineWin.SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
@@ -393,8 +405,8 @@ Type ManualSGSearch Extends wxFrame
 		vbox.Add(panel2,  1.5 , wxEXPAND , 0)								
 		SetSizer(vbox)
 		Centre()		
-		Self.Hide()
-		Show()
+		Self.Show(0)
+		Self.Show(1)
 		
 		Connect(MS_ST , wxTE_PROCESS_ENTER , ProcessSearch)
 		Connect(MS_SB  , wxEVT_COMMAND_BUTTON_CLICKED , ProcessSearch)
@@ -415,7 +427,16 @@ Type ManualSGSearch Extends wxFrame
 		
 		SText:String = SearchText.GetValue()
 		SPlat:String = "PC"
-		PrintF("Searching T:"+SText+" P:"+SPlat)
+		
+		?Win32
+		SPlat:String = "PC"
+		?MacOS
+		SPlat:String = "Mac OS"
+		?Linux
+		SPlat:String = "Linux"
+		?		
+		
+		PrintF("Searching T:" + SText + " P:" + SPlat)
 		Local a=1
 		Local ID:String , GameName:String , Platform:String
 		WriteGameList(SText , SPlat)

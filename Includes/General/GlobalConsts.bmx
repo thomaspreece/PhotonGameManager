@@ -3,6 +3,14 @@ Const SEE_MASK_NOCLOSEPROCESS = $00000040
 Const INFINITE = $FFFFFFFF
 '
 
+Global GlobalPlatforms:PlatformReader
+
+
+?Threaded
+Global Mutex_Print:TMutex = CreateMutex()
+Global Mutex_DebugLog:TMutex = CreateMutex()
+?
+
 If FolderSlash = "/" Or FolderSlash = "\" Then
 	
 Else
@@ -34,7 +42,7 @@ Global FinishProgramRunning:Int = 0
 
 
 Global GAMEDATAFOLDER:String = TempFolderPath+"Games"+FolderSlash
-Global SETTINGSFOLDER:String = TempFolderPath+"Settings"+FolderSlash
+Global SETTINGSFOLDER:String = TempFolderPath + "Settings" + FolderSlash
 Global TEMPFOLDER:String = TempFolderPath+"Temp"+FolderSlash
 Global LOGFOLDER:String = TempFolderPath+"Log"+FolderSlash
 

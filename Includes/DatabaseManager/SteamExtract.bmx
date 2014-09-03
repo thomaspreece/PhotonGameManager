@@ -3,9 +3,9 @@ Function OutputSteam(Online:Int)
 	'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Outputting Steam Games" , , , 300 , 400) )
 	Log1.Show(1)
 	Local MessageBox:wxMessageDialog
-	If FileType(TEMPFOLDER + "Steam")=2 Then
+	If FileType(TEMPFOLDER + "Steam") = 2 then
 		MessageBox = New wxMessageDialog.Create(Null, "Refresh Local Steam Data? (Only needed if new games have been added to Steam since last import)" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-		If MessageBox.ShowModal() = wxID_YES Then
+		If MessageBox.ShowModal() = wxID_YES then
 			If Online=True Then 
 				GetRawSteamOnline(Log1)
 			Else	
@@ -141,7 +141,7 @@ Function GetRawSteamOnline(Log1:LogWindow)
 					EndIf 
 				EndIf 
 				If Log1.LogClosed = True Then Exit
-			Next 
+			Next
 			Exit	
 		EndIf 
 	Next

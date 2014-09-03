@@ -1,0 +1,50 @@
+
+@define doIncrement
+	file = io.open(arg1, "r")
+	version = file:read()
+	lastWinVersion = file:read()
+	lastMacVersion = file:read()
+	lastLinuxVersion = file:read()
+	file:close()
+	
+	version = version + 1
+	
+	if arg2 == "1" then
+		lastWinVersion = version
+	end
+	if arg2 == "2" then
+		lastMacVersion = version
+	end	
+	if arg2 == "3" then
+		lastLinuxVersion = version
+	end	
+	
+	file = io.open(arg1,"w")
+	file:write(version .. "\n")
+	file:write(lastWinVersion .. "\n")
+	file:write(lastMacVersion .. "\n" )
+	file:write(lastLinuxVersion)
+	file:close()
+	print("FileVersion: ".. version)
+@end
+
+@define doOverallIncrement
+	file = io.open(arg1, "r")
+	version = file:read()
+	file:close()
+	
+	version = version + 1
+		
+	file = io.open(arg1,"w")
+	file:write(version)
+	file:close()
+	print("OverallVersion: ".. version)
+@end
+
+@define doOverallVersionFiles
+	file = io.open(arg1, "r")
+	version = file:read()
+	file:close()
+	
+	print("OverallVersion: ".. version)
+@end

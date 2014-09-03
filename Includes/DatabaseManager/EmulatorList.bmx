@@ -1,4 +1,4 @@
-Type EmulatorsList Extends wxFrame 
+Type EmulatorsList Extends wxFrame
 	Field ParentWin:MainWindow
 	Field PanelList:TList
 	Field TextCtrlList:TList
@@ -61,9 +61,34 @@ Type EmulatorsList Extends wxFrame
 				
 		ScrollBox = New wxScrolledWindow.Create(Self)
 		vbox2 = New wxBoxSizer.Create(wxVERTICAL)
+
+		
+		For Platform:PlatformType = EachIn GlobalPlatforms.PlatformList
+			If Platform.PlatType = "Folder" then Continue
+			temppanel = New wxPanel.Create(ScrollBox,wxID_ANY)
+			hbox = New wxBoxSizer.Create(wxHORIZONTAL)
+			
+			tempstatictext = New wxStaticText.Create(temppanel,wxID_ANY , Platform.Name)
+			temptextctrl = New wxTextCtrl.Create(temppanel , wxID_ANY , Platform.Emulator)
+			tempbutton = New wxButton.Create(temppanel , 100 + b , "Browse")
+			Connect(100 + b , wxEVT_COMMAND_BUTTON_CLICKED , BrowseClickFun)
+			
+			ListAddLast(StaticTextList , tempstatictext)
+			ListAddLast(TextCtrlList , temptextctrl)
+			ListAddLast(PanelList, temppanel)
+			
+			hbox.Add(tempstatictext , 1 , wxEXPAND | wxALL , 0)
+			hbox.Add(temptextctrl , 2 , wxEXPAND | wxALL , 0)
+			hbox.Add(tempbutton,  0 , wxEXPAND | wxALL, 0)
+			
+			temppanel.SetSizer(hbox)
+			b = b + 1
+			
+			vbox2.Add(temppanel , 0 , wxEXPAND | wxALL , 20)
+		Next
+		
+		Rem
 		ReadPlatforms = ReadFile(SETTINGSFOLDER + "Platforms.txt")
-		
-		
 		Repeat
 			a = ReadLine(ReadPlatforms)
 			For c = 1 To Len(a)+1
@@ -99,6 +124,8 @@ Type EmulatorsList Extends wxFrame
 			If Eof(ReadPlatforms) Then Exit
 		Forever
 		CloseFile(ReadPlatforms)
+		EndRem
+		
 		
 		vbox2.RecalcSizes()
 		ScrollBox.SetSizer(vbox2)
@@ -109,7 +136,7 @@ Type EmulatorsList Extends wxFrame
 		Local sl1:wxStaticLine = New wxStaticLine.Create(Self , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
 		Local sl2:wxStaticLine = New wxStaticLine.Create(Self, wxID_ANY, -1, -1, -1,-1,wxLI_HORIZONTAL)		
 		
-		vbox.Add(Panel2 , 2.5 , wxEXPAND , 0)
+		vbox.Add(Panel2 , 3 , wxEXPAND , 0)
 		vbox.Add(sl1 , 0,  wxEXPAND  , 0)
 		vbox.Add(ScrollBox , 10 , wxEXPAND  ,0)
 		vbox.Add(sl2 , 0,  wxEXPAND  , 0)
@@ -193,7 +220,7 @@ Type EmulatorsList Extends wxFrame
 			If GameNode.GetGame(Dir) = - 1 Then
 			
 			Else
-				ListAddLast(UsedPlatformList , GameNode.Plat)
+				ListAddLast(UsedPlatformList , GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name )
 			EndIf
 
 		Forever
@@ -216,9 +243,10 @@ Type EmulatorsList Extends wxFrame
 			EndIf
 			
 		Next
-		endrem
+		EndRem
 	End Method
 
+Rem
 	Function UsedPlatform(Text:String)
 		Local GameNode:GameType
 
@@ -236,7 +264,7 @@ Type EmulatorsList Extends wxFrame
 				If GameNode.Plat = Text Then Return True
 			EndIf
 				
-			Rem
+			'Rem
 			If FileType(GAMEDATAFOLDER + Dir + "\Info.txt")=1 Then
 				ReadGameFile = ReadFile(GAMEDATAFOLDER + Dir + "\Info.txt")
 				For a = 1 To 11
@@ -245,11 +273,12 @@ Type EmulatorsList Extends wxFrame
 				If ReadLine(ReadGameFile) = Text Then Return True
 				CloseFile(ReadGameFile)
 			EndIf
-			endrem
+			'EndRem
 		Forever
 		'CloseDir(ReadGamesDir)
 		Return False
 	End Function
+EndRem
 
 	Function BrowseClickFun(event:wxEvent)
 		Local EmuWin:EmulatorsList = EmulatorsList(event.parent)
@@ -276,6 +305,24 @@ Type EmulatorsList Extends wxFrame
 		? 
 	End Method
 	
+	
+	Method Finish()
+		Local StaticTextListArray:wxStaticText[]
+		Local TextCtrlListArray:wxTextCtrl[] 
+		Local Platform:PlatformType
+		StaticTextListArray = wxStaticText[](ListToArray(StaticTextList))
+		TextCtrlListArray = wxTextCtrl[](ListToArray(TextCtrlList))
+		
+		For a = 0 To Len(TextCtrlListArray) - 1
+			Platform = GlobalPlatforms.GetPlatformByName( StaticTextListArray[a].GetLabel() )
+			Platform.Emulator = TextCtrlListArray[a].GetValue()
+		Next
+		
+		GlobalPlatforms.SavePlatforms()
+
+	End Method
+
+Rem	
 	Method Finish()
 		Local StaticTextListArray:wxStaticText[]
 		Local TextCtrlListArray:wxTextCtrl[] 
@@ -291,6 +338,7 @@ Type EmulatorsList Extends wxFrame
 		Next
 		CloseFile(WritePlatforms)
 	End Method
+EndRem
 
 	Function FinishFun(event:wxEvent)
 		Local MainWin:MainWindow = EmulatorsList(event.parent).ParentWin

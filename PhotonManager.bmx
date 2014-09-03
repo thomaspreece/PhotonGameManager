@@ -8,7 +8,8 @@
 'TODO: Check online database in imports to properly match games up.
 'TODO: Add game selections to online database
 'TODO: Check that RunProcess doesn't screw up Executables other than mine
-
+'TODO: Fix controls so you can tab between them
+'TODO: Update GDF import to use libxml and to look at all bin files
 
 'NOTHING IMPORTANT HERE
 
@@ -32,7 +33,6 @@
 
 'END OF NOTHING IMPORTANT HERE
 
-
 Framework wx.wxApp
 Import wx.wxFrame
 'Import wx.wxtimer
@@ -45,11 +45,11 @@ Import wx.wxStaticText
 Import wx.wxComboBox
 Import wx.wxWizard
 Import wx.wxListCtrl
-?MacOS
-Import wx.wxChoicebook
-?Not MacOS
+'?MacOS
+'Import wx.wxChoicebook
+'?Not MacOS
 Import wx.wxNotebook
-?
+'?
 Import wx.wxTextCtrl
 Import wx.wxMessageDialog
 Import wx.wxFileDialog
@@ -65,7 +65,6 @@ Import wx.wxStaticLine
 Import wx.wxPlatformInfo
 Import wx.wxSplitterWindow
 Import wx.wxMouseEvent
-
 
 Import BaH.libcurlssl
 Import Bah.libxml
@@ -91,8 +90,9 @@ Import Pub.FreeJoy
 Import sidesign.minib3d
 
 
+
 ?Not Win32
-Global FolderSlash:String ="/"
+Global FolderSlash:String = "/"
 
 ?Win32
 Import "Icons\PhotonManager.o"
@@ -108,7 +108,7 @@ If FileType("SaveLocationOverride.txt") = 1 Then
 	
 	Else
 		TempFolderPath = TempFolderPath + FolderSlash
-	EndIf 
+	EndIf
 Else
 	If FileType(GetUserDocumentsDir()+FolderSlash+"GameManagerV4") <> 2 Then 
 		CreateFolder(GetUserDocumentsDir()+FolderSlash+"GameManagerV4")
@@ -118,11 +118,31 @@ EndIf
 
 Include "Includes\General\GlobalConsts.bmx"
 Include "Includes\DatabaseManager\GlobalsConsts.bmx"
-'Include "Includes\General\libxml.bmx"
+
+' Revision Version Generation Code
+' @bmk include Includes/General/Increment.bmk
+' @bmk doOverallVersionFiles Version/OverallVersion.txt
+?Win32
+' @bmk doIncrement Version/PM-Version.txt 1
+?Mac
+' @bmk doIncrement Version/PM-Version.txt 2
+?Linux
+' @bmk doIncrement Version/PM-Version.txt 3
+?
+Incbin "Version/PM-Version.txt"
+Incbin "Version/OverallVersion.txt"
+
+Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PM-Version.txt"), 1)
+Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+
+Print "Version = " + CurrentVersion
+Print "SubVersion = " + SubVersion
+Print "OSubVersion = " + OSubVersion
+
 
 If FileType("DebugLog.txt")=1 Then 
 	DebugLogEnabled = True
-EndIf 
+EndIf
 
 FolderCheck()
 LogName = "Log-Manager "+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
@@ -130,9 +150,10 @@ CreateFile(LOGFOLDER+LogName)
 
 AppTitle = "PhotonManager"
 
+
 LoadGlobalSettings()
 CheckKey()
-If EvaluationMode = True Then 
+If EvaluationMode = True then
 	Notify "You are running in evaluation mode, this limits you to the first 5 games added to the database in FrontEnd and PhotonExplorer"
 EndIf 
 SearchBeep = LoadSound("Resources"+FolderSlash+"BEEP.wav")
@@ -144,6 +165,15 @@ PrintF("Windows Folder: "+WinDir)
 ?
 
 
+GlobalPlatforms = New PlatformReader
+If FileType(SETTINGSFOLDER + "Platforms.xml") = 1 then
+	GlobalPlatforms.ReadInPlatforms()	
+else
+	GlobalPlatforms.PopulateDefaultPlatforms()
+	GlobalPlatforms.ReadInPlatforms()
+EndIf
+
+'TODO: REMOVE THIS FUNCTION FROM ALL FILES
 PlatformListChecks()
 
 CheckInternet()
@@ -162,10 +192,16 @@ Else
 	WinBit = 32
 EndIf
 
+
+
 ?Win32
-Local PlatInfo:wxPlatformInfo = New wxPlatformInfo
-PrintF("Detected Win Version: "+PlatInfo.GetOSMajorVersion()+"."+PlatInfo.GetOSMinorVersion())
-If PlatInfo.GetOSMajorVersion() => 6 Then
+Local OSMajor:Int 
+Local OSMinor:Int
+wxGetOsVersion(OSMajor,OSMinor)
+
+PrintF("Detected Win Version: "+OSMajor+"."+OSMinor)
+
+If OSMajor => 6 Then
 	WinExplorer = True
 Else
 	WinExplorer = False
@@ -173,6 +209,7 @@ EndIf
 ?Not Win32
 	WinExplorer = False
 ?
+
 
 Local RunWizard:Int = -1
 
@@ -221,7 +258,7 @@ DatabaseApp.Run()
 'EndIf
 End
 
-Type DatabaseManager Extends wxApp 
+Type DatabaseManager Extends wxApp
 	Field Menu:MainWindow
 	Method OnInit:Int()
 		wxImage.AddHandler( New wxICOHandler)		
@@ -229,7 +266,7 @@ Type DatabaseManager Extends wxApp
 		wxImage.AddHandler( New wxJPEGHandler)
 		'wxImage.AddHandler( New wxJPEGHandler)			
 			
-		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", -1, -1, 300, 400))
+		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400) )
 		Return True
 
 	End Method
@@ -242,11 +279,13 @@ Type MainWindow Extends wxFrame
 	
 	'Sub Windows
 	Field EditGameListField:EditGameList	
-	Field OfflineImportField:OfflineImport
-	Field SteamOfflineImportField:SteamOfflineImport
+	'Field OfflineImportField:OfflineImport
+	Field OfflineImport2Field:OfflineImport2
+	'Field SteamOfflineImportField:SteamOfflineImport
 	'Field SteamOnlineImportField:SteamOnlineImport
 	Field SteamOnlineImport2Field:SteamOnlineImport2
-	Field OnlineImportField:OnlineImport 
+	'Field OnlineImportField:OnlineImport
+	Field OnlineImport2Field:OnlineImport2
 	Field ImportMenuField:ImportMenu	
 	Field AddGamesMenuField:AddGamesMenu
 	Field SteamMenuField:SteamMenu
@@ -257,21 +296,25 @@ Type MainWindow Extends wxFrame
 	Field SettingsWindowField:SettingsWindow
 	Field SettingsMenuField:SettingsMenu
 	Field PluginsWindowField:PluginsWindow
+	Field ActivateMenuField:ActivateMenu
 	'Field SteamIconWindowField:SteamIconWindow
 	
 	'Buttons
-	Field AGButton:wxButton
-	Field IGButton:wxButton
-	Field EGButton:wxButton
-	Field EButton:wxButton
-	Field GSButton:wxButton 
+	Field AGButton:wxBitmapButtonExtended
+	'Field IGButton:wxBitmapButtonExtended
+	Field EGButton:wxBitmapButtonExtended
+	Field EButton:wxBitmapButtonExtended
+	Field GSButton:wxBitmapButtonExtended
 	Field UGMButton:wxButton
 	Field Back:wxButton
+	Field Activate:wxButton
 '	Field Timer:wxtimer
+
+	Field HelpBox:wxTextCtrl
 
 	Method OnInit()
 		Log1 = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Log" , , , 300 , 400) )
-	
+		
 		Self.Centre()
 		'timer = New wxTimer.Create(Self , wxID_ANY)
 		'timer.Start(3000)
@@ -281,44 +324,78 @@ Type MainWindow Extends wxFrame
 		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
 		'Self.Refresh
 		
+		
+		
+		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
+		HelpBox = New wxTextCtrl.Create(Self, wxID_ANY, "Help will appear here when you point your mouse over a button.", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY )
+		
+		vbox2.Add(HelpST, 0 , wxEXPAND | wxALL, 8)				
+		vbox2.Add(HelpBox, 1 , wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, 8)	
+		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		AGbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"AddButton.png" , wxBITMAP_TYPE_PNG)
-		AGButton = New wxBitmapButton.Create(Self , MW_AGB , AGbitmap)
+		
+		AGbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "AddButton.png" , wxBITMAP_TYPE_PNG)
+		AGButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_AGB , AGbitmap) )
+		AGButton.SetFields("Add new games to GameManager here.", HelpBox)
 		AGButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 	
 		EGbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"EditGames.png" , wxBITMAP_TYPE_PNG)
-		EGButton = New wxBitmapButton.Create(Self , MW_EGB , EGbitmap)
+		EGButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_EGB , EGbitmap) )
+		EGButton.SetFields("Edit games that you have already added to GameManager.", HelpBox)
 		EGButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 		
 		Ebitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Emulators.png" , wxBITMAP_TYPE_PNG)
-		EButton = New wxBitmapButton.Create(Self , MW_EB , Ebitmap)
+		EButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_EB , Ebitmap) )
+		EButton.SetFields("Change the default emulator for all games of a certain platform that have already been added to GameManager.", HelpBox)
 		EButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 		
 		GSbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Settings.png" , wxBITMAP_TYPE_PNG)
-		GSButton = New wxBitmapButton.Create(Self , MW_GS , GSbitmap)
+		GSButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_GS , GSbitmap) )
+		GSButton.SetFields("Change settings for the whole of the GameManager suite. Also backup and restore your game database. Furthermore change plugin settings.", HelpBox)
 		GSButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 		
 		'UGMButton = New wxButton.Create(Self , MW_UGM , "Update GameManager")
+		
+		Local hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		
+		Activate = New wxButton.Create(Self , MW_A , "Activate")
 		Back = New wxButton.Create(Self , wxID_EXIT , "Quit")
+		
+		hbox.Add(Activate, 1 , wxALL, 6)
+		hbox.Add(Back, 1 , wxALL, 6)
+		
+		If EvaluationMode = False then
+			Activate.show(0)
+		EndIf
 		
 		'AGButton = New wxButton.Create(Self, MW_AGB , "Add Game/s")			
 		'EGButton = New wxButton.Create(Self , MW_EGB , "Edit Game/s")		
 		'EButton = New wxButton.Create(Self , MW_EB , "Emulators")		
 		'GSButton = New wxButton.Create(Self , MW_GS , "General Settings")		
 		
-		vbox.Add(AGButton,  2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)				
-		vbox.Add(EGButton,  2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)		
-		vbox.Add(EButton,  2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)	
+		vbox.Add(AGButton, 2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)				
+		vbox.Add(EGButton, 2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)		
+		vbox.Add(EButton, 2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)	
 		vbox.Add(GSButton , 2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)	
+		vbox.AddSizer(hbox, 1 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8 )
 		'vbox.Add(UGMButton,  2 , wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 8)	
-		vbox.Add(Back,  1 , wxALIGN_RIGHT | wxALL, 6)		
+		
 
-		SetSizer(vbox)
+		
+ 		
+		Local Mainhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Mainhbox.AddSizer(vbox, 1 , wxEXPAND, 0)
+		Mainhbox.AddSizer(vbox2, 1 , wxEXPAND , 0)
+
+		SetSizer(Mainhbox)
 	
 		Connect(MW_AGB, wxEVT_COMMAND_BUTTON_CLICKED, ShowGamesList)
 		Connect(MW_EGB, wxEVT_COMMAND_BUTTON_CLICKED, ShowEditGameList)
 		Connect(MW_EB, wxEVT_COMMAND_BUTTON_CLICKED, ShowEmulatorsList)
 		Connect(MW_GS , wxEVT_COMMAND_BUTTON_CLICKED , ShowSettingsWindow)
+		Connect(MW_A , wxEVT_COMMAND_BUTTON_CLICKED , ShowActivateWindow)
+		
 		Connect(wxID_EXIT, wxEVT_COMMAND_BUTTON_CLICKED, OnQuit)
 		ConnectAny(wxEVT_CLOSE , OnQuit)
 		
@@ -328,16 +405,17 @@ Type MainWindow Extends wxFrame
 		'EditGameListField Now loaded on demand
 		
 		'Menus not needed to be loaded on demand
-		ImportMenuField = ImportMenu(New ImportMenu.Create(Self , wxID_ANY , "Import Select" , , , 300 , 400) )
-		SteamMenuField = SteamMenu(New SteamMenu.Create(Self, wxID_ANY, "Steam Import Select", , , 300, 400))
-		AddGamesMenuField = AddGamesMenu(New AddGamesMenu.Create(Self, wxID_ANY, "Add Games Select", , , 300, 400))
-		SettingsMenuField = SettingsMenu(New SettingsMenu.Create(Self , wxID_ANY , "Settings Select" , , , 300 , 400) )	
-												
+		ImportMenuField = ImportMenu(New ImportMenu.Create(Self , wxID_ANY , "Import Select" , , , 600 , 400) )
+		SteamMenuField = SteamMenu(New SteamMenu.Create(Self, wxID_ANY, "Steam Import Select", , , 600, 400) )
+		AddGamesMenuField = AddGamesMenu(New AddGamesMenu.Create(Self, wxID_ANY, "Add Games Select", , , 600, 400) )
+		SettingsMenuField = SettingsMenu(New SettingsMenu.Create(Self , wxID_ANY , "Settings Select" , , , 600 , 400) )	
+		ActivateMenuField = ActivateMenu(New ActivateMenu.Create(Self , wxID_ANY , "Activate" , , , 300 , 200) )
+						
 		'OnlineAddField Now loaded on demand
 		'OnlineAddField = OnlineAdd(New OnlineAdd.Create(Self, wxID_ANY, "Add Games via Online Database", , , 800, 600))	
 		
 					
-		SteamCustomAddField = SteamCustomAdd(New SteamCustomAdd.Create(Self , wxID_ANY , "Add Custom Steam ID" , , , 300 , 270) )						
+		SteamCustomAddField = SteamCustomAdd(New SteamCustomAdd.Create(Self , wxID_ANY , "Add Custom Steam ID" , , , 600 , 400) )						
 		
 		'SettingsWindowField now loaded on demand
 		'SettingsWindowField = SettingsWindow(New SettingsWindow.Create(Self , wxID_ANY , "General Settings" , , , 800 , 600) )	
@@ -358,15 +436,14 @@ Type MainWindow Extends wxFrame
 			CommandEvent:wxEvent = New wxEvent
 			CommandEvent.Parent = Self.GetEventHandler()
 			ShowEditGameList(CommandEvent)
-		EndIf 
+		EndIf
 		
 	End Method
-		
 	
 	Method ResetEditGameWindow()
 		EditGameListField.Destroy()
 		EditGameListField = Null 
-		EditGameListField = EditGameList(New EditGameList.Create(Self, wxID_ANY, "Games", , , 900, 600))	
+		EditGameListField = EditGameList(New EditGameList.Create(Self, wxID_ANY, "Games", , , 900, 650))	
 		EditGameListField.PopulateGameList()		
 		EditGameListField.Show(True)
 		EditGameListField.Raise()
@@ -378,6 +455,14 @@ Type MainWindow Extends wxFrame
 		MainWin.Hide()
 		MainWin.SettingsMenuField.Show(True)
 		MainWin.SettingsMenuField.Raise()
+	End Function	
+	
+	Function ShowActivateWindow(event:wxEvent)
+		Local MainWin:MainWindow = MainWindow(event.parent)
+		PrintF("----------------------------Show Activate Window----------------------------")
+		MainWin.Hide()
+		MainWin.ActivateMenuField.Show(True)
+		MainWin.ActivateMenuField.Raise()
 	End Function	
 	
 	Function ShowEmulatorsList(event:wxEvent)
@@ -401,7 +486,7 @@ Type MainWindow Extends wxFrame
 	Function ShowEditGameList(event:wxEvent)
 		Local MainWin:MainWindow = MainWindow(event.parent)
 		PrintF("----------------------------Show Edit Game List----------------------------")
-		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 900, 600))	
+		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 900, 650))	
 		MainWin.EditGameListField.PopulateGameList()		
 		MainWin.EditGameListField.Show(True)
 		MainWin.Hide()
@@ -418,33 +503,48 @@ End Type
 Include "Includes\DatabaseManager\EditGameList.bmx"
 '----------------------------------------------------------------------------------------------------------
 '------------------------------ADD GAMES MENU--------------------------------------------------------------
-Type AddGamesMenu Extends wxFrame 
+Type AddGamesMenu Extends wxFrame
 	Field ParentWin:MainWindow	
-	Field MButton:wxButton
-	Field OButton:wxButton
-	Field SButton:wxButton
+	Field MButton:wxBitmapButtonExtended
+	Field OButton:wxBitmapButtonExtended
+	Field SButton:wxBitmapButtonExtended
+	Field IGButton:wxBitmapButtonExtended
 	Field Back:wxButton
-	Field IGButton:wxButton
-		
+	
+	
+	Field HelpBox:wxTextCtrl
+			
+							
 	Method OnInit()
 		ParentWin = MainWindow(GetParent() )
 		
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )		
 		Self.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )	
+
+		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
+		HelpBox = New wxTextCtrl.Create(Self, wxID_ANY, "Help will appear here when you point your mouse over a button.", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY )
+		
+		vbox2.Add(HelpST, 0 , wxEXPAND | wxALL, 8)				
+		vbox2.Add(HelpBox, 1 , wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, 8)	
 		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Mbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Manual.png" , wxBITMAP_TYPE_PNG)		
-		MButton = New wxBitmapButton.Create(Self , AGM_MB , Mbitmap)
+		Mbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "Manual.png" , wxBITMAP_TYPE_PNG)		
+		MButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , AGM_MB , Mbitmap) )
+		MButton.SetFields("Here you can add a blank game to the database. This is useful if your game is not on any of the online databases available with the 'Online Add' button above or if you do not have a internet connection.", HelpBox)
 		'MButton = New wxButton.Create(Self , AGM_MB , "Add a Game Manually")
 		Obitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Online.png" , wxBITMAP_TYPE_PNG)		
-		OButton = New wxBitmapButton.Create(Self , AGM_OB , Obitmap)		
+		OButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , AGM_OB , Obitmap)	)
+		OButton.SetFields("Here you can search your computer for games and download the relevant game data to your database from online sources.", HelpBox)
 		'OButton = New wxButton.Create(Self, AGM_OB , "Add Games via Online Database")
-		Sbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"SteamImport.png" , wxBITMAP_TYPE_PNG)		
-		SButton = New wxBitmapButton.Create(Self , AGM_SB , Sbitmap)
+		Sbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "SteamImport.png" , wxBITMAP_TYPE_PNG)		
+		SButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , AGM_SB , Sbitmap) )
+		SButton.SetFields("Here you can add steam games. You are given the option to manually add them or to automatically scan and add games to your database using online sources. ~n~nIf you have any steam games then we highly recommend you use this option before using the 'Online Add' or 'Manual Add' options.", HelpBox)
 		'SButton = New wxButton.Create(Self , AGM_SB , "Add Steam Games")
-		IGbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"GEImport.png" , wxBITMAP_TYPE_PNG)		
-		IGButton = New wxBitmapButton.Create(Self , AGM_IGB , IGbitmap)
+		IGbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "GEImport.png" , wxBITMAP_TYPE_PNG)		
+		IGButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , AGM_IGB , IGbitmap) )
+		IGButton.SetFields("If you have games shown under Window's Games Explorer you can use this option to quickly extract the information from your system with the option to fill in missing data from online sources. ~n~nIf you have games in Games Explorer then we highly recommend you use this option before  using the 'Online Add' or 'Manual Add' options.", HelpBox)
 		'IGButton = New wxButton.Create(Self, AGM_IGB , "Import Game/s from Game Explorer")
 		
 		Back = New wxButton.Create(Self,AGM_BB, "Back")
@@ -454,10 +554,17 @@ Type AddGamesMenu Extends wxFrame
 		vbox.Add(OButton,  2 , wxEXPAND |  wxTOP | wxRIGHT | wxLEFT, 8)		
 		vbox.Add(MButton , 2 , wxEXPAND |  wxTOP | wxRIGHT | wxLEFT, 8)			
 		vbox.Add(Back,  1 , wxALIGN_LEFT | wxALL, 6)		
+
+
+		Local Mainhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Mainhbox.AddSizer(vbox, 1 , wxEXPAND, 0)
+		Mainhbox.AddSizer(vbox2, 1 , wxEXPAND , 0)
+
+		SetSizer(Mainhbox)		
+
 		
 		If WinExplorer = False Then IGButton.Disable()
 		
-		SetSizer(vbox)
 		Centre()
 		Hide()		
 		Connect(AGM_BB, wxEVT_COMMAND_BUTTON_CLICKED, ShowMainMenu)
@@ -484,14 +591,14 @@ Type AddGamesMenu Extends wxFrame
 		MainWin.AddGamesMenuField.Hide()
 		Local a:Int = 0
 		Repeat
-			If FileType(GAMEDATAFOLDER + "A_NewGame_" + String(a) + "---PC" ) = 2 Then
+			If FileType(GAMEDATAFOLDER + "A_NewGame_" + String(a) + "---0" ) = 2 Then
 				a=a+1
 			Else
-				PrintF(GAMEDATAFOLDER + "A_NewGame_" + String(a) + "---PC"+ " Selected")
+				PrintF(GAMEDATAFOLDER + "A_NewGame_" + String(a) + "---0"+ " Selected")
 				Local GameNode:GameType = New GameType
 				GameNode.NewGame()
 				GameNode.Name = "A_NewGame_" + String(a)
-				GameNode.Plat = "PC"
+				GameNode.PlatformNum = 0
 				GameNode.SaveGame()
 				Exit
 			EndIf
@@ -499,7 +606,6 @@ Type AddGamesMenu Extends wxFrame
 		
 		MainWin.EditGameListField.PopulateGameList()
 		
-		'wxlistctrl
 		PrintF("Selecting new game in list")
 		Local ID:Int = MainWin.EditGameListField.GameList.FindItem( - 1 , "A_NewGame_" + String(a) )
 		MainWin.EditGameListField.GameList.SetitemState(ID,wxLIST_STATE_SELECTED,wxLIST_MASK_TEXT | wxLIST_MASK_IMAGE  )
@@ -594,12 +700,12 @@ Type SteamCustomAdd Extends wxFrame
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Self.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
 		
-		Local ExplainST:wxStaticText = New wxStaticText.Create(Self , wxID_ANY , SCA_ET_Text , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local ExplainST:wxStaticText = New wxStaticText.Create(Self , wxID_ANY , SCA_ET_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		
 		Local NameText:wxStaticText = New wxStaticText.Create(Self , wxID_ANY , "Name:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		NameTextBox = New wxTextCtrl.Create(Self, SCA_NTB , "" , -1 , -1 , -1 , -1 , 0 )		
+		NameTextBox = New wxTextCtrl.Create(Self, SCA_NTB , "" , - 1 , - 1 , - 1 , - 1 , 0 )		
 		Local IDText:wxStaticText = New wxStaticText.Create(Self , wxID_ANY , "Steam ID:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		IDTextBox = New wxTextCtrl.Create(Self, SCA_ITB , "" , -1 , -1 , -1 , -1 , 0 )	
+		IDTextBox = New wxTextCtrl.Create(Self, SCA_ITB , "" , - 1 , - 1 , - 1 , - 1 , 0 )	
 		
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
 		Panel1.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
@@ -666,13 +772,34 @@ Type SteamCustomAdd Extends wxFrame
 		GameNode.Name = MainWin.SteamCustomAddField.NameTextBox.GetValue()
 		GameNode.RunEXE = SteamFolder+FolderSlash+"Steam.exe "+Chr(34)+"-applaunch "+Int(MainWin.SteamCustomAddField.IDTextBox.GetValue())+Chr(34)
 
-		GameNode.Plat = "PC"
-		GameNode.SaveGame()
 		
+		?Win32
+		GameNode.Plat = "PC"
+		GameNode.PlatformNum = 24
+		?MacOS
+		GameNode.Plat = "Mac OS"
+		GameNode.PlatformNum = 12	
+		?Linux
+		GameNode.Plat = "Linux"
+		GameNode.PlatformNum = 40
+		?
+		
+		GameNode.SaveGame()
+
+
+		newevent:wxEvent = event
+		newevent.parent = MainWin.GetEventHandler()
+		
+		MainWin.ShowEditGameList(event)		
+		MainWin.SteamCustomAddField.Hide()	
+				
 		MainWin.EditGameListField.PopulateGameList()
 		
-		MainWin.EditGameListField.Show()
-		MainWin.SteamCustomAddField.Hide()			
+		Local ID:Int = MainWin.EditGameListField.GameList.FindItem( - 1 , MainWin.SteamCustomAddField.NameTextBox.GetValue() )
+		MainWin.EditGameListField.GameList.SetitemState(ID,wxLIST_STATE_SELECTED,wxLIST_MASK_TEXT | wxLIST_MASK_IMAGE  )
+		
+		
+		'MainWin.show(1)
 	End Function
 
 	Function OnQuit(event:wxEvent)
@@ -684,25 +811,36 @@ End Type
 '-----------------------------------IMPORT MENU---------------------------------------------------------
 Type ImportMenu Extends wxFrame 
 	Field ParentWin:MainWindow	
-	Field MButton:wxButton
-	Field OButton:wxButton
+	Field MButton:wxBitmapButtonExtended
+	Field OButton:wxBitmapButtonExtended
 	Field Back:wxButton
+	
+	Field HelpBox:wxTextCtrl	
 		
 	Method OnInit()
-		ParentWin = MainWindow(GetParent())
+		ParentWin = MainWindow(GetParent() )
 
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
 		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+
+		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
+		HelpBox = New wxTextCtrl.Create(Self, wxID_ANY, "Help will appear here when you point your mouse over a button.", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY )
+		
+		vbox2.Add(HelpST, 0 , wxEXPAND | wxALL, 8)				
+		vbox2.Add(HelpBox, 1 , wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, 8)	
 			
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 
-		Mbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"ManualImport.png" , wxBITMAP_TYPE_PNG)
-		Obitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"OnlineImport.png" , wxBITMAP_TYPE_PNG)
+		Mbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "ManualImport.png" , wxBITMAP_TYPE_PNG)
+		Obitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "OnlineImport.png" , wxBITMAP_TYPE_PNG)
 		
-		MButton = New wxBitmapButton.Create(Self , IM_MB , Mbitmap)
-		OButton = New wxBitmapButton.Create(Self , IM_OB , Obitmap)
+		MButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , IM_MB , Mbitmap) )
+		MButton.SetFields("This option finds the already existing game information on your system and allows you to add it to the database. This option is mainly designed for those without an internet connection or games that are not in the online databases. ~n~nIt is higly recommended to use 'Online Import' option instead of this option if possible.", HelpBox)
+		OButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , IM_OB , Obitmap) )
+		OButton.SetFields("This option finds the already existing game information on your system and updates missing information from online sources. It then allows you to add that game information to your game database. This option requires an internet connection!", HelpBox)
 		
 
 
@@ -710,12 +848,16 @@ Type ImportMenu Extends wxFrame
 		Back = New wxButton.Create(Self,IM_BB, "Back")
 		
 		'vbox.AddStretchSpacer(2)
-		vbox.Add(MButton,  2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8)		
 		vbox.Add(OButton , 2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 8)		
+		vbox.Add(MButton, 2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8)		
 		vbox.AddStretchSpacer(4)		
 		vbox.Add(Back,  1 , wxALIGN_LEFT | wxALL, 6)		
 
-		SetSizer(vbox)
+		Local Mainhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Mainhbox.AddSizer(vbox, 1 , wxEXPAND, 0)
+		Mainhbox.AddSizer(vbox2, 1 , wxEXPAND , 0)
+
+		SetSizer(Mainhbox)		
 		Centre()
 		Hide()		
 		Connect(IM_BB, wxEVT_COMMAND_BUTTON_CLICKED, ShowAddGamesMenu)
@@ -732,11 +874,15 @@ Type ImportMenu Extends wxFrame
 	Function ShowMI(event:wxEvent)
 		Local MainWin:MainWindow = ImportMenu(event.parent).ParentWin
 		MainWin.ImportMenuField.Hide()
+		MainWin.OfflineImport2Field = OfflineImport2(New OfflineImport2.Create(MainWin, wxID_ANY, "Add Games via Games Explorer", , , 800, 600) )
+		MainWin.OfflineImport2Field.Show()		
+		Rem
 		MainWin.OfflineImportField = OfflineImport(New OfflineImport.Create(MainWin , wxID_ANY , "Offline Import" , Null , -1 , -1 , wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE | wxMAXIMIZE_BOX ) )
 		MainWin.OfflineImportField.Setup()	
 		MainWin.OfflineImportField.RunWizard(MainWin.OfflineImportField.StartPage)
 		MainWin.OfflineImportField.Destroy()
 		MainWin.ImportMenuField.Show()
+		EndRem
 		'MainWin.ImportMenuField.Hide()
 		'MainWin.Show()
 	End Function
@@ -747,9 +893,15 @@ Type ImportMenu Extends wxFrame
 
 		If Connected = False Then 
 			CheckInternet()
-		EndIf 
-		If Connected = 1 Then
+		EndIf
+		If Connected = 1 then
+			
 			MainWin.ImportMenuField.Hide()
+			MainWin.OnlineImport2Field = OnlineImport2(New OnlineImport2.Create(MainWin, wxID_ANY, "Add Games via Games Explorer", , , 800, 600) )
+			MainWin.OnlineImport2Field.Show()
+			
+			
+			Rem
 			MainWin.OnlineImportField = OnlineImport(New OnlineImport.Create(MainWin , wxID_ANY , "Online Import" , Null , - 1 , - 1 , wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE | wxMAXIMIZE_BOX ) )
 			MainWin.OnlineImportField.Setup()	
 			MainWin.OnlineImportField.RunWizard(MainWin.OnlineImportField.StartPage)
@@ -757,6 +909,7 @@ Type ImportMenu Extends wxFrame
 			'MainWin.ImportMenuField.Hide()
 			'MainWin.Show()
 			MainWin.ImportMenuField.Show()
+			EndRem
 		Else
 			MessageBox = New wxMessageDialog.Create(Null , "You are not connected to the internet!" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
@@ -775,46 +928,58 @@ End Type
 '----------------------------------------------------------------------------------------------------------
 '-----------------------------------STEAM MENU---------------------------------------------------------
 
-Type SteamMenu Extends wxFrame 
+Type SteamMenu Extends wxFrame
 	Field ParentWin:MainWindow	
-	Field MButton:wxButton
-	Field OButton:wxButton
+	Field CButton:wxBitmapButtonExtended
+	Field OButton:wxBitmapButtonExtended
 	Field Back:wxButton
+	
+	Field HelpBox:wxTextCtrl	
 		
 	Method OnInit()
-		ParentWin = MainWindow(GetParent())
+		ParentWin = MainWindow(GetParent() )
 
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
 		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+
+		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
+		HelpBox = New wxTextCtrl.Create(Self, wxID_ANY, "Help will appear here when you point your mouse over a button.", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY )
+		
+		vbox2.Add(HelpST, 0 , wxEXPAND | wxALL, 8)				
+		vbox2.Add(HelpBox, 1 , wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, 8)	
 			
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Mbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"ManualImport.png" , wxBITMAP_TYPE_PNG)
+		'Mbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"ManualImport.png" , wxBITMAP_TYPE_PNG)
 		Obitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"OnlineImport.png" , wxBITMAP_TYPE_PNG)
-		Cbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"CustomAdd.png" , wxBITMAP_TYPE_PNG)
+		Cbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "ManualImport.png" , wxBITMAP_TYPE_PNG)
 		
-		MButton = New wxBitmapButton.Create(Self , SM_MB , Mbitmap)
-		OButton = New wxBitmapButton.Create(Self , SM_OB , Obitmap)
-		CButton = New wxBitmapButton.Create(Self , SM_CB , Cbitmap)
-		Back = New wxButton.Create(Self,SM_BB, "Back")
+		'MButton = New wxBitmapButton.Create(Self , SM_MB , Mbitmap)
+		OButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , SM_OB , Obitmap) )
+		OButton.SetFields("Here you can automatically find all your steam games and search online sources to fill in the missing game information. It requires an internet connection and your steam ID. ~n~nWe highly recommend that you use this option if possible.", HelpBox)
+		CButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , SM_CB , Cbitmap) )
+		CButton.SetFields("Here you can manually enter Steam games one by one by specifying their ID. This is only recommended if you do not have an internet connection.", HelpBox)
+		Back = New wxButton.Create(Self, SM_BB, "Back")
 		
-		?Not Win32
-		MButton.Disable()	
-		?
 		
 		'vbox.AddStretchSpacer(2)
-		vbox.Add(MButton,  2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8)		
+		'vbox.Add(MButton,  2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8)		
 		vbox.Add(OButton , 2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 8)		
 		vbox.Add(CButton , 2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 8)
-		vbox.AddStretchSpacer(2)		
+		vbox.AddStretchSpacer(4)		
 		vbox.Add(Back,  1 , wxALIGN_LEFT | wxALL, 6)		
 
-		SetSizer(vbox)
+		Local Mainhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Mainhbox.AddSizer(vbox, 1 , wxEXPAND, 0)
+		Mainhbox.AddSizer(vbox2, 1 , wxEXPAND , 0)
+
+		SetSizer(Mainhbox)		
 		Centre()
 		Hide()		
 		Connect(SM_BB, wxEVT_COMMAND_BUTTON_CLICKED, ShowAddGamesMenu)
-		Connect(SM_MB, wxEVT_COMMAND_BUTTON_CLICKED, ShowMI)
+		'Connect(SM_MB, wxEVT_COMMAND_BUTTON_CLICKED, ShowMI)
 		Connect(SM_OB , wxEVT_COMMAND_BUTTON_CLICKED , ShowOI)
 		Connect(SM_CB, wxEVT_COMMAND_BUTTON_CLICKED, ShowC)
 		ConnectAny(wxEVT_CLOSE , CloseApp)
@@ -825,11 +990,12 @@ Type SteamMenu Extends wxFrame
 		MainWin.Close(True)
 	End Function
 	
+	Rem
 	Function ShowMI(event:wxEvent)
 		Local MainWin:MainWindow = SteamMenu(event.parent).ParentWin
 		Local MessageBox:wxMessageDialog
 		MainWin.SteamMenuField.Hide()
-		If FindSteamFolderMain() = - 1 Then
+		If FindSteamFolderMain() = - 1 then
 			MessageBox = New wxMessageDialog.Create(Null , "Could not find Steam Folder, please manually select it from the settings menu" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()
@@ -841,6 +1007,7 @@ Type SteamMenu Extends wxFrame
 		EndIf
 		MainWin.SteamMenuField.Show()
 	End Function
+	EndRem
 	
 	Function ShowC(event:wxEvent)
 		
@@ -915,13 +1082,15 @@ Type SteamMenu Extends wxFrame
 End Type
 '----------------------------------------------------------------------------------------------------------
 '-----------------------------------OFFLINE IMPORT---------------------------------------------------------
-Include "Includes\DatabaseManager\OfflineImport.bmx"
+'Include "Includes\DatabaseManager\OfflineImport.bmx"
+Include "Includes\DatabaseManager\OfflineImport2.bmx"
 '----------------------------------------------------------------------------------------------------------
 '---------------------------------------ONLINE IMPORT------------------------------------------------------
-Include "Includes\DatabaseManager\OnlineImport.bmx"
+'Include "Includes\DatabaseManager\OnlineImport.bmx"
+Include "Includes\DatabaseManager\OnlineImport2.bmx"
 '----------------------------------------------------------------------------------------------------------
 '---------------------------------------OFFLINE STEAM IMPORT-----------------------------------------------
-Include "Includes\DatabaseManager\SteamOfflineImport.bmx"
+'Include "Includes\DatabaseManager\SteamOfflineImport.bmx"
 '----------------------------------------------------------------------------------------------------------
 '---------------------------------------ONLINE STEAM IMPORT-----------------------------------------------
 'Include "Includes\DatabaseManager\SteamOnlineImport.bmx"
@@ -1152,7 +1321,7 @@ Type SettingsWindow Extends wxFrame
 	Field SW_Mode:wxComboBox
 	Field SW_LowMem:wxComboBox
 	Field SW_LowProc:wxComboBox
-	Field SW_GameCache:wxTextCtrl 
+	Field SW_GameCache:wxTextCtrl
 	Field SW_TouchKey:wxComboBox
 	Field SW_OverridePath:wxTextCtrl 
 	Field SW_ButtonCloseOnly:wxComboBox
@@ -1169,7 +1338,7 @@ Type SettingsWindow Extends wxFrame
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		
-		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(Self , wxID_ANY , -1, -1, -1 ,-1 ,wxHSCROLL)
+		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(Self , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
 		
 		ScrollBox.SetScrollRate(20,20)
 		Local ScrollBoxvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
@@ -1503,7 +1672,7 @@ Type SettingsWindow Extends wxFrame
 		Local MainWin:MainWindow = SettingsWindow(event.parent).ParentWin
 		?Not Win32
 		Local openFileDialog:wxDirDialog = New wxDirDialog.Create(MainWin.SettingsWindowField, "Select folder" ,MainWin.SettingsWindowField.SW_OverridePath.GetValue() , wxDD_DIR_MUST_EXIST)	
-		If openFileDialog.ShowModal() = wxID_OK Then
+		If openFileDialog.ShowModal() = wxID_OK then
 			MainWin.SettingsWindowField.SW_OverridePath.ChangeValue(openFileDialog.GetPath())
 		EndIf
 		?Win32
@@ -1763,13 +1932,15 @@ Type SettingsWindow Extends wxFrame
 	End Function
 End Type
 
-Type SettingsMenu Extends wxFrame 
+Type SettingsMenu Extends wxFrame
 	Field ParentWin:MainWindow	
-	Field DBButton:wxButton
-	Field DRBButton:wxButton	
-	Field PButton:wxButton
-	Field GButton:wxButton	
+	Field DBButton:wxBitmapButtonExtended
+	Field DRBButton:wxBitmapButtonExtended
+	Field PButton:wxBitmapButtonExtended
+	Field GButton:wxBitmapButtonExtended	
 	Field Back:wxButton
+
+	Field HelpBox:wxTextCtrl
 		
 	Method OnInit()
 		ParentWin = MainWindow(GetParent())
@@ -1778,6 +1949,13 @@ Type SettingsMenu Extends wxFrame
 		Self.SetIcon( Icon )
 		
 		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+
+		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
+		HelpBox = New wxTextCtrl.Create(Self, wxID_ANY, "Help will appear here when you point your mouse over a button.", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY )
+		
+		vbox2.Add(HelpST, 0 , wxEXPAND | wxALL, 8)				
+		vbox2.Add(HelpBox, 1 , wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, 8)	
 			
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 
@@ -1786,11 +1964,15 @@ Type SettingsMenu Extends wxFrame
 		Pbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Plugins.png" , wxBITMAP_TYPE_PNG)
 		Gbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"GeneralSettings.png" , wxBITMAP_TYPE_PNG)
 		
-		DBButton = New wxBitmapButton.Create(Self , SetM_DB , DBbitmap)
-		DRBButton = New wxBitmapButton.Create(Self , SetM_DRB , DRBbitmap)
-		PButton = New wxBitmapButton.Create(Self , SetM_PB , Pbitmap)
-		GButton = New wxBitmapButton.Create(Self , SetM_GB , Gbitmap)
-
+		DBButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , SetM_DB , DBbitmap) )
+		DBButton.SetFields("Clicking this will allow you to save your entire database of games into a single file which you can use to restore the database later in time.", HelpBox)
+		DRBButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , SetM_DRB , DRBbitmap) )
+		DRBButton.SetFields("Clicking this will allow you to restore your database of games to the state you saved it as using the above button.", HelpBox)
+		PButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , SetM_PB , Pbitmap) )
+		PButton.SetFields("Here you can configure and enable plugins that allow you to do various things such as take screenshots and manage power plans.", HelpBox)
+		GButton = wxBitmapButtonExtended( New wxBitmapButtonExtended.Create(Self , SetM_GB , Gbitmap) )
+		GButton.SetFields("Here is where you can edit the settings of all of the applications in the GameManager suite. This includes PhotonManager, PhotonFrontend, PhotonExplorer and PhotonRunner", HelpBox)
+		
 		?Not Win32
 		PButton.Enable(0)
 		DBButton.Enable(0)
@@ -1807,7 +1989,11 @@ Type SettingsMenu Extends wxFrame
 				
 		vbox.Add(Back,  1 , wxALIGN_LEFT | wxALL, 6)		
 
-		SetSizer(vbox)
+		Local Mainhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Mainhbox.AddSizer(vbox, 1 , wxEXPAND, 0)
+		Mainhbox.AddSizer(vbox2, 1 , wxEXPAND , 0)
+
+		SetSizer(Mainhbox)	
 		Centre()
 		Hide()		
 		Connect(SetM_BB, wxEVT_COMMAND_BUTTON_CLICKED, ShowMainMenu)
@@ -2131,6 +2317,130 @@ Type SteamIconWindow Extends wxFrame
 		EndIf		
 	End Function	
 
+End Type
+
+
+Type ActivateMenu Extends wxFrame
+	Field ParentWin:MainWindow	
+
+	Field Activate:wxButton
+	Field Back:wxButton
+	
+	Field UserName:wxTextCtrl
+	Field UserKey:wxTextCtrl
+		
+	Method OnInit()
+		ParentWin = MainWindow(GetParent() )
+
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+		Self.SetIcon( Icon )
+		
+		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+			
+		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+
+		
+		Local ST1 = New wxStaticText.Create(Self , wxID_ANY , "Username:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)			
+		UserName = New wxTextCtrl.Create(Self , AM_UN , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+		Local ST2 = New wxStaticText.Create(Self , wxID_ANY , "Key:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		UserKey = New wxTextCtrl.Create(Self , AM_UK , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+
+		Local hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		
+		Activate = New wxButton.Create(Self, AM_AB, "Activate")		
+		Back = New wxButton.Create(Self, AM_BB, "Back")
+		
+			
+		vbox.Add(ST1 , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 8)		
+		vbox.Add(UserName , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 8)		
+		vbox.Add(ST2 , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 8)		
+		vbox.Add(UserKey , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 8)		
+		vbox.AddStretchSpacer(4)	
+		vbox.AddSizer(hbox, 1, wxEXPAND | wxALL, 8)
+		
+		hbox.Add(Activate, 1 , wxALIGN_LEFT | wxALL, 6)		
+		hbox.Add(Back, 1 , wxALIGN_LEFT | wxALL, 6)		
+
+		SetSizer(vbox)
+		Centre()
+		Hide()		
+		Connect(AM_BB, wxEVT_COMMAND_BUTTON_CLICKED, ShowMainMenu)
+		Connect(AM_AB, wxEVT_COMMAND_BUTTON_CLICKED, ActivateFunction)
+		ConnectAny(wxEVT_CLOSE , CloseApp)
+	End Method
+
+	Function CloseApp(event:wxEvent)
+		Local MainWin:MainWindow = ActivateMenu(event.parent).ParentWin
+		MainWin.Close(True)
+	End Function	
+	
+	Function ActivateFunction(event:wxEvent)
+		Local MainWin:MainWindow = ActivateMenu(event.parent).ParentWin
+		Local ActivateWin:ActivateMenu = ActivateMenu(event.parent)
+		Local MessageBox:wxMessageDialog
+		
+		Local UserName:String = ActivateWin.UserName.GetValue()
+		Local UserKey:String = ActivateWin.UserKey.GetValue()
+		
+		If keygen(UserName) = UserKey then
+			KeyFile = WriteFile(SETTINGSFOLDER + "ProgramKey.txt")
+			WriteLine(KeyFile, UserName)
+			WriteLine(KeyFile, UserKey)	
+			CloseFile(KeyFile)
+			MessageBox = New wxMessageDialog.Create(Null , "Program Activated. ~nPlease restart program." , "Info" , wxOK | wxICON_INFORMATION)
+			MessageBox.ShowModal()
+			MessageBox.Free()
+			MainWin.Close(True)
+		else
+			MessageBox = New wxMessageDialog.Create(Null , "Invalid Username/key" , "Error" , wxOK | wxICON_EXCLAMATION)
+			MessageBox.ShowModal()
+			MessageBox.Free()
+			Delay(2000)
+		EndIf
+		
+	
+	End Function
+	
+	Function ShowMainMenu(event:wxEvent)
+		Local MainWin:MainWindow = ActivateMenu(event.parent).ParentWin
+		MainWin.Show()
+		MainWin.ActivateMenuField.Hide()			
+	End Function
+	
+End Type
+
+Type wxBitmapButtonExtended Extends wxBitmapButton
+	Field DescriptionText:String
+	Field TextBox:wxTextCtrl
+	
+	Method OnInit()
+		ConnectAny(wxEVT_ENTER_WINDOW, Inside)
+		ConnectAny(wxEVT_LEAVE_WINDOW, Outside)
+		Super.OnInit()
+	End Method
+	
+	Method SetFields(DT:String, TB:wxTextCtrl)
+		Self.DescriptionText = DT
+		Self.TextBox = TB	
+	End Method
+	
+	Function Inside(event:wxEvent)
+		Local Button:wxBitmapButtonExtended = wxBitmapButtonExtended(event.parent)
+		If Button.TextBox = Null Or Button.DescriptionText = Null then
+		
+		else
+			Button.TextBox.SetValue(Button.DescriptionText)
+		EndIf
+	End Function
+	
+	Function Outside(event:wxEvent)
+		Local Button:wxBitmapButtonExtended = wxBitmapButtonExtended(event.parent)
+		If Button.TextBox = Null then
+		
+		else
+			Button.TextBox.SetValue("Help will appear here when you point your mouse over a button.")
+		EndIf
+	End Function	
 End Type
 
 Function CopyIconsMain(SteamFolder:String , FullSearch:Int = False)
