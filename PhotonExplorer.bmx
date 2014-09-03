@@ -92,6 +92,26 @@ EndIf
 Include "Includes\General\GlobalConsts.bmx"
 Include "Includes\GameExplorerShell\GlobalConsts.bmx"
 
+' Revision Version Generation Code
+' @bmk include Includes/General/Increment.bmk
+' @bmk doOverallVersionFiles Version/OverallVersion.txt
+?Win32
+' @bmk doIncrement Version/PE-Version.txt 1
+?Mac
+' @bmk doIncrement Version/PE-Version.txt 2
+?Linux
+' @bmk doIncrement Version/PE-Version.txt 3
+?
+Incbin "Version/PE-Version.txt"
+Incbin "Version/OverallVersion.txt"
+
+Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PE-Version.txt"), 1)
+Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+
+Print "Version = " + CurrentVersion
+Print "SubVersion = " + SubVersion
+Print "OSubVersion = " + OSubVersion
+
 If FileType("DebugLog.txt")=1 Then 
 	DebugLogEnabled = True
 EndIf 
@@ -534,11 +554,11 @@ Type GameExplorerFrame Extends wxFrame
 		ConnectAny(wxEVT_CLOSE , ExitFun)
 		?
 		Local MainMenu:wxMenu = New wxMenu.Create()
-		MainMenu.AppendMenu(wxID_ANY , "List Type" , SubMenu1)
-		MainMenu.AppendMenu(wxID_ANY , "Icon Type" , SubMenu2)
-		MainMenu.AppendMenu(wxID_ANY , "Icon Size" , SubMenu3)
-		MainMenu.AppendMenu(wxID_ANY , "Show Text" , SubMenu4)
-		MainMenu.AppendMenu(wxID_ANY , "Show Generic Art" , SubMenu5)
+		MainMenu.AppendSubMenu(SubMenu1 , "List Type" )
+		MainMenu.AppendSubMenu(SubMenu2 , "Icon Type" )
+		MainMenu.AppendSubMenu(SubMenu3 , "Icon Size" )
+		MainMenu.AppendSubMenu(SubMenu4 , "Show Text" )
+		MainMenu.AppendSubMenu(SubMenu5 , "Show Generic Art" )
 		
 		Local MenuBar:wxMenuBar = New wxMenuBar.Create()
 		MenuBar.Append(FileMenu , "File")

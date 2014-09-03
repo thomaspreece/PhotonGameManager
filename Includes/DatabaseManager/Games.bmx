@@ -23,7 +23,7 @@ Type GameType Extends GameReadType
 		Local GName:String , GDesc:String
 		Local MessageBox:wxMessageDialog
 		
-		GName = GameNameSanitizer(Self.Name) + "---" + Self.Plat
+		GName = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
 		GName = Lower(GName)
 		GDesc = GameDescriptionSanitizer(Self.Desc)
 		
@@ -57,13 +57,13 @@ Type GameType Extends GameReadType
 					For a = 1 To Len(Self.OrginalName)
 						If Mid(Self.OrginalName , a , 3) = "---" Then
 							Self.Name = Left(Self.OrginalName , a - 1)
-							Self.Plat = Right(Self.OrginalName , Len(Self.OrginalName) - a - 2)
+							Self.PlatformNum = Int(Right(Self.OrginalName , Len(Self.OrginalName) - a - 2))
 							Exit 
 						EndIf 
 					Next
 					
 					'Self.Name = Self.OrginalName
-					GName = GameNameSanitizer(Self.Name) + "---" + Self.Plat
+					GName = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
 				Else
 					RenameFile(GAMEDATAFOLDER + Self.OrginalName ,GAMEDATAFOLDER + GName)
 				EndIf
@@ -82,7 +82,7 @@ Type GameType Extends GameReadType
 	
 	Method ExtractIcon(Override:Int)
 		?Win32	
-		Local GName:String = GameNameSanitizer(Self.Name) + "---" + Self.Plat
+		Local GName:String = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
 		Local temp:String , File:String
 			
 		Local EXE:String = StandardiseSlashes(StripCmdOpt(Self.RunEXE))
@@ -123,7 +123,7 @@ Type GameType Extends GameReadType
 	End Method
 	
 	Method DownloadArtWorkThumbs(Log1:LogWindow , ArtType:Int)
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.Plat)
+		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
 		Local MessageBox:wxMessageDialog
 		Local Downloadexe:TProcess
 		Local NumCorrect = 0
@@ -217,7 +217,7 @@ Type GameType Extends GameReadType
 		Local BannerArtArray:Object[] = ListToArray(Self.BannerArt)
 		Local ScreenShotsArray:Object[] = ListToArray(Self.ScreenShots)
 		
-		Local GName:String = Lower(GameNameSanitizer(Self.Name)+"---"+Self.Plat)
+		Local GName:String = Lower(GameNameSanitizer(Self.Name)+"---"+Self.PlatformNum)
 
 		DeleteCreateFolder(TEMPFOLDER + "ArtWork")
 		
@@ -434,7 +434,7 @@ Type GameType Extends GameReadType
 	End Method
 	
 	Method OptimizeArtwork()
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.Plat)
+		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
 		Local File:String , FileName:String
 		Local Pixmap:TPixmap , SmallPixmap:TPixmap , OptPixmap:TPixmap , Opt2Pixmap:TPixmap
 		'Cleanup
@@ -668,7 +668,10 @@ Type GameType Extends GameReadType
 										Case "Overview"
 											Self.Desc = node.getText()
 										Case "Platform"
-											Self.Plat =  node.getText()
+											Self.Plat = node.GetText()
+											If GlobalPlatforms.GetPlatformByName(Self.Plat).ID > 0 then
+												Self.PlatformNum = GlobalPlatforms.GetPlatformByName(Self.Plat).ID
+											EndIf
 										Case "ReleaseDate"
 											Self.ReleaseDate = GetDateFromLocalFormat(node.getText(),"US")
 										Case "ESRB"
@@ -764,7 +767,7 @@ Type GameType Extends GameReadType
 		End Select
 		Return Self.SaveGame()
 	End Method
-	
+Rem	
 	Method OutputInfoOLD()
 		Local GName:String
 		GName = GameNameSanitizer(Self.Name)+"---"+Self.Plat
@@ -796,10 +799,11 @@ Type GameType Extends GameReadType
 
 		CloseFile(WriteData)
 	End Method
+EndRem
 	
 	Method OutputInfo()
 		Local GName:String
-		GName = GameNameSanitizer(Self.Name) + "---" + Self.Plat
+		GName = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
 		GName = Lower(GName)	
 		CreateEmptyXMLGame(GAMEDATAFOLDER + GName + FolderSlash +"Info.xml")
 		'DebugStop()
@@ -831,6 +835,7 @@ Type GameType Extends GameReadType
 		RootNode.addTextChild("Name" , Null , Self.Name)
 		RootNode.addTextChild("Description" , Null , Self.Desc)
 		RootNode.addTextChild("Platform" , Null , Self.Plat)
+		RootNode.addTextChild("PlatformNumber" , Null , Self.PlatformNum)
 		RootNode.addTextChild("Co-op" , Null , Self.Coop)
 		RootNode.addTextChild("Players" , Null , Self.Players)
 		RootNode.addTextChild("PreBatchFile" , Null , Self.PreBF)
@@ -849,7 +854,7 @@ Type GameType Extends GameReadType
 		
 	
 		EXENode = RootNode.addTextChild("EXEs" , Null , "")
-		If Self.Plat = "PC" Then
+		If GlobalPlatforms.GetPlatformByID(Self.PlatformNum).PlatType = "Folder" then
 			EXENode.addTextChild("RUN" , Null , Self.RunEXE)
 		Else
 			EXEnode.addTextChild("ROM" , Null , Self.ROM)
@@ -945,6 +950,7 @@ Type GameType Extends GameReadType
 		RootNode.addTextChild("ID" , Null , Self.ID)
 		RootNode.addTextChild("Rating" , Null , Self.Rating)
 		
+		'TODO: Not sure whether this CopyFile is useless due to CreateEmptyXML() above wiping file first
 		CopyFile(GAMEDATAFOLDER + GName + FolderSlash +"Info.xml" , TEMPFOLDER + "temp.xml") 
 		For b=1 To 10
 			SaveStatus = Gamedoc.saveFormatFile(GAMEDATAFOLDER + GName + FolderSlash+"Info.xml" , False)
@@ -964,7 +970,7 @@ Type GameType Extends GameReadType
 	
 	Method OutputArtInfo()
 		Local GName:String
-		GName = GameNameSanitizer(Self.Name)+"---"+Self.Plat
+		GName = GameNameSanitizer(Self.Name)+"---"+Self.PlatformNum
 		GName = Lower(GName)
 		
 		Local FanartArray:Object[], FanartThumbsArray:Object[]

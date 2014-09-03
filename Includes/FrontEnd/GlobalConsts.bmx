@@ -139,8 +139,6 @@ Global ProcessedTextures:TList = CreateList()
 Global InUseTextures:TList = CreateList()
 
 'MARK: Mutex/Semaphore/Thread Signals
-Global Mutex_Print:TMutex = CreateMutex()
-Global Mutex_DebugLog:TMutex = CreateMutex()
 Global StartupThread:TSemaphore = CreateSemaphore(0)
 Global WaitingThread:TSemaphore = CreateSemaphore(0)
 Global Mutex_ResetTextureThread:TMutex = CreateMutex()

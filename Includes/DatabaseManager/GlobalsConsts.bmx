@@ -1,4 +1,4 @@
-Global PROGRAMICON:String = RESFOLDER+"Database.ico"
+Global PROGRAMICON:String = RESFOLDER + "Database.ico"
 'Global ExtractProgLoc:String = APPFOLDER+"ResourcesExtract\ResourcesExtract.exe"
 
 Global SteamFolder:String = ""
@@ -30,6 +30,7 @@ Const MW_EB = 43
 Const MW_UFG = 44
 Const MW_GS = 45
 Const MW_UGM = 46
+Const MW_A = 47
 
 Const EGL_ADD = 51
 Const EGL_DEL = 52	
@@ -152,9 +153,10 @@ Const EGL_AM_UC = 268
 Const EGL_AM_ISOP = 269
 Const EGL_AM_ISOB = 270
 Const EGL_A_SWE = 271
-Const	EGL_A_AddF = 272
-Const	EGL_A_AddE = 273
-Const	EGL_A_Del = 274
+Const EGL_A_AddF = 272
+Const EGL_A_AddE = 273
+Const EGL_A_Del = 274
+Const EGL_ULT = 275
 
 Const OA_PC = 300
 Const OA_SP = 301
@@ -238,6 +240,17 @@ Const KIW_B = 902
 Const KIW_T = 1001
 Const KIW_JKT = 1002
 
+
+Const AM_BB = 1100
+Const AM_AB = 1101
+Const AM_UN = 1102
+Const AM_UK = 1103
+
+Const OI2_EXIT = 1200
+Const OI2_SAVE = 1201
+Const OI2_SEL = 1202
+Const OI2_DESEL = 1203
+
 Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back", "Menu", "Search", "Rotate Platforms", "View ScreenShots", "End" ]
 Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info", "Rotate Platforms", "View ScreenShots", "End" ]
 
@@ -259,7 +272,7 @@ Const EP_TP2_Text:String = "Use the below option to override the default emulato
 Const OA_RP_Text:String = "~n Choose the executable from below that starts the game. ~n"
 Const OA_LP_Text:String = "~n Search and select the game that is contained in this folder/file ~n"
 
-Const SCA_ET_Text:String = "From here you can enter steam games manually using there ID, it is recommended to use the online or manual steam import wizards first before using this. ~n" + ..
+Const SCA_ET_Text:String = "From here you can enter steam games manually using their ID, it is recommended to use the online steam import wizard first if possible. ~n" + ..
 "If you are unsure on how to retrieve a steam game's ID click on help below."
 
 Const BF_ET_Text:String = "Here you can select batch files to run before and after a game has run. ~n" + ..
@@ -272,7 +285,7 @@ Const AM_ET_Text:String = "Here you can setup the AutoMounter for this game. ~n"
 "Note2: AutoMount is not loaded when executables other than the main game executable are run. ~n"
 
 Const A_ET_Text:String = "Here Are Some Advanced Options For This Game "
-Const A_ET_Text2:String = "PhotonRunner looks for which executables are running and will close when it cannot find the games main executable. " +..
+Const A_ET_Text2:String = "PhotonRunner looks for which executables are running and will close when it cannot find the games main executable. " + ..
 "This is no good when your game uses a Launcher because the launcher closes before starting the game and hence PhotonRunner thinks your game has closed. "+..
 "To fix this add executables to the below list and then PhotonRunner will not close until your main executable and all those specified in the list below have finished. ~n"+.. 
 "Use the folder button to add all the executables within the folder to the list. "

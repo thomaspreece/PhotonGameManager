@@ -115,7 +115,9 @@ Type RunnerWindow Extends wxFrame
 		Local ProcessList:TList = Null
 		Local SteamProcessList:TList = Null  
 		Local Running = True 
+		?Win32
 		Local p:TWinProc
+		?
 		MainWin:RunnerWindow = RunnerWindow(event.parent)
 		MainWin.Timer2.Stop()
 				
@@ -888,6 +890,7 @@ Type VideoPluginType
 	End Function	
 End Type 
 
+?Win32
 Function GetSteamProcesses(p:TWinProc,List:TList)
 	'Get all child processes of p and put them into List. This includes children of child processes etc.
 	Local a:TWinProc
@@ -900,6 +903,7 @@ Function GetSteamProcesses(p:TWinProc,List:TList)
 		Next
 	EndIf 
 End Function 
+?
 
 Function StripSteamProcesses:TList(ProcessList:TList)
 	ListRemove(ProcessList,"GameOverlayUI.exe")

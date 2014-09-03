@@ -302,7 +302,10 @@ Type OfflineImport Extends wxWizard
 				Forever				
 				ReadLine(ReadGameData)
 				GameNode.Rating = ReadLine(ReadGameData)
+			
 				GameNode.Plat = "PC"
+				GameNode.PlatformNum = 24
+				
 				
 				CloseFile(ReadGameData)
 				

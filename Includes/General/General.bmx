@@ -1,3 +1,44 @@
+Include "PlatformReader.bmx"
+
+Function ExtractSubVersion(Text:String , Part:Int)
+	Local SubVersions:Int[] = [0,0,0,0]
+	Local b:Int = 0
+	Local c:Int = 0
+	
+	Repeat
+		c = 0
+		For a = 1 To Len(Text)
+			If Mid(Text,a,1)=Chr(10) Then
+				SubVersions[b] = Int(Left(Text, a - 1) )
+				b = b + 1
+				Text = Right(Text, Len(Text) - a)
+				c = 1
+				Exit 
+			EndIf 
+		Next	
+		If c = 0 Then
+			SubVersions[b] = Int(Text)
+			Exit 	
+		EndIf
+		If b = 4 Then Exit 
+	Forever
+	
+	Select Part
+		Case 1
+			Return SubVersions[0]
+		Case 2
+			Return SubVersions[1]
+		Case 3
+			Return SubVersions[2]
+		Case 4
+			Return SubVersions[3]
+		Default
+			Return -1
+	End Select 
+
+End Function
+
+
 
 ?Win32
 Extern "win32"
@@ -306,11 +347,11 @@ Function PlatformListChecks()
 	PrintF("Checking Platform List")
 	Local Line:String
 	Local MovePlat = False
-	If FileType("Platforms.txt") = 1 Then
+	If FileType("Platforms.txt") = 1 then
 		MovePlat = True
 		PrintF("Upgrading Orginal Platforms.txt")
 	EndIf
-	If FileType(SETTINGSFOLDER + "Platforms.txt") = 1 And MovePlat=True Then
+	If FileType(SETTINGSFOLDER + "Platforms.txt") = 1 And MovePlat = True then
 		MovePlat = False
 		DeleteFile("Platforms.txt")
 		PrintF("New Platforms.txt Found, deleting old Platforms.txt")
@@ -458,6 +499,7 @@ Type GameReadType
 	Field ID:Int
 	Field Rating:String
 	Field Plat:String
+	Field PlatformNum:Int 
 	Field EmuOverride:String
 	Field Coop:String
 	Field Players:String
@@ -513,13 +555,14 @@ Type GameReadType
 	End Method
 	
 	Method DeleteGame()
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.Plat)
+		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
 		DeleteDir(GAMEDATAFOLDER + GName , 1)
 		
 	End Method
 	
 	Method GetGame(GName:String)
 		Self.NewGame()
+		Self.PlatformNum = 0
 		GName = Self.GameNameSanitizer(GName)
 		Self.OrginalName = GName
 		
@@ -570,7 +613,7 @@ Type GameReadType
 		For node = EachIn ChildrenList
 			Select node.getName()
 				Case "PreBatchFileWait"
-					Self.PreBFWait = Int(node.getText())
+					Self.PreBFWait = Int(node.GetText() )
 				Case "PostBatchFileWait"
 					Self.PostBFWait = Int(node.getText())
 				Case "StartWaitEnabled"
@@ -595,6 +638,8 @@ Type GameReadType
 					Self.Desc = node.getText()
 				Case "Platform"
 					Self.Plat = node.getText()
+				Case "PlatformNumber"
+					Self.PlatformNum = Int(node.getText())
 				Case "Co-op"
 					Self.Coop = node.getText()
 				Case "Players"
@@ -700,21 +745,29 @@ Type GameReadType
 			ElseIf FileType(GAMEDATAFOLDER + GName +FolderSlash+"Shot2_OPT.jpg")=1 Then
 				Self.ScreenShotsAvailable =  1
 			EndIf 	
-			If Self.ScreenShotsAvailable=0 Then 
-				Local ReadScreenShotFolder = ReadDir(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots")
-				Repeat
-					File = NextFile(ReadScreenShotFolder)
-					If File=".." Then Continue
-					If File="." Then Continue
-					If FileType(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots"+FolderSlash+File)=2 Then Continue 
-					If File="" Then Exit
-					If ExtractExt(File)="jpg" Then
-						Self.ScreenShotsAvailable = 1
-						Exit
-					EndIf 
-				Forever
-				CloseDir(ReadScreenShotFolder)
+			If FileType(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots") = 2 Then
+			
+			Else
+				CreateDir(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots")
 			EndIf 
+			
+			If FileType(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots") = 2 Then 
+				If Self.ScreenShotsAvailable=0 Then 
+					Local ReadScreenShotFolder = ReadDir(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots")
+					Repeat
+						File = NextFile(ReadScreenShotFolder)
+						If File=".." Then Continue
+						If File="." Then Continue
+						If File="" Then Exit
+						If FileType(GAMEDATAFOLDER + GName +FolderSlash+"ScreenShots"+FolderSlash+File)=2 Then Continue 
+						If ExtractExt(File)="jpg" Then
+							Self.ScreenShotsAvailable = 1
+							Exit
+						EndIf 
+					Forever
+					CloseDir(ReadScreenShotFolder)
+				EndIf 
+			EndIf
 			
 		Next	
 		
@@ -733,7 +786,7 @@ Type GameReadType
 	End Method
 	
 	Method WriteUserData()
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.Plat)
+		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
 		WriteUserDataFile = WriteFile(GAMEDATAFOLDER + GName + FolderSlash+"userdata.txt")
 		WriteLine(WriteUserDataFile,Self.Rating)
 		WriteLine(WriteUserDataFile , Self.Completed)
@@ -857,12 +910,12 @@ Function PrintF(Tex:String,File:String = "")
 		UnlockMutex(mutex_Print)
 	Else
 		If DebugLogEnabled = True Then 
-			'LockMutex(Mutex_DebugLog)
+			LockMutex(Mutex_DebugLog)
 			WriteLog = OpenFile(LOGFOLDER + File)
 			SeekStream(WriteLog,StreamSize(WriteLog))
 			WriteLog.WriteLine(Tex)
 			CloseFile(WriteLog)
-			'UnlockMutex(Mutex_DebugLog)
+			UnlockMutex(Mutex_DebugLog)
 		EndIf 
 	EndIf
 End Function
@@ -1305,7 +1358,11 @@ Function ValidatePlugin(PluginPath:String , PluginType:String)
 End Function
 
 Function keygen:String(name:String, v:String = "23456DDE7ES3428HG9ABCDEFGHHUEYSJKLM7J262KNPQRST8U4V3WXKAS2YZ")
-
+	
+	If Len(name) = 0 then
+		name = "0"
+	EndIf 
+	
 '	change v$ to as many or few random or unrandom letters, numbers, characters whatever
 '	this is what the key is going to be made out of
 '	You can have duplicates all over the place if you want, it's up to you!
@@ -1388,27 +1445,36 @@ Function CheckKey()
 	?Linux
 	EvaluationMode = False
 	?
-
-	EvaluationMode = False 
-
-	If FileType("ProgramKey.txt") = 1 Then 
-		KeyFile = ReadFile("ProgramKey.txt")
-		Local Name:String = ReadLine(KeyFile)
-		Local Key:String = ReadLine(KeyFile)	
-
-		CloseFile(KeyFile)
-		'Temp User Key:
-		If key = "PRW2W-2MGQS-2V2J6-YSD22" Then 
-			EvaluationMode = True
-			Return			
-		EndIf 
-		If Key = keygen(Name) Then 
-			EvaluationMode = False 
-			Return
-		EndIf 
-	EndIf 
 	
-	EvaluationMode = True 
+	Local Name:String = ""
+	Local Key:String = ""
+	
+	EvaluationMode = False
+
+	If FileType("ProgramKey.txt") = 1 then
+		KeyFile = ReadFile("ProgramKey.txt")
+		Name = ReadLine(KeyFile)
+		Key = ReadLine(KeyFile)	
+		CloseFile(KeyFile)
+	ElseIf FileType(SETTINGSFOLDER + "ProgramKey.txt") = 1 then
+		KeyFile = ReadFile(SETTINGSFOLDER + "ProgramKey.txt")
+		Name = ReadLine(KeyFile)
+		Key = ReadLine(KeyFile)		
+		CloseFile(KeyFile)
+	EndIf	
+
+	'Temp User Key:
+	If key = "PRW2W-2MGQS-2V2J6-YSD22" Then 
+		EvaluationMode = True
+		Return			
+	EndIf
+	If Key = keygen(Name) then
+		EvaluationMode = False 
+		Return
+	EndIf
+	
+	
+	EvaluationMode = True
 	Return
 	
 
@@ -1432,7 +1498,7 @@ Function CheckVersion:Int()
 	curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
 	curl.setOptInt(CURLOPT_HEADER, 0)
 	curl.setOptInt(CURLOPT_VERBOSE, 0)
-	curl.setOptInt(CURLOPT_CONNECTTIMEOUT, 2)
+	curl.setOptInt(CURLOPT_CONNECTTIMEOUT, 1)
 	curl.setWriteStream(TempVersionFile)
 	?Win32
 	curl.setOptString(CURLOPT_URL, "http://photongamemanager.com/PackageManager/LatestVersionWin.txt")
@@ -1440,7 +1506,7 @@ Function CheckVersion:Int()
 	curl.setOptString(CURLOPT_URL, "http://photongamemanager.com/PackageManager/LatestVersionLinux.txt")
 	?	
 	Error = curl.perform()
-	CloseFile(TempVersionFile) 
+	CloseFile(TempVersionFile)
 	If Error>0 Then 
 		Return 0
 	EndIf

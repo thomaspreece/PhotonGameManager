@@ -44,6 +44,28 @@ EndIf
 
 
 Include "Includes\General\GlobalConsts.bmx"
+
+' Revision Version Generation Code
+' @bmk include Includes/General/Increment.bmk
+' @bmk doOverallVersionFiles Version/OverallVersion.txt
+?Win32
+' @bmk doIncrement Version/PD-Version.txt 1
+?Mac
+' @bmk doIncrement Version/PD-Version.txt 2
+?Linux
+' @bmk doIncrement Version/PD-Version.txt 3
+?
+Incbin "Version/PD-Version.txt"
+Incbin "Version/OverallVersion.txt"
+
+Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PD-Version.txt"), 1)
+Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+
+Print "Version = " + CurrentVersion
+Print "SubVersion = " + SubVersion
+Print "OSubVersion = " + OSubVersion
+
+
 If FileType("DebugLog.txt")=1 Then 
 	DebugLogEnabled = True
 EndIf 

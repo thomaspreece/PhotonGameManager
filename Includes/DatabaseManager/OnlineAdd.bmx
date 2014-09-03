@@ -1,6 +1,6 @@
-Type OnlineAdd Extends wxFrame 
+Type OnlineAdd Extends wxFrame
 	Field ParentWin:MainWindow
-	Field SourceItemsList:wxListCtrl 
+	Field SourceItemsList:wxListCtrl
 	Field OA_SourcePath:wxTextCtrl
 	Field OA_PlatCombo:wxComboBox
 	Field UnSavedChanges:Int 
@@ -17,7 +17,7 @@ Type OnlineAdd Extends wxFrame
 		Panel1.SetBackgroundColour(New wxColour.Create(200,200,255))
 		Local P1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			Local OA_PlatText:wxStaticText = New wxStaticText.Create(Panel1 , wxID_ANY , "Platform: " , - 1 , - 1 , - 1 , - 1)
-			OA_PlatCombo = New wxComboBox.Create(Panel1, OA_PC , "PC" , JPLATFORMS , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )			
+			OA_PlatCombo = New wxComboBox.Create(Panel1, OA_PC , GlobalPlatforms.GetPlatformByID(24).Name , GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 			Local OA_SourceText:wxStaticText = New wxStaticText.Create(Panel1 , wxID_ANY , "Source: " , - 1 , - 1 , - 1 , - 1)
 			OA_SourcePath = New wxTextCtrl.Create(Panel1 , OA_SP , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 			Local OA_SourceBrowse:wxButton = New wxButton.Create(Panel1 , OA_SB , "Browse")
@@ -107,12 +107,13 @@ Type OnlineAdd Extends wxFrame
 		Local item = - 1
 		Local GPlat:String = OnlineWin.OA_PlatCombo.GetValue()
 		Local GName:String
+		Local GPlatType:PlatformType = GlobalPlatforms.GetPlatformByName(GPlat)
 		Local col2:wxListItem , col3:wxListItem, col4:wxListItem
 		Repeat	
 			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
 			If item = - 1 Then Exit
 			
-			If OnlineWin.SourceItemsList.GetItemText(item) = "True" Then
+			If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
 				col2 = New wxListItem.Create()
 				col2.SetId(item)
 				col2.SetColumn(1)
@@ -124,7 +125,7 @@ Type OnlineAdd Extends wxFrame
 				col3.SetMask(wxLIST_MASK_TEXT)
 				OnlineWin.SourceItemsList.GetItem(col3)
 				
-				If GPlat = "PC" Then
+				If GPlatType.PlatType = "Folder" then
 					col4 = New wxListItem.Create()
 					col4.SetId(item)
 					col4.SetColumn(3)
@@ -135,13 +136,14 @@ Type OnlineAdd Extends wxFrame
 				GName = col3.GetText()
 				Local GameNode:GameType = New GameType
 				
-				If GPlat = "PC" Then
+				If GPlatType.PlatType = "Folder" then
 					GameNode.RunEXE = Chr(34)+col2.GetText() + FolderSlash + col4.GetText()+Chr(34)
 				Else
 					GameNode.ROM = col2.GetText()
 					GameNode.ExtraCMD = ""
 				EndIf
 				GameNode.Plat = GPlat
+				GameNode.PlatformNum = GPlatType.ID
 				
 				Local Start:Int = - 1
 				Local Middle:Int = -1
@@ -175,7 +177,7 @@ Type OnlineAdd Extends wxFrame
 					If Int(Left(GName , Start)) < 0 Then
 					
 					Else
-						If GPlat = "PC" Then
+						If GPlat = "PC" then
 							DBFolder = SanitiseForInternet(StripDir(col2.GetText()) )
 							DBEXE = SanitiseForInternet(FolderSlash + col4.GetText())
 						Else
@@ -219,7 +221,7 @@ Type OnlineAdd Extends wxFrame
 	Method UpdateListWithGameData(Game:String , EXE:String = Null)
 		PrintF("Updating Game - OnlineAdd")
 		item = Self.SourceItemsList.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
-		If OA_PlatCombo.GetValue() = "PC" Then
+		If GlobalPlatforms.GetPlatformByName(OA_PlatCombo.GetValue() ).PlatType = "Folder" then
 			SourceItemsList.SetStringItem(item , 0 , "True")
 			SourceItemsList.SetStringItem(item , 2 , Game)
 			SourceItemsList.SetStringItem(item , 3 , EXE)
@@ -281,7 +283,7 @@ Type OnlineAdd Extends wxFrame
 		OnlineWin.SourceItemsList.InsertColumn(1 , "Path")
 		OnlineWin.SourceItemsList.InsertColumn(2 , "Game Name")
 		OnlineWin.SourceItemsList.SetColumnWidth(2 , 200)
-		If OnlineWin.OA_PlatCombo.GetValue() = "PC" Then
+		If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
 			OnlineWin.SourceItemsList.InsertColumn(3 , "Executable")
 			OnlineWin.SourceItemsList.SetColumnWidth(3 , 200)	
 		EndIf
@@ -297,7 +299,7 @@ Type OnlineAdd Extends wxFrame
 			File = NextFile(ReadFiles)
 			If File="" Then Exit
 			If File="." Or File=".." Then Continue
-			If OnlineWin.OA_PlatCombo.GetValue() = "PC" Or OnlineWin.OA_PlatCombo.GetValue() = "Mac OS" Then
+			If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
 				If FileType(Folder + FolderSlash + File) = 2 Then
 					index = OnlineWin.SourceItemsList.InsertStringItem( a , "")
 					OnlineWin.SourceItemsList.SetStringItem(index , 1 , Folder + FolderSlash + File)
@@ -401,7 +403,7 @@ Type OnlineAdd Extends wxFrame
 					GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
 					Platform = ReadLine(ReadGameSearch)
 				CloseFile(ReadGameSearch)
-				If IsntNull(ID) = False Or IsntNull(GameName) = False Or IsntNull(Platform) = False Then
+				If IsntNull(ID) = False Or IsntNull(GameName) = False Or IsntNull(Platform) = False then
 					Log1.AddText("Nothing Found")
 					Log1.AddText("")	
 					PrintF("Null Data")
@@ -410,7 +412,7 @@ Type OnlineAdd Extends wxFrame
 				
 				Log1.AddText("Found: " + GameName)
 				
-				If GPlat = "PC" Then
+				If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then
 					EXEList = GetEXEList(GPath , GameName)
 					If CountList(EXEList) < 1 Then
 						Log1.AddText("Nothing Found")
@@ -441,7 +443,7 @@ Type OnlineAdd Extends wxFrame
 				
 				Log1.AddText("Database Found: " + GameName)
 				
-				If GPlat = "PC" Then
+				If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then
 					Repeat 
 					If Left(EXE,1)="\" Or Left(EXE,1)="/" Then 
 						EXE = Right(EXE,Len(EXE)-1)
@@ -484,7 +486,7 @@ Type OnlineAdd Extends wxFrame
 			
 		Forever
 		OnlineWin.SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
-		If GPlat="PC"
+		If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then 
 			OnlineWin.SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
 		EndIf
 		'Log1.Destroy()
@@ -502,7 +504,7 @@ Type OnlineAdd Extends wxFrame
 		PrintF("Delete item: "+item)
 		OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")
 		OnlineWin.SourceItemsList.SetStringItem(item , 2 , "")
-		If OnlineWin.OA_PlatCombo.GetValue() = "PC" 
+		If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
 			OnlineWin.SourceItemsList.SetStringItem(item , 3 , "")
 		EndIf
 
@@ -539,7 +541,7 @@ Type OnlineAdd Extends wxFrame
 				PrintF("Unsaved changes, exit")
 				Return
 				
-			Else
+			else
 				PrintF("Unsaved changes, continue")
 				MessageBox.Free()
 			End If
@@ -595,7 +597,7 @@ Type ManualGESearch Extends wxFrame
 		LPPanel1.SetBackgroundColour(New wxColour.Create(200,200,255))
 		Local LPP1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		SearchTxt:wxStaticText = New wxStaticText.Create(LPPanel1 , wxID_ANY , "Search: ")
-		SearchText = New wxTextCtrl.Create(LPPanel1 , MS_ST ,"", - 1 , - 1 , - 1 , - 1 , wxTE_PROCESS_ENTER)
+		SearchText = New wxTextCtrl.Create(LPPanel1 , MS_ST , "", - 1 , - 1 , - 1 , - 1 , wxTE_PROCESS_ENTER)
 		'SearchText.ChangeValue("")
 		SearchButton = New wxButton.Create(LPPanel1 , MS_SB , "Search")
 		
@@ -693,7 +695,7 @@ Type ManualGESearch Extends wxFrame
 		Repeat
 			ID = ReadLine(ReadGameSearch)
 			GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
-			Platform = ReadLine(ReadGameSearch) 
+			Platform = ReadLine(ReadGameSearch)
 			If GameName = "" Or GameName = " " Then
 				If a = 1 Then
 					PrintF("Appending: "+"No Search Results Returned")
@@ -719,7 +721,7 @@ Type ManualGESearch Extends wxFrame
 		Self.SetTitle("Searching for: " + val2 + " (" + val3 + ")")
 		Self.Update()
 		PrintF("FilePath: "+val2+" Plat: "+val3)
-		If Self.Platform = "PC" Then
+		If GlobalPlatforms.GetPlatformByName(Self.Platform).PlatType = "Folder" then
 		
 		Else
 			Self.RP_SText.SetLabel("")
@@ -741,7 +743,7 @@ Type ManualGESearch Extends wxFrame
 			Return
 		EndIf
 		
-		If ManualGESearchWin.Platform = "PC" Then
+		If GlobalPlatforms.GetPlatformByName(ManualGESearchWin.Platform ).PlatType = "Folder" then
 			If item = ManualGESearchWin.SelectedGame Then
 			Else
 				ManualGESearchWin.EXEShown = False
@@ -775,7 +777,7 @@ Type ManualGESearch Extends wxFrame
 		Local ManualGESearchWin:ManualGESearch = ManualGESearch(event.parent)
 		Local MessageBox:wxMessageDialog
 
-		If ManualGESearchWin.Platform = "PC" Then
+		If GlobalPlatforms.GetPlatformByName(ManualGESearchWin.Platform ).PlatType = "Folder" then
 			Local item:Int = ManualGESearchWin.SearchList.GetSelection()
 			If item = - 1 Or ManualGESearchWin.SearchList.GetString(item)= "No Search Results Returned" Then
 				MessageBox = New wxMessageDialog.Create(Null , "Please select a game" , "Error" , wxOK | wxICON_ERROR)

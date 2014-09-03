@@ -57,19 +57,37 @@ Include "Includes\FrontEnd\GlobalConsts.bmx"
 Include "Includes\General\GlobalConsts.bmx"
 
 
+' Revision Version Generation Code
+' @bmk include Includes/General/Increment.bmk
+' @bmk doOverallVersionFiles Version/OverallVersion.txt
+?Win32
+' @bmk doIncrement Version/PF-Version.txt 1
+?Mac
+' @bmk doIncrement Version/PF-Version.txt 2
+?Linux
+' @bmk doIncrement Version/PF-Version.txt 3
+?
+Incbin "Version/PF-Version.txt"
+Incbin "Version/OverallVersion.txt"
 
+Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PF-Version.txt"), 1)
+Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+
+Print "Version = " + CurrentVersion
+Print "SubVersion = " + SubVersion
+Print "OSubVersion = " + OSubVersion
 
 
 FolderCheck()
 
 LogName = "Log-FrontEnd"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
-CreateFile(LOGFOLDER+LogName)
+CreateFile(LOGFOLDER + LogName)
 LogName2 = "Log-FrontEnd-2ndCore"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
 CreateFile(LOGFOLDER+LogName2)
 
-If FileType("DebugLog.txt")=1 Then 
+If FileType("DebugLog.txt") = 1 then
 	DebugLogEnabled = True
-EndIf 
+EndIf
 
 Local StartWait:Int = 0
 Local ForceFront:Int = 0

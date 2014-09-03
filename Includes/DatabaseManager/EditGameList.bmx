@@ -6,11 +6,17 @@ Type EditGameList Extends wxFrame
 	Field SortCombo:wxComboBox
 	Field PlatformCombo:wxComboBox
 	Field GameList:wxListCtrl
+	Rem
 	?MacOS
 	Field GameNotebook:wxChoicebook
+	Field ExecutableNotebook:wxChoicebook 
 	?Not MacOS
+	EndRem 
+	Field ExecutableNotebook:wxNotebook
 	Field GameNotebook:wxNotebook
-	?
+	'?
+	
+	
 	Field AddButton:wxButton
 	Field DelButton:wxButton
 	Field CancelButton:wxButton
@@ -94,12 +100,21 @@ Type EditGameList Extends wxFrame
 	Field BF_Pre_WTF:wxComboBox 
 	Field BF_Post_WTF:wxComboBox 
 	
+	Field UpdateListTimer:wxTimer 
+	
 	Method OnInit()
+	
+		UpdateListTimer = New wxTimer.Create(Self,EGL_ULT)
+		Connect(EGL_ULT,wxEVT_TIMER, GameListUpdateTimer)
+		
+		
 		Mounter.Init()
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 
 		BOLDFONT1:wxFont = New wxFont.Create()
+		BOLDFONT1.SetPointSize(9)
+		'BOLDFONT1.
 		BOLDFONT1.SetWeight(wxFONTWEIGHT_BOLD)		
 		Self.SetBackgroundColour(New wxColour.Create(200,200,255))		
 		
@@ -111,22 +126,20 @@ Type EditGameList Extends wxFrame
 		'------------------------------TOP FILTER/PLAT PANEL--------------------------------------
 		Local FilPlatPanel:wxPanel = New wxPanel.Create(Self , - 1)
 		Local FilPlatHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-
-		
 		
 		Local SortText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Sort:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		SortCombo = New wxComboBox.Create(FilPlatPanel, EGL_SL , "Alphabetical - Ascending" , SORTS , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )
 		Local FilterText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Filter:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		FilterTextBox = New wxTextCtrl.Create(FilPlatPanel, EGL_FTB , "" , -1 , -1 , -1 , -1 , 0 )
 		Local PlatformText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Platform:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		PlatformCombo = New wxComboBox.Create(FilPlatPanel , EGL_PL , "All" , PLATFORMS , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY)		
+		PlatformCombo = New wxComboBox.Create(FilPlatPanel , EGL_PL , "All" , ["All"] + GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY)		
 		
-		FilPlatHbox.Add(SortText , 0 , wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER , 10 )
-		FilPlatHbox.Add(SortCombo , 2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 10)
-		FilPlatHbox.Add(FilterText , 0 , wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER , 10 )
+		FilPlatHbox.Add(SortText , 0 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM | wxALIGN_CENTER , 10 )
+		FilPlatHbox.Add(SortCombo , 2 , wxEXPAND | wxALL  , 10)
+		FilPlatHbox.Add(FilterText , 0 , wxEXPAND | wxLEFT  | wxTOP | wxBOTTOM | wxALIGN_CENTER , 10 )
 		FilPlatHbox.Add(FilterTextBox , 2 , wxEXPAND | wxALL , 10)
-		FilPlatHbox.Add(PlatformText , 0 , wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER , 10)
-		FilPlatHbox.Add(PlatformCombo , 2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 10)
+		FilPlatHbox.Add(PlatformText , 0 , wxEXPAND | wxLEFT | wxBOTTOM | wxTOP |  wxALIGN_CENTER , 10)
+		FilPlatHbox.Add(PlatformCombo , 2 , wxEXPAND | wxALL  , 10)
 		
 		FilPlatPanel.SetSizer(FilPlatHbox)
 		'--------------------------------GAME PANEL-----------------------------------------------
@@ -137,7 +150,7 @@ Type EditGameList Extends wxFrame
 		Local SubGamePanel1:wxPanel = New wxPanel.Create(GamePanel , - 1)
 		SubGamePanel1.SetBackgroundColour(New wxColour.Create(170 , 170 , 255) )
 		Local SubGamePanel1Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		GameList = New wxListCtrl.Create(SubGamePanel1 , EGL_GL , - 1 , - 1 , - 1 , - 1 ,  wxLC_REPORT | wxSUNKEN_BORDER | wxLC_SINGLE_SEL)
+		GameList = New wxListCtrl.Create(SubGamePanel1 , EGL_GL , - 1 , - 1 , - 1 , - 1 ,  wxLC_REPORT | wxSUNKEN_BORDER )
 		SubGamePanel1Vbox.Add(GameList , 14 , wxEXPAND | wxALL , 2 )
 			
 		
@@ -172,11 +185,14 @@ Type EditGameList Extends wxFrame
 		SubGamePanel2 = New wxPanel.Create(GamePanel , - 1)
 		SubGamePanel2.SetBackgroundColour(New wxColour.Create(170 , 170 , 255) )		
 		Local SubGamePanel2Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Rem
 		?MacOS
 		GameNotebook = New wxChoicebook.Create(SubGamePanel2 , - 1 , - 1 , - 1 , - 1 , - 1 , wxCHB_DEFAULT)
 		?Not MacOS
+		EndRem
 		GameNotebook = New wxNotebook.Create(SubGamePanel2 , - 1 , - 1 , - 1 , - 1 , - 1 , wxNB_TOP)
-		?
+		'?
+		
 		'GameNotebook.SetBackgroundColour(New wxColour.Create(150 , 150 , 255) )
 		'----------------------------------------------GAMEDETAILSPANEL----------------------------------------
 		Local GameDetailsPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
@@ -240,7 +256,7 @@ Type EditGameList Extends wxFrame
 		Local DP_GR_Text:wxStaticText = New wxStaticText.Create(SubGDPanel2 , wxID_ANY , "Rating" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		DP_GameRate = New wxComboBox.Create(SubGDPanel2 , EGL_DP_GR , "Select..." , RATINGLIST , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
 		Local DP_GP_Text:wxStaticText = New wxStaticText.Create(SubGDPanel2 , wxID_ANY , "Platform" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
-		DP_GamePlat = New wxComboBox.Create(SubGDPanel2, EGL_DP_GP , "" , JPLATFORMS , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		DP_GamePlat = New wxComboBox.Create(SubGDPanel2, EGL_DP_GP , "" , GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		Local DP_GCO_Text:wxStaticText = New wxStaticText.Create(SubGDPanel2 , wxID_ANY , "Co-Op" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		DP_GameCoop = New wxComboBox.Create(SubGDPanel2 , EGL_DP_GCO , "Select..." , ["Select..." , "Yes" , "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		Local DP_NO_Text:wxStaticText = New wxStaticText.Create(SubGDPanel2 , wxID_ANY , "" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
@@ -385,8 +401,28 @@ Type EditGameList Extends wxFrame
 		GameArtSizer.AddStretchSpacer(3)	
 		GameArtPanel.SetSizer(GameArtSizer)
 
+		'----------------------------------------------EXECUTABLESPANEL----------------------------------------
+		Local ExecutablePanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
+		Local ExecutablePanelSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+				
+		Rem
+		?MacOS
+		ExecutableNotebook = New wxChoicebook.Create(ExecutablePanel , - 1 , - 1 , - 1 , - 1 , - 1 , wxCHB_DEFAULT)
+		?Not MacOS
+		EndRem
+		ExecutableNotebook = New wxNotebook.Create(ExecutablePanel , - 1 , - 1 , - 1 , - 1 , - 1 , wxNB_TOP)
+		'?	
+		
+		ExecutablePanelSizer.Add(ExecutableNotebook, 1 , wxEXPAND | wxTOP , 4)
+
+
+
+		ExecutablePanel.SetSizer(ExecutablePanelSizer)
+		
+
 		'----------------------------------------------GAMEEXEPANEL----------------------------------------
-		Local GameEXEPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
+		Local GameEXEPanel:wxPanel = New wxPanel.Create(ExecutableNotebook , - 1)	
 		Local GameEXESizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		Local DescribeTextPanel:wxPanel = New wxPanel.Create(GameEXEPanel , - 1) 
@@ -453,7 +489,7 @@ Type EditGameList Extends wxFrame
 		
 		'-------------------------------------EXTRA EXE FILES------------------------------------
 		
-		Local GameExtraEXEPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
+		Local GameExtraEXEPanel:wxPanel = New wxPanel.Create(ExecutableNotebook , - 1)	
 		Local GameExtraEXESizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		Local DescribeTextPanel5:wxPanel = New wxPanel.Create(GameExtraEXEPanel , - 1) 
@@ -508,15 +544,15 @@ Type EditGameList Extends wxFrame
 		
 		
 		GameExtraEXESizer.Add(DescribeTextPanel5 , 0 , wxEXPAND | wxALL , 4)
-		GameExtraEXESizer.Add(EEP_LC , 8 , wxEXPAND | wxALL , 4 )
+		GameExtraEXESizer.Add(EEP_LC , 1 , wxEXPAND | wxALL , 4 )
 		GameExtraEXESizer.Add(SubEEXEPanel2 , 0, wxEXPAND | wxBOTTOM , 2 )
 		GameExtraEXESizer.Add(SubEEXEPanel , 0, wxEXPAND , 4 )
-		GameExtraEXESizer.Add(EEP_BP , 1 , wxEXPAND | wxALL , 4 )
+		GameExtraEXESizer.Add(EEP_BP , 0 , wxEXPAND | wxALL , 4 )
 		GameExtraEXEPanel.SetSizer(GameExtraEXESizer)
 		
 		
 		'-------------------------------------Batch FILES------------------------------------	
-		Local BatchFilesPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
+		Local BatchFilesPanel:wxPanel = New wxPanel.Create(ExecutableNotebook , - 1)	
 		Local BatchFilesSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)	
 		
 		Local BF_ST:wxStaticText = New wxStaticText.CreateStaticText(BatchFilesPanel , wxID_ANY , BF_ET_Text , - 1 , - 1 , - 1 , - 1, wxALIGN_CENTRE )		
@@ -705,16 +741,24 @@ Type EditGameList Extends wxFrame
 		GameDetailsPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )
 		GameNotebook.AddPage(GameArtPanel , "Artwork" )
 		GameArtPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )
-		GameNotebook.AddPage(GameEXEPanel , "Run Executable Path" )
-		GameEXEPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
-		GameNotebook.AddPage(GameExtraEXEPanel , "Other Executables" )
-		GameExtraEXEPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )
 		
-		GameNotebook.AddPage(BatchFilesPanel , "Batch Files" )
+		
+		'Function hello()
+		
+		GameNotebook.AddPage(ExecutablePanel,"Executables")
+		
+		ExecutableNotebook.AddPage(GameEXEPanel , "Run Executable Path" )
+		GameEXEPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
+		ExecutableNotebook.AddPage(GameExtraEXEPanel , "Other Executables" )
+		GameExtraEXEPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )
+		ExecutableNotebook.AddPage(BatchFilesPanel , "Batch Files" )
 		BatchFilesPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
+		
+		
+		
+		
 		GameNotebook.AddPage(AutoMountPanel , "AutoMount" )
 		AutoMountPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
-	
 		GameNotebook.AddPage(AdvancedPanel , "Runner Options" )
 		AdvancedPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )	
 						
@@ -963,16 +1007,29 @@ EndRem
 	End Function
 
 	Method PopulateGameList()
-
+		
 		GameRealPathList = CreateList()
 		Local GameIconList:wxImageList = New wxImageList.Create(32 , 32 , True)
 		GameList.SetImageList(GameIconList, wxIMAGE_LIST_SMALL)
-		GameIconList.AddIcon( wxIcon.CreateFromFile( "Resources"+FolderSlash+"NoIcon.ico" , wxBITMAP_TYPE_ICO ) )
+		?MacOS
+		Local myIcon:wxIcon = wxIcon.CreateFromFile( RESFOLDER+"NoIcon-MAC.ico" , wxBITMAP_TYPE_ICO , 32 , 32  )
+		?Not MacOS
+		Local myIcon:wxIcon = wxIcon.CreateFromFile( RESFOLDER+"NoIcon.ico" , wxBITMAP_TYPE_ICO )
+		
+		?
+		GameIconList.AddIcon( myIcon )
+		
+		
+		
+
+		GameList.DeleteAllItems()
+		?Win32
+		GameList.DeleteColumn(0)
+		?
+		DatabaseApp.Yield()
 		
 		PopulateTList()
-		PrintF("Creating ListCtrl Columns")
-		GameList.DeleteAllItems()
-		GameList.DeleteColumn(0)
+		PrintF("Creating ListCtrl Columns")		
 		Local itemCol:wxListItem = New wxListItem.Create()
 		itemCol.SetText("Games")
 		GameList.InsertColumnItem(0 , itemCol)
@@ -1022,7 +1079,7 @@ EndRem
 					Exit
 				Else
 					ID = ID + 1
-				EndIf 
+				EndIf
 			Next 
 			If IDSet = True Then 
 				Local item:wxListItem = New wxListItem.Create()	
@@ -1068,7 +1125,7 @@ EndRem
 			If GameNode.GetGame(item) = - 1 Then
 			
 			Else
-				If GameNode.Plat=PlatformFilterType Or PlatformFilterType="All" Then
+				If GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name = PlatformFilterType Or PlatformFilterType = "All" then
 					ListAddLast(GamesTList,item)
 				EndIf				
 			EndIf
@@ -1306,7 +1363,7 @@ EndRem
 		PrintF("--------------Begin UpdateSelection--------------")
 		Local EGW:EditGameList = EditGameList(event.parent)
 		Local MessageBox:wxMessageDialog
-		Local GRate:String, GCert:String, GPlatform:String, GEmuOverride:String , GCoop:String , GPlayers:String
+		Local GRate:String, GCert:String, GPlatform:String, GEmuOverride:String , GCoop:String , GPlayers:String, GPlatformNum:Int
 		EGW.SubGamePanel2.Enable()
 		
 		If EGW.DataChanged = 1 Then
@@ -1335,7 +1392,7 @@ EndRem
 		EGW.NewIArt = ""
 		
 		'Local info:wxListItem = New wxListItem.Create()
-		Local ReadInfo:TStream 
+		Local ReadInfo:TStream
 		'EGW.Selection = wxListEvent(event).GetIndex()
 		EGW.Selection = EGW.GameList.GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED) 
 		'info.SetId(wxListEvent(event).GetIndex() )
@@ -1408,8 +1465,11 @@ EndRem
 			GRate = GameNode.Rating
 			If GRate = "" Then GRate = "Select..."
 			EGW.DP_GameRate.SetSelection(EGW.DP_GameRate.FindString(GRate ) )'Rating
-			GPlatform = GameNode.Plat
-			EGW.DP_GamePlat.SetSelection(EGW.DP_GamePlat.FindString(GPlatform ) )'Platform
+			'GPlatform = GameNode.Plat
+			
+			
+			GPlatformNum = GameNode.PlatformNum
+			EGW.DP_GamePlat.SetSelection(EGW.DP_GamePlat.FindString(GlobalPlatforms.GetPlatformByID(GPlatformNum).Name ) )'Platform
 			GEmuOverride = GameNode.EmuOverride
 			
 			GCoop = GameNode.Coop
@@ -1489,8 +1549,8 @@ EndRem
 
 								
 			
-			If GPlatform = "PC" Then
-				EGW.GameNotebook.SetPageText(2,"Run Executable Path")
+			If GlobalPlatforms.GetPlatformByID(GPlatformNum).PlatType = "Folder" Then 
+				EGW.ExecutableNotebook.SetPageText(0,"Run Executable Path")
 				EGW.EP_EO_DT.SetLabel("")
 				EGW.EP_TP2_ST.SetLabel("")
 				EGW.EP_EO.Disable()
@@ -1528,7 +1588,7 @@ EndRem
 					Next							
 				EndIf 
 			Else
-				EGW.GameNotebook.SetPageText(2,"ROM Path")
+				EGW.ExecutableNotebook.SetPageText(0,"ROM Path")
 				EGW.EP_TP2_ST.SetLabel(EP_TP2_Text)
 				EGW.EP_EO.Enable()
 				EGW.EP_EO.Show()
@@ -1538,7 +1598,7 @@ EndRem
 				EGW.EP_CLO_Text.SetLabel("Extra Command Line Options: ")				
 				EGW.DescribeTexthbox.Layout()
 				If GEmuOverride = "" Or GEmuOverride = " " Then
-					EGW.EP_EO.ChangeValue(GetEmulator(GPlatform) )
+					EGW.EP_EO.ChangeValue(GlobalPlatforms.GetPlatformByID(GPlatformNum).Emulator )
 					EGW.EP_EO_DT.SetLabel("(Default Emulator)")
 				Else
 					EGW.EP_EO.ChangeValue(GEmuOverride)
@@ -1739,13 +1799,13 @@ EndRem
 				
 		Local EmuOverride:String
 	
-		If EGW.DP_GamePlat.GetValue()="PC" Then
+		If GlobalPlatforms.GetPlatformByName(EGW.DP_GamePlat.GetValue()).PlatType = "Folder" Then
 			PrintF("Extracting EXE data")	
 			GameNode.RunEXE = EGW.EP_EXEPath.GetValue()+" "+EGW.EP_CLO.GetValue()
 			EmuOverride = ""
 		Else
 			
-			If EGW.EP_EO.GetValue() = GetEmulator(EGW.DP_GamePlat.GetValue() ) Then
+			If EGW.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EGW.DP_GamePlat.GetValue()).Emulator Then
 				EmuOverride = ""
 			Else
 				EmuOverride = EGW.EP_EO.GetValue()
@@ -1854,7 +1914,8 @@ EndRem
 
 		'ID already input
 		GameNode.Rating = GRate
-		GameNode.Plat = EGW.DP_GamePlat.GetValue()
+		'GameNode.Plat = EGW.DP_GamePlat.GetValue()
+		GameNode.PlatformNum = GlobalPlatforms.GetPlatformByName(EGW.DP_GamePlat.GetValue()).ID
 		GameNode.EmuOverride = EmuOverride
 		
 		GameNode.SaveGame()
@@ -1960,10 +2021,10 @@ EndRem
 		EndIf
 		EditGameWin.DataChanged = True
 		EditGameWin.SaveButton.Enable()
-		If EditGameWin.DP_GamePlat.GetValue() = "PC" Then
+		If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).PlatType = "Folder" Then
 		
 		Else
-			If EditGameWin.EP_EO.GetValue() = GetEmulator(EditGameWin.DP_GamePlat.GetValue() ) Or EditGameWin.EP_EO.GetValue()="" Then
+			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).Emulator Or EditGameWin.EP_EO.GetValue()="" Then
 				EditGameWin.EP_EO_DT.SetLabel("(Default Emulator)")
 			Else
 				EditGameWin.EP_EO_DT.SetLabel("")
@@ -1980,10 +2041,10 @@ EndRem
 		EndIf
 		EditGameWin.DataChanged = True
 		EditGameWin.SaveButton.Enable()
-		If EditGameWin.DP_GamePlat.GetValue() = "PC" Then
+		If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).PlatType = "Folder" Then
 		
 		Else
-			If EditGameWin.EP_EO.GetValue() = GetEmulator(EditGameWin.DP_GamePlat.GetValue() ) Or EditGameWin.EP_EO.GetValue()="" Then
+			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).Emulator Or EditGameWin.EP_EO.GetValue()="" Then
 				EditGameWin.EP_EO_DT.SetLabel("(Default Emulator)")
 			Else
 				EditGameWin.EP_EO_DT.SetLabel("")
@@ -2036,7 +2097,12 @@ EndRem
 	End Function
 
 	Function GameListUpdate(event:wxEvent)
-		PrintF("----------------------------Updating Game List----------------------------")
+		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		EditGameWin.UpdateListTimer.Start(1000,True)
+	End Function
+	
+	Function GameListUpdateTimer(event:wxEvent)
+		PrintF("----------------------------Updating Game List----------------------------")	
 		Local EditGameWin:EditGameList = EditGameList(event.parent)
 		EditGameWin.PopulateGameList()
 	End Function
@@ -3311,7 +3377,7 @@ Type ArtworkPicker Extends wxFrame
 	Function UpdateImage(event:wxEvent)
 		Local ArtWin:ArtworkPicker = ArtworkPicker(event.parent)
 		Local Selection:Int = ArtWin.ArtworkList.GetSelection()
-		Local GName:String = GameNameSanitizer(ArtWin.GameNode.Name) + "---" + ArtWin.GameNode.Plat
+		Local GName:String = GameNameSanitizer(ArtWin.GameNode.Name) + "---" + GlobalPlatforms.GetPlatformByID(ArtWin.GameNode.PlatformNum).Name  
 		ArtWin.ArtworkPreview.SetImage(GAMEDATAFOLDER + GName +FolderSlash+"Thumbs"+String(ArtWin.ArtType) +FolderSlash +"Thumb" + Selection + ".jpg")
 		ArtWin.ArtworkPreview.Refresh()
 	End Function
