@@ -19,21 +19,26 @@ End Function
 
 Type GameType Extends GameReadType
 
+	'Returns 	2- game already in database, dont overwrite
+	'			1- success
 	Method SaveGame:Int()
-		Local GName:String , GDesc:String
+		Local GName:String
 		Local MessageBox:wxMessageDialog
 		
-		GName = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
+		GName = Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
 		GName = Lower(GName)
-		GDesc = GameDescriptionSanitizer(Self.Desc)
 		
-		RenameFile(GAMEDATAFOLDER+ Self.OrginalName , GAMEDATAFOLDER+Lower(Self.OrginalName))
-		Self.OrginalName = Lower(Self.OrginalName)
 		
-		'Self.Dir = StandardiseSlashes(Self.Dir)
+		If Self.OrginalName = Lower(Self.OrginalName) then
+		
+		else 
+			RenameFile(GAMEDATAFOLDER + Self.OrginalName , GAMEDATAFOLDER + Lower(Self.OrginalName) )
+			Self.OrginalName = Lower(Self.OrginalName)
+		EndIf
+		
 		Self.ROM = StandardiseSlashes(Self.ROM)
-		If Self.OrginalName = "" Or Self.OrginalName = Null Or Self.OrginalName = " " Then
-			If FileType(GAMEDATAFOLDER + GName) = 2 Then
+		If Self.OrginalName = "" Or Self.OrginalName = Null Or Self.OrginalName = " " then
+			If FileType(GAMEDATAFOLDER + GName) = 2 then
 				MessageBox = New wxMessageDialog.Create(Null, GName+ " is already in the database, overwrite it? (All fan art will be deleted)" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 				If MessageBox.ShowModal() = wxID_YES Then
 					DeleteCreateFolder(GAMEDATAFOLDER + GName)
@@ -49,7 +54,7 @@ Type GameType Extends GameReadType
 				
 			Else
 				If FileType(GAMEDATAFOLDER + GName) = 2 Then
-					MessageBox = New wxMessageDialog.Create(Null , "Game name already exists using the old name" , "Info" , wxOK)
+					MessageBox = New wxMessageDialog.Create(Null , "New game name already exists. Using the old name" , "Info" , wxOK)
 					PrintF("OldName: " + OrginalName)
 					PrintF("NewName: " + GName)
 					MessageBox.ShowModal()
@@ -63,13 +68,13 @@ Type GameType Extends GameReadType
 					Next
 					
 					'Self.Name = Self.OrginalName
-					GName = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
+					GName = GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
 				Else
 					RenameFile(GAMEDATAFOLDER + Self.OrginalName ,GAMEDATAFOLDER + GName)
 				EndIf
 			EndIf		
 		EndIf
-		If FileType(GAMEDATAFOLDER + GName) = 0 Then
+		If FileType(GAMEDATAFOLDER + GName) = 0 then
 			CustomRuntimeError("Error 33: GameType Folder Missing") 'MARK: Error 33
 		EndIf
 		
@@ -82,7 +87,7 @@ Type GameType Extends GameReadType
 	
 	Method ExtractIcon(Override:Int)
 		?Win32	
-		Local GName:String = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
+		Local GName:String = Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
 		Local temp:String , File:String
 			
 		Local EXE:String = StandardiseSlashes(StripCmdOpt(Self.RunEXE))
@@ -123,7 +128,7 @@ Type GameType Extends GameReadType
 	End Method
 	
 	Method DownloadArtWorkThumbs(Log1:LogWindow , ArtType:Int)
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
+		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
 		Local MessageBox:wxMessageDialog
 		Local Downloadexe:TProcess
 		Local NumCorrect = 0
@@ -217,7 +222,7 @@ Type GameType Extends GameReadType
 		Local BannerArtArray:Object[] = ListToArray(Self.BannerArt)
 		Local ScreenShotsArray:Object[] = ListToArray(Self.ScreenShots)
 		
-		Local GName:String = Lower(GameNameSanitizer(Self.Name)+"---"+Self.PlatformNum)
+		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
 
 		DeleteCreateFolder(TEMPFOLDER + "ArtWork")
 		
@@ -402,7 +407,7 @@ Type GameType Extends GameReadType
 			Select FileName
 				Case "Screen" , "Shot1" , "Shot2" , "Front" , "Back"
 					Pixmap = LoadPixmap(TEMPFOLDER + "ArtWork"+FolderSlash + File)
-					SavePixmapJPeg(Pixmap , GAMEDATAFOLDER+GName+FolderSlash+FileName+".jpg" , 100 )
+					SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + ".jpg" , 100 )
 					PixmapW = PixmapWidth(Pixmap)
 					PixmapH = PixmapHeight(Pixmap)
 					If PixmapH < 1 Or PixmapW < 1 Then
@@ -419,7 +424,7 @@ Type GameType Extends GameReadType
 					SavePixmapJPeg(Pixmap , GAMEDATAFOLDER+GName+FolderSlash+FileName+".jpg" , 100 )
 					PixmapW = PixmapWidth(Pixmap)
 					PixmapH = PixmapHeight(Pixmap)
-					If PixmapH < 1 Or PixmapW < 1 Then
+					If PixmapH < 1 Or PixmapW < 1 then
 					
 					Else
 				
@@ -434,7 +439,7 @@ Type GameType Extends GameReadType
 	End Method
 	
 	Method OptimizeArtwork()
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
+		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
 		Local File:String , FileName:String
 		Local Pixmap:TPixmap , SmallPixmap:TPixmap , OptPixmap:TPixmap , Opt2Pixmap:TPixmap
 		'Cleanup
@@ -579,7 +584,7 @@ Type GameType Extends GameReadType
 					PixmapH = PixmapHeight(Pixmap)
 					If PixmapH < 1 Or PixmapW < 1 Then
 						SmallPixmap = Pixmap
-					Else
+					else
 						'Take banners to be smallest of 78% width of screen or 20% height of screen
 						If PixmapW > 0.78*GraphicsW Or PixmapH > 0.2*GraphicsH Then
 							NewWid = Min(0.78*GraphicsW , (Float(PixmapW) / PixmapH) * 0.2 * GraphicsH)
@@ -803,10 +808,13 @@ EndRem
 	
 	Method OutputInfo()
 		Local GName:String
-		GName = GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum
+		GName = GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
 		GName = Lower(GName)	
-		CreateEmptyXMLGame(GAMEDATAFOLDER + GName + FolderSlash +"Info.xml")
+		CreateEmptyXMLGame(GAMEDATAFOLDER + GName + FolderSlash + "Info.xml")
 		'DebugStop()
+		
+		Self.Name = Self.GameNameFilter(Self.Name)
+		Self.Desc = Self.GameDescFilter(Self.Desc)
 		
 		Local Gamedoc:TxmlDoc
 		Local RootNode:TxmlNode , EXENode:TxmlNode , GenreNode:TxmlNode , SubEXENode:TxmlNode , ArtNode:TxmlNode , ArtThumbNode:TxmlNode
@@ -952,7 +960,7 @@ EndRem
 		
 		'TODO: Not sure whether this CopyFile is useless due to CreateEmptyXML() above wiping file first
 		CopyFile(GAMEDATAFOLDER + GName + FolderSlash +"Info.xml" , TEMPFOLDER + "temp.xml") 
-		For b=1 To 10
+		For b = 1 To 10
 			SaveStatus = Gamedoc.saveFormatFile(GAMEDATAFOLDER + GName + FolderSlash+"Info.xml" , False)
 			PrintF("SaveXML Try: "+b+" Status: "+SaveStatus)
 			If SaveStatus <> - 1 Then Exit
@@ -970,7 +978,7 @@ EndRem
 	
 	Method OutputArtInfo()
 		Local GName:String
-		GName = GameNameSanitizer(Self.Name)+"---"+Self.PlatformNum
+		GName = GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
 		GName = Lower(GName)
 		
 		Local FanartArray:Object[], FanartThumbsArray:Object[]

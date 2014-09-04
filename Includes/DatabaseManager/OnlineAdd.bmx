@@ -400,7 +400,7 @@ Type OnlineAdd Extends wxFrame
 				SortGameList(GName)			
 				ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
 					ID = ReadLine(ReadGameSearch)
-					GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
+					GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
 					Platform = ReadLine(ReadGameSearch)
 				CloseFile(ReadGameSearch)
 				If IsntNull(ID) = False Or IsntNull(GameName) = False Or IsntNull(Platform) = False then
@@ -694,7 +694,7 @@ Type ManualGESearch Extends wxFrame
 		ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
 		Repeat
 			ID = ReadLine(ReadGameSearch)
-			GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
+			GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
 			Platform = ReadLine(ReadGameSearch)
 			If GameName = "" Or GameName = " " Then
 				If a = 1 Then

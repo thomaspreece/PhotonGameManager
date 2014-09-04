@@ -9,14 +9,15 @@ Function OutputSteam(Online:Int)
 			If Online=True Then 
 				GetRawSteamOnline(Log1)
 			Else	
-				GetRawSteam(Log1)	
+				'GetRawSteam(Log1)	
+				CustomRuntimeError("Error: Offline steam extract not possible")
 			EndIf 
 		EndIf
-	Else
+	else
 		If Online=True Then 
 			GetRawSteamOnline(Log1)
 		Else	
-			GetRawSteam(Log1)	
+			CustomRuntimeError("Error: Offline steam extract not possible")
 		EndIf 
 	EndIf
 	'EndIf
@@ -118,15 +119,15 @@ Function GetRawSteamOnline(Log1:LogWindow)
 					If appid="" Or name="" Then 
 				
 					Else	
-						DeleteCreateFolder(TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameSanitizer(name))
+						DeleteCreateFolder(TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameDirFilter(name) )
 						Log1.AddText("Found: " + name)
 						PrintF("Found: " + name)
-						If FileType(TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameSanitizer(name))=2 Then 
-							WriteGameData = WriteFile(TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameSanitizer(name) + FolderSlash + "Info.txt")
+						If FileType(TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameDirFilter(name))=2 Then 
+							WriteGameData = WriteFile(TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameDirFilter(name) + FolderSlash + "Info.txt")
 							If WriteGameData = Null Then 
-								PrintF("Failed To Write Game Data: "+TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameSanitizer(name) + FolderSlash + "Info.txt")
+								PrintF("Failed To Write Game Data: " + TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameDirFilter(name) + FolderSlash + "Info.txt")
 							Else
-								WriteLine(WriteGameData , Name)
+								WriteLine(WriteGameData , GameReadType.GameNameFilter(name) )
 								?Win32
 								WriteLine(WriteGameData , Chr(34)+SteamFolder + FolderSlash +"Steam.exe"+Chr(34)+" -applaunch " + appid )
 								?Not Win32
@@ -136,7 +137,7 @@ Function GetRawSteamOnline(Log1:LogWindow)
 								CloseFile(WriteGameData)
 							EndIf 
 						Else
-							PrintF("Failed To Create Folder: "+TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameSanitizer(name))
+							PrintF("Failed To Create Folder: " + TEMPFOLDER + "Steam" + FolderSlash + GameReadType.GameNameDirFilter(name) )
 						EndIf 
 					EndIf 
 				EndIf 
@@ -148,7 +149,7 @@ Function GetRawSteamOnline(Log1:LogWindow)
 	Log1.AddText("Finished")
 End Function 
 
-
+Rem
 Function GetRawSteam(Log1:LogWindow)
 	Log1.AddText("Searching for Steam Games")
 	SteamFolder = StripSlash(SteamFolder)
@@ -240,6 +241,7 @@ Function GetRawSteam(Log1:LogWindow)
 	Forever
 	Log1.AddText("Finished")
 End Function
+EndRem
 
 Function ExceptionList:Int(Number:Int)
 	Select Number
