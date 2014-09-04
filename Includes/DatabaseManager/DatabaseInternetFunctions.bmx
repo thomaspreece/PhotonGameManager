@@ -70,7 +70,8 @@ Function CleanUpPath$(Path$)
 		EndIf
 	Next
 End Function	
-	
+
+Rem
 Function GameDescriptionSanitizer$(Name$)
 	Repeat
 	For a=1 To Len(Name)
@@ -90,14 +91,9 @@ Function GameDescriptionSanitizer$(Name$)
 	EndIf
 	Forever
 End Function	
-	
+
+
 Function GameNameSanitizer$(Name$)
-	Rem
-	Function:	Removes Illegal Characters from Name and returns result
-	Input:	Name - Game Name to be Sanitized
-	Return:	The Sanitized Name
-	SubCalls:	None
-	EndRem
 	Repeat
 	For a = 1 To Len(Name)
 		
@@ -141,6 +137,7 @@ Function GameNameSanitizer$(Name$)
 	EndIf
 	Forever
 End Function	
+EndRem
 
 Function ReturnTagInfo$(SearchLine$,Tag$,EndTag$)
 	Rem
@@ -163,7 +160,7 @@ Function ReturnTagInfo$(SearchLine$,Tag$,EndTag$)
 		EndIf
 	Next
 	For a=1 To Len(SearchLine)-StartPos
-		If Mid(SearchLine,a+StartPos,Len(EndTag))=EndTag$ Then
+		If Mid(SearchLine, a + StartPos, Len(EndTag) ) = EndTag$ then
 			EndPos=a+StartPos
 			CurrentSearchLine = Right(SearchLine , Len(SearchLine) - EndPos)
 			CurrentSearchLine = Left(CurrentSearchLine , Len(CurrentSearchLine) - Len(EndTag))
@@ -558,12 +555,13 @@ Function GetRank(Line$)
 	Next
 End Function
 
+Rem
 Function DownloadGameInformation(GameNo:String , Location:String , GameDir:String , EXE:String , GameDB:String = "http://thegamesdb.net")	
 	Select GameDB
 		Case "http://thegamesdb.net"
 			PrintF("thegamesdb.net")
 			Location = StripSlash(Location)
-			If FileType(Location) = 2 Then
+			If FileType(Location) = 2 then
 				
 			Else
 				CustomRuntimeError("Error 19: DownloadGameInformation Location Invalid") 'MARK: Error 19
@@ -705,6 +703,8 @@ Function DownloadGameInformation(GameNo:String , Location:String , GameDir:Strin
 			CustomRuntimeError("Error 20: Invalid GameDB") 'MARK: Error 20
 	End Select
 End Function	
+
+EndRem
 	
 Function IntegrateGameData(Ssrc:String , Msrc:String , dest:String)
 	If FileType(Ssrc) = 1 Then

@@ -69,6 +69,7 @@ Import wx.wxMouseEvent
 Import BaH.libcurlssl
 Import Bah.libxml
 Import Bah.Volumes
+Import bah.regex
 
 Import BRL.JPGLoader
 Import BRL.PNGLoader

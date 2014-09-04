@@ -168,7 +168,7 @@ Type OnlineImport2 Extends wxFrame
 		EndIf
 		
 		
-		MainWin.ImportMenuField.Show()
+		MainWin.Show()
 		MainWin.OnlineImport2Field.Destroy()
 		MainWin.OnlineImport2Field = Null 			
 	End Function
@@ -226,7 +226,7 @@ Type OnlineImport2 Extends wxFrame
 		Log1.Show(1)
 		Log1.AddText("Searching Online For Games")
 		ReadGDFFolder = ReadDir(TEMPFOLDER + "GDF")
-		Local File:String
+		Local File:String , Title:String
 		Local GDFEXEs:String
 		Local ID:String
 		Local GameName:String
@@ -269,60 +269,63 @@ Type OnlineImport2 Extends wxFrame
 				Continue
 			EndIf
 			ReadGDFFile = ReadFile(TEMPFOLDER + "GDF\" + File + "\Data.txt")
-			ReadLine(ReadGDFFile)
-			ReadLine(ReadGDFFile)
+			Title = ReadLine(ReadGDFFile)
 			ReadLine(ReadGDFFile)
 			GDFEXEs = ReadLine(ReadGDFFile)
 			
 			
-			
-			
-			
-			'tempPanel = New wxPanel.Create(ScrollBox , - 1)
-			'tempPanel.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
-			'tempVbox = New wxBoxSizer.Create(wxHORIZONTAL)
-			
-			'tempCheckBox = New wxCheckBox.Create(tempPanel , wxID_ANY)
+		
 			tempCheckBox = New wxCheckBox.Create(tempPanel , wxID_ANY)
 			ListAddLast CheckBoxList, tempCheckBox
-			'tempVbox.Add(tempCheckBox , 0 , wxEXPAND | wxALL , 20)
 			gridbox.Add(tempCheckBox, 0 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 20)
 			
-			'tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , File)
-			tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , File)
+			tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , Title)
 			ListAddLast GDFNameList , tempStaticText
-			'tempVbox.Add(tempStaticText , 0 , wxEXPAND | wxALL , 20)
 			gridbox.Add(tempStaticText , 0 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 20)
 			
-			'tempGameName = New wxComboBox.Create(tempPanel , OI_GN, Null, Null, - 1, - 1, - 1, - 1, wxCB_READONLY)
 			tempGameName = New wxComboBox.Create(tempPanel , OI_GN, Null, Null, - 1, - 1, - 1, - 1, wxCB_READONLY)
-			ListAddLast GameNameList , tempGameName
-			'tempVbox.Add(tempGameName , 1 , wxEXPAND | wxALL , 20)			
+			ListAddLast GameNameList , tempGameName	
 			gridbox.Add(tempGameName , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 20)			
 
-			'tempEXEName = New wxComboBox.Create(tempPanel , wxID_ANY, Null, Null, - 1, - 1, - 1, - 1, wxCB_READONLY)
 			tempEXEName = New wxComboBox.Create(tempPanel , wxID_ANY, Null, Null, - 1, - 1, - 1, - 1, wxCB_READONLY)
 			ListAddLast EXEName , tempEXEName
-			'tempVbox.Add(tempEXEName , 1 , wxEXPAND | wxALL , 20)
 			gridbox.Add(tempEXEName , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 20)
+			
+			Local tempString:String
 			
 			b=1
 			For a = 1 To Len(GDFEXEs)
-				If Mid(GDFEXEs , a , 1) = "|" Then
-					tempEXEName.Append(Mid(GDFEXEs , b , a - b) )
-					b = a + 1
+				If Mid(GDFEXEs , a , 2) = "||" then
+					tempString = Mid(GDFEXEs , b , a - b)
+					For c = 1 To Len(tempString)
+						If Mid(tempString, c , 1) = "|" then
+							tempString = Left(tempString, c - 1)
+							Exit
+						EndIf
+					Next
+					
+					tempEXEName.Append(tempString )
+					b = a + 2
 				EndIf
 			Next	
-			tempEXEName.Append(Mid(GDFEXEs , b , a - b) )
+			
+			tempString = Mid(GDFEXEs , b)
+			For c = 1 To Len(tempString)
+				If Mid(tempString, c , 1) = "|" then
+					tempString = Left(tempString, c - 1)
+					Exit
+				EndIf
+			Next			
+			tempEXEName.Append(tempString )
 			tempEXEName.SelectItem(0)
 			
-			Log1.AddText("Searching for: "+File)
-			WriteGameList(File , "PC")
-			SortGameList(File)
+			Log1.AddText("Searching for: "+Title)
+			WriteGameList(Title , "PC")
+			SortGameList(Title)
 			ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
 			For a = 1 To 5
 				ID = ReadLine(ReadGameSearch)
-				GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
+				GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
 				Platform = ReadLine(ReadGameSearch) 
 				If GameName = "" Or GameName = " " Then
 					If a=1 Then
@@ -346,27 +349,12 @@ Type OnlineImport2 Extends wxFrame
 		CloseDir(ReadGDFFolder)
 		gridbox.SetFlexibleDirection(wxHORIZONTAL)
 		tempPanel.SetSizer(gridbox)
-		
-		'tempPanel1.SetSizer(tempVbox1)
-		'tempPanel2.SetSizer(tempVbox2)
-		'tempPanel3.SetSizer(tempVbox3)
-		'tempPanel4.SetSizer(tempVbox4)
+
 		
 		hbox2.Add(tempPanel, 1, wxEXPAND, 0)
-		'hbox2.Add(tempPanel2, 0, wxALIGN_TOP, 0)
-		'hbox2.Add(tempPanel3, 1, wxALIGN_TOP, 0)
-		'hbox2.Add(tempPanel4, 1, wxALIGN_TOP, 0)
 		
 		Connect(OI_GN , wxEVT_COMMAND_COMBOBOX_SELECTED , GameNameSelectFun)
 		
-		Rem
-		For temp2:wxPanel = EachIn VPanelList
-			hbox2.Add(temp2 , 0 , wxEXPAND , 0)
-			sl = New wxStaticLine.Create(ScrollBox , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
-			hbox2.Add(sl , 0 , wxEXPAND , 0)			
-		Next			
-		hbox2.AddSpacer(60)
-		EndRem
 		hbox2.RecalcSizes()
 		
 		ScrollBox.SetSizer(hbox2)
@@ -408,7 +396,7 @@ Type OnlineImport2 Extends wxFrame
 		Local GDFGameName:String
 		Local Dir:String
 		Local GameName:String
-		Local EXE:String
+		Local EXE:String , EXEs:String
 		Local ID:String
 		Local RealName:String
 		Local overwrite:String
@@ -418,20 +406,7 @@ Type OnlineImport2 Extends wxFrame
 		Self.Disable()
 		Self.Hide()
 		For a = 0 To ArrayLength - 1
-			If CheckBoxListArray[a].IsChecked() Then
-				Rem
-				GDFGameName = GDFNameListArray[a].GetLabel()
-				PrintF("Game Checked: "+GDFGameName)
-				ReadGDFFile = ReadFile(TEMPFOLDER + "GDF\" + GDFGameName + "\Data.txt")
-				ReadLine(ReadGDFFile)
-				ReadLine(ReadGDFFile)
-				GameDir = ReadLine(ReadGDFFile)
-				PrintF("Game Dir: "+GameDir)	
-				CloseFile(ReadGDFFile)
-				EXE = EXENameArray[a].GetValue()
-				PrintF("EXE: " + EXE)
-				endrem
-				
+			If CheckBoxListArray[a].IsChecked() then			
 				
 				GDFGameName = GDFNameListArray[a].GetLabel()
 				PrintF("Game Checked: " + GDFGameName)
@@ -445,8 +420,7 @@ Type OnlineImport2 Extends wxFrame
 				ReadGameData = ReadFile(TEMPFOLDER + "GDF\" + GDFGameName + "\Data.txt")
 				GameNode.Name = ReadLine(ReadGameData)
 				GameNode.Desc = ReadLine(ReadGameData)
-				Dir = ReadLine(ReadGameData)
-				ReadLine(ReadGameData)
+				EXEs = ReadLine(ReadGameData)
 				GameNode.ReleaseDate = ReadLine(ReadGameData)
 				GameNode.Cert = ReadLine(ReadGameData)
 				GameNode.Dev = ReadLine(ReadGameData)
@@ -472,25 +446,67 @@ Type OnlineImport2 Extends wxFrame
 					Next
 					If ContinueLoop = False Then Exit
 				Forever				
-				ReadLine(ReadGameData)
-				GameNode.Rating = ReadLine(ReadGameData)
 				
 				GameNode.Plat = "PC"
 				GameNode.PlatformNum = 24
 				
 				CloseFile(ReadGameData)
 				
-				GameNode.RunEXE = Chr(34)+Dir + EXE+Chr(34)
+				GameNode.RunEXE = Chr(34)+EXE+Chr(34)
 				
-				For b = 0 To EXENameArray[a].GetCount() - 1
-					If EXE = EXENameArray[a].GetString(b) Then
-					
-					Else
-						ListAddLast(GameNode.OEXEs , Dir + EXENameArray[a].GetString(b))
-						ListAddLast(GameNode.OEXEsName , StripExt(StripDir(EXENameArray[a].GetString(b))) )
+				Local b = 1
+				Local tempString:String, tempEXE:String, tempName:String
+	
+				For f = 1 To Len(EXEs)
+					If Mid(EXEs , f , 2) = "||" then
+						tempString = Mid(EXEs , b , f - b)
+						Print tempString
+						tempEXE = ""
+						tempName = ""
+						For e = 1 To Len(tempString)
+							If Mid(tempString, e , 1) = "|" then
+								tempEXE = Chr(34) + Left(tempString, e - 1) + Chr(34)
+								tempName = Right(tempString , Len(tempString) - e )
+								Exit
+							EndIf
+						Next
+						If tempEXE = "" then tempEXE = Chr(34) + tempString + Chr(34)
+						
+						If tempEXE = GameNode.RunEXE then
+						
+						else
+							ListAddLast(GameNode.OEXEs , tempEXE )
+							ListAddLast(GameNode.OEXEsName , tempName )
+						EndIf 
+						
+						b = f + 2
 					EndIf
+				Next	
 					
-				Next
+				tempString = Mid(EXEs , b)
+				Print tempString
+				If tempString = "" Or tempString = " " then
+				
+				else
+					
+					tempEXE = ""
+					tempName = ""
+					For e = 1 To Len(tempString)
+						If Mid(tempString, e , 1) = "|" then
+							tempEXE = Chr(34) + Left(tempString, e - 1) + Chr(34)
+							tempName = Right(tempString , Len(tempString) - e )
+							Exit
+						EndIf
+					Next
+					If tempEXE = "" then tempEXE = Chr(34) + tempString + Chr(34)
+					
+					If tempEXE = GameNode.RunEXE then
+						
+					else
+						ListAddLast(GameNode.OEXEs , tempEXE )
+						ListAddLast(GameNode.OEXEsName , tempName )		
+					EndIf
+				EndIf
 				
 				
 				ID = GameNameListArray[a].GetValue()
@@ -525,6 +541,10 @@ Type OnlineImport2 Extends wxFrame
 		Log1.Show(0)
 		Self.Enable()
 		Self.Show(True)
+		
+		MessageBox = New wxMessageDialog.Create(Null , "Games successfully added to database" , "Info" , wxOK | wxICON_INFORMATION)
+		MessageBox.ShowModal()
+		MessageBox.Free()
 		
 	End Method
 
@@ -614,10 +634,10 @@ Type ManualSearch Extends wxFrame
 		ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
 		Repeat
 			ID = ReadLine(ReadGameSearch)
-			GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
-			Platform = ReadLine(ReadGameSearch) 
+			GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
+			Platform = ReadLine(ReadGameSearch)
 			If GameName = "" Or GameName = " " then
-				If a = 1 Then
+				If a = 1 then
 					PrintF("Appending: "+"No Search Results Returned")
 					SearchList.Append("No Search Results Returned")
 					Exit

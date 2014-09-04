@@ -555,7 +555,7 @@ Type GameReadType
 	End Method
 	
 	Method DeleteGame()
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
+		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
 		DeleteDir(GAMEDATAFOLDER + GName , 1)
 		
 	End Method
@@ -563,7 +563,7 @@ Type GameReadType
 	Method GetGame(GName:String)
 		Self.NewGame()
 		Self.PlatformNum = 0
-		GName = Self.GameNameSanitizer(GName)
+		GName = Self.GameNameDirFilter(GName)
 		Self.OrginalName = GName
 		
 		If FileType(GAMEDATAFOLDER + GName +FolderSlash+"Info.xml") = 1 Then
@@ -577,7 +577,7 @@ Type GameReadType
 		
 		Gamedoc = TxmlDoc.parseFile(GAMEDATAFOLDER + GName + FolderSlash+"Info.xml")
 		PrintF("Parsed File")
-		If Gamedoc = Null Then
+		If Gamedoc = Null then
 			PrintF("XML Document not parsed successfully, GetGameXML. "+ GName)
 			Return -1				
 			'CustomRuntimeError( "Error 39: XML Document not parsed successfully, GetGameXML. "+ GName) 'MARK: Error 39
@@ -772,7 +772,7 @@ Type GameReadType
 		Next	
 		
 		PrintF("Getting userdata")
-		If FileType(GAMEDATAFOLDER + GName + FolderSlash+"userdata.txt") = 1 Then
+		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "userdata.txt") = 1 then
 			Local ReadUserData = ReadFile(GAMEDATAFOLDER + GName + FolderSlash+"userdata.txt")
 				Self.Rating = ReadLine(ReadUserData)
 				Self.Completed = Int(ReadLine(ReadUserData) )
@@ -786,15 +786,58 @@ Type GameReadType
 	End Method
 	
 	Method WriteUserData()
-		Local GName:String = Lower(GameNameSanitizer(Self.Name) + "---" + Self.PlatformNum)
+		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
 		WriteUserDataFile = WriteFile(GAMEDATAFOLDER + GName + FolderSlash+"userdata.txt")
 		WriteLine(WriteUserDataFile,Self.Rating)
 		WriteLine(WriteUserDataFile , Self.Completed)
 		CloseFile(WriteUserDataFile)
 	End Method 
 	
-	
+
+	Function GameNameFilter:String(Text:String)
+		'Strips out all characters that cannot be displayed in GameManager suite programs	
+		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
+		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
+		
+		Text = Regfilter.ReplaceAll(Text, "&")
+		Text = Regfilter2.ReplaceAll(Text, "")
+		
+		Return Text
+		
+	End Function
+
+	Function GameDescFilter:String(Text:String)
+		'Strips out all characters that cannot be displayed in GameManager suite programs	
+		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
+		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
+		
+		Text = Regfilter.ReplaceAll(Text, "&")
+		Text = Regfilter2.ReplaceAll(Text, "")
+		
+		Return Text
+	End Function
+
+
+	Function GameNameDirFilter:String(Text:String)
+		'Strips out all characters not allowed in filesystems
+		
+		Local Regfilter:TRegEx = New TRegEx.Create("&(amp;|)")
+		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\- _]")
+		Local Regfilter3:TRegEx = New TRegEx.Create(" ")
+
+		Text = Regfilter.ReplaceAll(Text, "and")
+		Text = Regfilter2.ReplaceAll(Text, "")
+		Text = Regfilter3.ReplaceAll(Text, "_")
+
+		Return Text
+	End Function
+
+	Rem
+
 	Function GameDescriptionSanitizer$(Name$)
+		
+		CustomRuntimeError("This function should not be used!")
+	
 		Repeat
 		For a=1 To Len(Name)
 			If Mid(Name,a,1)="&" Then
@@ -815,12 +858,9 @@ Type GameReadType
 	End Function	
 		
 	Function GameNameSanitizer$(Name$)
-		Rem
-		Function:	Removes Illegal Characters from Name and returns result
-		Input:	Name - Game Name to be Sanitized
-		Return:	The Sanitized Name
-		SubCalls:	None
-		EndRem
+		
+		CustomRuntimeError("This function should not be used!")
+		
 		Repeat
 		For a = 1 To Len(Name)
 			If Mid(Name,a,1)=Chr(8211) Then
@@ -876,6 +916,8 @@ Type GameReadType
 		Forever
 		Return Name
 	End Function
+	
+	EndRem
 	
 	Function CreateEmptyXMLGame(File:String)
 		WriteXML = WriteFile(File)
@@ -1719,7 +1761,7 @@ If inNum=221 Then Return "Bracket (Close)"
 If inNum=226 Then Return "Backslash"
 If inNum=186 Then Return "Semi-colon"
 If inNum=222 Then Return "Quote"
-If inNum=188 Then Return "Comma"
+If inNum = 188 then Return "Comma"
 If inNum=190 Then Return "Period"		
 If inNum=191 Then Return "Slash"
 

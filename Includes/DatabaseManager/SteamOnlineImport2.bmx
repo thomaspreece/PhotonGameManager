@@ -250,7 +250,7 @@ Type SteamOnlineImport2 Extends wxFrame
 			ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
 			
 			ID = ReadLine(ReadGameSearch)
-			GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
+			GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
 			If GameName = "" Or GameName = " " Then
 				CloseFile(ReadGameSearch)
 				Continue 
@@ -446,7 +446,7 @@ Type ManualSGSearch Extends wxFrame
 		ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
 		Repeat
 			ID = ReadLine(ReadGameSearch)
-			GameName = GameNameSanitizer(ReadLine(ReadGameSearch) )
+			GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
 			Platform = ReadLine(ReadGameSearch) 
 			If GameName = "" Or GameName = " " Then
 				If a = 1 Then

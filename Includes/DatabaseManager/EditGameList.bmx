@@ -2431,17 +2431,12 @@ EndRem
 	Function EEXEAdd(event:wxEvent)
 		Local EditGameWin:EditGameList = EditGameList(event.parent)
 		Local MessageBox:wxMessageDialog
-		'Local temp:String = RequestFile( "Choose the game executable" , "EXE files (*.exe):exe;All files (*.*): *"  , False , ExtractDir(EditGameWin.EP_EXEPath.GetValue()))
-		'If temp="" Then
-		
-		'Else
-		'	index = EditGameWin.EEP_LC.InsertStringItem( -1 , StripDir(StripExt(temp))  )
-		'	EditGameWin.EEP_LC.SetStringItem(index , 1 , temp )
-		'	DataChangeUpdate(event)
-		'EndIf
+
 		Local Value:String = EditGameWin.EEP_EXEPath.GetValue()
 		Local Value2:String = EditGameWin.EEP_EXEName.GetValue()
-		If Value = "" Or Value = " " Then
+		Local Index:Int
+		
+		If Value = "" Or Value = " " then
 			PrintF("EXE Path empty")
 			MessageBox = New wxMessageDialog.Create(Null, "Please browse or enter an executable to add to list", "Info", wxOK)
 			MessageBox.ShowModal()
@@ -2453,13 +2448,10 @@ EndRem
 			MessageBox.ShowModal()
 			MessageBox.Free()		
 			Return 		
-		Else
-			?Win32
-			index = EditGameWin.EEP_LC.InsertStringItem( -1 , Value2  )
-			?Not Win32
-			index = EditGameWin.EEP_LC.InsertStringItem( 0 , Value2  )
-			?
-			EditGameWin.EEP_LC.SetStringItem(index , 1 , Value )
+		else
+			Index = EditGameWin.EEP_LC.InsertStringItem( 0 , Value2 )
+
+			EditGameWin.EEP_LC.SetStringItem(Index , 1 , Value )
 	
 		
 			EditGameWin.EEP_EXEName.ChangeValue("")
@@ -3362,7 +3354,7 @@ Type ArtworkPicker Extends wxFrame
 		ArtWin.Hide()
 		ArtWin.ArtworkPreview.Destroy()
 		ArtWin.Destroy()
-		ArtWin = Null 
+		ArtWin = Null
 		'Log1.Destroy()			
 		Log1.Show(0)
 	End Function
@@ -3377,8 +3369,8 @@ Type ArtworkPicker Extends wxFrame
 	Function UpdateImage(event:wxEvent)
 		Local ArtWin:ArtworkPicker = ArtworkPicker(event.parent)
 		Local Selection:Int = ArtWin.ArtworkList.GetSelection()
-		Local GName:String = GameNameSanitizer(ArtWin.GameNode.Name) + "---" + GlobalPlatforms.GetPlatformByID(ArtWin.GameNode.PlatformNum).Name  
-		ArtWin.ArtworkPreview.SetImage(GAMEDATAFOLDER + GName +FolderSlash+"Thumbs"+String(ArtWin.ArtType) +FolderSlash +"Thumb" + Selection + ".jpg")
+		Local GName:String = GameReadType.GameNameDirFilter(ArtWin.GameNode.Name) + "---" + ArtWin.GameNode.PlatformNum
+		ArtWin.ArtworkPreview.SetImage(GAMEDATAFOLDER + GName + FolderSlash + "Thumbs" + String(ArtWin.ArtType) + FolderSlash + "Thumb" + Selection + ".jpg")
 		ArtWin.ArtworkPreview.Refresh()
 	End Function
 	
