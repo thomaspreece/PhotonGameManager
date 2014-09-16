@@ -1,5 +1,45 @@
 Include "PlatformReader.bmx"
 
+Function GetLuaList:TList(LuaCat:Int)
+	Local LuaList:TList = CreateList()
+	Local LuaFile:String
+	
+	Local ReadLuaFiles:Int
+	Select LuaCat
+		Case 1
+			ReadLuaFiles = ReadDir(LUAFOLDER + "Search")
+		Default
+			CustomRuntimeError("GetLuaList - Select Error")
+	End Select 	
+	
+	If ReadLuaFiles = Null then CustomRuntimeError("GetLuaList - ReadDir Error")
+	
+	Repeat
+		LuaFile = NextFile(ReadLuaFiles)
+		If LuaFile = "." Or LuaFile = ".." then Continue
+		If LuaFile = "" then Exit
+		If Right(LuaFile, 4) = ".lua" then ListAddLast(LuaList, Left(LuaFile, Len(LuaFile) - 4) )
+	Forever
+	CloseDir(ReadLuaFiles)
+	
+	SortList(LuaList)
+	
+	Return LuaList
+	
+	Rem
+	Local ReturnStringList:String[CountList(LuaList)]
+	Local a:Int = 0
+	Local LuaItem:String
+	
+	For LuaItem = EachIn LuaList
+		ReturnStringList[a] = LuaItem
+		a = a + 1
+	Next
+		
+	Return ReturnStringList
+	EndRem
+End Function
+
 Function ExtractSubVersion(Text:String , Part:Int)
 	Local SubVersions:Int[] = [0,0,0,0]
 	Local b:Int = 0
@@ -473,7 +513,7 @@ Function CreateFolder(Folder:String)
 	EndIf
 End Function
 
-Type GameReadType
+Type GameReadType {expose}
 	Field OrginalName:String
 	Field Name:String
 	Field Desc:String
@@ -495,6 +535,10 @@ Type GameReadType
 	
 	'Field Genre:String
 	Field Genres:TList
+	
+	Field LuaFile:String
+	Field LuaIDData:String
+	
 	
 	Field ID:Int
 	Field Rating:String
@@ -559,6 +603,11 @@ Type GameReadType
 		DeleteDir(GAMEDATAFOLDER + GName , 1)
 		
 	End Method
+	
+	Method AddToList(list:TList,item:String)
+		If list = Null Then list=CreateList()
+		ListAddLast(list,item)
+	End Method	
 	
 	Method GetGame(GName:String)
 		Self.NewGame()
@@ -934,7 +983,7 @@ Function PrintF(Tex:String)
 	Else
 		If DebugLogEnabled = True Then 
 			WriteLog = OpenFile(LOGFOLDER + LogName)
-			SeekStream(WriteLog,StreamSize(WriteLog))
+			SeekStream(WriteLog, StreamSize(WriteLog) )
 			WriteLog.WriteLine(Tex)
 			CloseFile(WriteLog)
 		EndIf 
@@ -942,10 +991,10 @@ Function PrintF(Tex:String)
 End Function
 
 ?Threaded
-Function PrintF(Tex:String,File:String = "")
-	If File = "" Then
+Function PrintF(Tex:String, File:String = "")
+	If File = "" then
 		File = LogName
-	EndIf 
+	EndIf
 	If Debug = True Then
 		LockMutex(mutex_Print)
 		Print Tex
@@ -962,7 +1011,6 @@ Function PrintF(Tex:String,File:String = "")
 	EndIf
 End Function
 ?
-
 
 Function CustomRuntimeError(ERROR:String)
 	PrintF(ERROR)
@@ -1286,6 +1334,11 @@ End Type
 
 Function CheckInternet:Int()
 	'Connected Needs to be Global
+	
+	'FIX: remove this after
+	Connected = 1
+	Return 1
+	
 	Local ReturnValue:String 
 	Local temp_proc:TProcess
 	?Win32	
@@ -1527,7 +1580,11 @@ Function CheckVersion:Int()
 	Local Version:String 
 	Local Online:String
 	Local Important:String 
-	Local Error:Int 
+	Local Error:Int
+	
+	'FIX: Remove this later
+	Return 0
+	
 
 	If Connected = 0 Then
 		Return 0

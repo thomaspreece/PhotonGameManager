@@ -1,3 +1,82 @@
+Function Thread_SaveGames:Object(obj:Object)
+	PrintF("Saving Games - OnlineAdd")
+	Local OnlineWin:OnlineAdd = OnlineAdd(obj)
+	OnlineWin.Hide()
+	Log1.Show(1)
+	Local item = - 1
+	Local GPlat:String = OnlineWin.OA_PlatCombo.GetValue()
+	Local GName:String
+	Local ClientData:String
+	Local GPlatType:PlatformType = GlobalPlatforms.GetPlatformByName(GPlat)
+	Local col2:wxListItem , col3:wxListItem, col4:wxListItem
+	Repeat	
+		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+		If item = - 1 then Exit
+		
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+			col2 = New wxListItem.Create()
+			col2.SetId(item)
+			col2.SetColumn(1)
+			col2.SetMask(wxLIST_MASK_TEXT)
+			OnlineWin.SourceItemsList.GetItem(col2)
+			col3 = New wxListItem.Create()
+			col3.SetId(item)
+			col3.SetColumn(2)
+			col3.SetMask(wxLIST_MASK_TEXT)
+			OnlineWin.SourceItemsList.GetItem(col3)
+			
+			If GPlatType.PlatType = "Folder" then
+				col4 = New wxListItem.Create()
+				col4.SetId(item)
+				col4.SetColumn(3)
+				col4.SetMask(wxLIST_MASK_TEXT)
+				OnlineWin.SourceItemsList.GetItem(col4)				
+			EndIf
+			
+			GName = col3.GetText()
+			Local GameNode:GameType = New GameType
+			
+			If GPlatType.PlatType = "Folder" then
+				GameNode.RunEXE = Chr(34)+col2.GetText() + FolderSlash + col4.GetText()+Chr(34)
+			Else
+				GameNode.ROM = col2.GetText()
+				GameNode.ExtraCMD = ""
+			EndIf
+			GameNode.Plat = GPlat
+			GameNode.PlatformNum = GPlatType.ID
+			
+			ClientData = String(OnlineWin.SourceItemsList.GetItemData(item) )
+			
+			For a = 1 To Len(ClientData)
+				If Mid(ClientData, a, 2) = "||" then
+					GameNode.LuaFile = Left(ClientData, a - 1) + ".lua"
+					GameNode.LuaIDData = Right(ClientData, Len(ClientData) - a - 1)
+					Exit
+				EndIf
+			Next
+			
+			GameNode.OEXEs = CreateList()
+			GameNode.OEXEsName = CreateList()
+			
+			ListAddLast(LogWinList, "Geting info for: " + GName)
+			PrintF("Geting info for: " + GName)
+			
+			'Add in New Log, new DownloadGameInfo, new DownloadGameArtWork for Threaded use			
+			
+			'GameNode.DownloadGameInfo()
+			'GameNode.DownloadGameArtWork(GameUpdateMode , Log1)
+			ListAddLast(LogWinList, "")
+							
+		EndIf
+		If Log1.LogClosed = True then Exit
+	Forever
+	OnlineWin.UnSavedChanges = False
+	OnlineWin.SourceUpdate()
+	Log1.Show(0)
+	OnlineWin.Show()
+End Function
+
+
 Type OnlineAdd Extends wxFrame
 	Field ParentWin:MainWindow
 	Field SourceItemsList:wxListCtrl
@@ -13,8 +92,11 @@ Type OnlineAdd Extends wxFrame
 				
 		Self.UnSavedChanges = False
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+			
+		
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel1.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Panel1.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
 		Local P1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			Local OA_PlatText:wxStaticText = New wxStaticText.Create(Panel1 , wxID_ANY , "Platform: " , - 1 , - 1 , - 1 , - 1)
 			OA_PlatCombo = New wxComboBox.Create(Panel1, OA_PC , GlobalPlatforms.GetPlatformByID(24).Name , GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
@@ -73,7 +155,7 @@ Type OnlineAdd Extends wxFrame
 		vbox.Add(SourceItemsList , 1 , wxEXPAND , 0)
 		vbox.Add(Panel3 , 0 , wxEXPAND , 0)
 		vbox.Add(sl2 , 0 , wxEXPAND , 0)
-		vbox.Add(BackButtonPanel,  0 , wxEXPAND, 0)		
+		vbox.Add(BackButtonPanel, 0 , wxEXPAND, 0)		
 		SetSizer(vbox)
 		Centre()		
 		Hide()
@@ -99,112 +181,12 @@ Type OnlineAdd Extends wxFrame
 	End Function	
 	
 	Function SaveGamesFun(event:wxEvent)
-		PrintF("Saving Games - OnlineAdd")
 		Local OnlineWin:OnlineAdd = OnlineAdd(event.parent)
-		OnlineWin.Hide()
-		'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Saving games" , , , 300 , 400) )
-		Log1.Show(1)
-		Local item = - 1
-		Local GPlat:String = OnlineWin.OA_PlatCombo.GetValue()
-		Local GName:String
-		Local GPlatType:PlatformType = GlobalPlatforms.GetPlatformByName(GPlat)
-		Local col2:wxListItem , col3:wxListItem, col4:wxListItem
-		Repeat	
-			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 Then Exit
-			
-			If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
-				col2 = New wxListItem.Create()
-				col2.SetId(item)
-				col2.SetColumn(1)
-				col2.SetMask(wxLIST_MASK_TEXT)
-				OnlineWin.SourceItemsList.GetItem(col2)
-				col3 = New wxListItem.Create()
-				col3.SetId(item)
-				col3.SetColumn(2)
-				col3.SetMask(wxLIST_MASK_TEXT)
-				OnlineWin.SourceItemsList.GetItem(col3)
-				
-				If GPlatType.PlatType = "Folder" then
-					col4 = New wxListItem.Create()
-					col4.SetId(item)
-					col4.SetColumn(3)
-					col4.SetMask(wxLIST_MASK_TEXT)
-					OnlineWin.SourceItemsList.GetItem(col4)				
-				EndIf
-				
-				GName = col3.GetText()
-				Local GameNode:GameType = New GameType
-				
-				If GPlatType.PlatType = "Folder" then
-					GameNode.RunEXE = Chr(34)+col2.GetText() + FolderSlash + col4.GetText()+Chr(34)
-				Else
-					GameNode.ROM = col2.GetText()
-					GameNode.ExtraCMD = ""
-				EndIf
-				GameNode.Plat = GPlat
-				GameNode.PlatformNum = GPlatType.ID
-				
-				Local Start:Int = - 1
-				Local Middle:Int = -1
-				For a = 1 To Len(GName)
-					If Mid(GName , a , 2) = "::" Then
-						Start = a -1
-						Exit
-					EndIf
-				Next
-				For b = Start + 3 To Len(GName)
-					If Mid(GName , b , 2) = "::" Then
-						Middle = b
-						Exit
-					EndIf
-				Next				
-	
-				GameNode.ID = Int(Left(GName , Start) )
-				
-				GameNode.OEXEs = CreateList()
-				GameNode.OEXEsName = CreateList()
-				
-				Log1.AddText("Geting info for: " + GName)
-				PrintF("Geting info for: " + GName)
-				
-				
-				If EXEDatabaseOff = False Then
-					Local DBFolder:String
-					Local DBID:String
-					Local DBEXE:String
-					Local DBName:String
-					If Int(Left(GName , Start)) < 0 Then
-					
-					Else
-						If GPlat = "PC" then
-							DBFolder = SanitiseForInternet(StripDir(col2.GetText()) )
-							DBEXE = SanitiseForInternet(FolderSlash + col4.GetText())
-						Else
-							DBFolder = SanitiseForInternet(StripExt(StripDir(col2.GetText() ) ))
-							DBEXE = ""
-						EndIf
-						DBID = SanitiseForInternet(Int(Left(GName , Start)))
-						DBName = SanitiseForInternet(Mid(GName , Start+3 , Middle-Start-3))
-						s:TStream = ReadStream("http::photongamemanager.com/GamesEXEDatabase/GameSubmit.php?ID="+DBID+"&Folder="+DBFolder+"&EXE="+DBEXE+"&Name="+DBName)
-			
-					EndIf 
-				EndIf 
-				
-				
-				
-				GameNode.DownloadGameInfo()
-				GameNode.DownloadGameArtWork(GameUpdateMode , Log1)
-				Log1.AddText("")
-								
-			EndIf
-			If Log1.LogClosed = True Then Exit
-		Forever
-		OnlineWin.UnSavedChanges = False
-		OnlineWin.SourceUpdateFun(event)
-		'Log1.Destroy()
-		Log1.Show(0)
-		OnlineWin.Show()
+		?Threaded
+		Local SaveGamesThread:TThread = CreateThread(Thread_SaveGames, OnlineWin)
+		?Not Threaded
+		Thread_SaveGames(OnlineWin)
+		?
 	End Function
 	
 	Function SILKeyPress(event:wxEvent)
@@ -218,57 +200,60 @@ Type OnlineAdd Extends wxFrame
 		End Select			
 	End Function
 
-	Method UpdateListWithGameData(Game:String , EXE:String = Null)
+	Method UpdateListWithGameData(Game:String , Obj:Object, EXE:String = Null)
 		PrintF("Updating Game - OnlineAdd")
 		item = Self.SourceItemsList.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
 		If GlobalPlatforms.GetPlatformByName(OA_PlatCombo.GetValue() ).PlatType = "Folder" then
 			SourceItemsList.SetStringItem(item , 0 , "True")
 			SourceItemsList.SetStringItem(item , 2 , Game)
 			SourceItemsList.SetStringItem(item , 3 , EXE)
+			SourceItemsList.SetItemData(item, Obj)
 			SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
-		Else
+		else
 			SourceItemsList.SetStringItem(item , 0 , "True")
 			SourceItemsList.SetStringItem(item , 2 , Game)
+			SourceItemsList.SetItemData(item, Obj)
 		EndIf
 		Self.UnSavedChanges = True
-		PrintF("Game Added: "+Game+" EXE: "+EXE)
+		PrintF("Game Added: " + Game)
+		PrintF("EXE: " + EXE)
+		PrintF("ClientData: " + String(Obj) )
 		SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
 	End Method
 
-	Function SourceUpdateFun(event:wxEvent)
+	Method SourceUpdate()
 		PrintF("Updating Source List - OnlineAdd")
-		Local OnlineWin:OnlineAdd = OnlineAdd(event.parent)
 		Local File:String , Folder:String
 		Local MessageBox:wxMessageDialog
 		Local index:Int
 		Local a:Int = 0
-		If OnlineWin.UnSavedChanges = True Then
+		If Self.UnSavedChanges = True then
 			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes, are you sure you wish to clear them?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-			If MessageBox.ShowModal() = wxID_NO Then
+			If MessageBox.ShowModal() = wxID_NO then
 				MessageBox.Free()
 				PrintF("Unsaved Changes, exit")
 				Return
 				
-			Else
+			else
 				PrintF("Unsaved Changes, continue")
 				MessageBox.Free()
 			End If
 		EndIf
-		OnlineWin.UnSavedChanges = False
+		Self.UnSavedChanges = False
 		
-		Folder = OnlineWin.OA_SourcePath.GetValue()
-		If Right(Folder , 1) = "/" Or Right(Folder , 1) = "\" Then
+		Folder = Self.OA_SourcePath.GetValue()
+		If Right(Folder , 1) = "/" Or Right(Folder , 1) = "\" then
 			Folder = Left(Folder , Len(Folder) - 1)
 		EndIf
-		If IsntNull(Folder) = False Then
+		If IsntNull(Folder) = False then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select a folder" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()
 			PrintF("No Folder, exit")
-			Return 
+			Return
 		EndIf
-		If FileType(Folder) = 2 Then
-		Else
+		If FileType(Folder) = 2 then
+		else
 			MessageBox = New wxMessageDialog.Create(Null , "Source is not a folder" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()
@@ -276,48 +261,52 @@ Type OnlineAdd Extends wxFrame
 			Return 		
 		EndIf
 		
-		OnlineWin.SourceItemsList.ClearAll()
+		Self.SourceItemsList.ClearAll()
 		
-		OnlineWin.SourceItemsList.InsertColumn(0 , "Unsaved?")
-		OnlineWin.SourceItemsList.SetColumnWidth(0, 80)
-		OnlineWin.SourceItemsList.InsertColumn(1 , "Path")
-		OnlineWin.SourceItemsList.InsertColumn(2 , "Game Name")
-		OnlineWin.SourceItemsList.SetColumnWidth(2 , 200)
-		If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
-			OnlineWin.SourceItemsList.InsertColumn(3 , "Executable")
-			OnlineWin.SourceItemsList.SetColumnWidth(3 , 200)	
+		Self.SourceItemsList.InsertColumn(0 , "Unsaved?")
+		Self.SourceItemsList.SetColumnWidth(0, 80)
+		Self.SourceItemsList.InsertColumn(1 , "Path")
+		Self.SourceItemsList.InsertColumn(2 , "Game Name")
+		Self.SourceItemsList.SetColumnWidth(2 , 200)
+		If GlobalPlatforms.GetPlatformByName(Self.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
+			Self.SourceItemsList.InsertColumn(3 , "Executable")
+			Self.SourceItemsList.SetColumnWidth(3 , 200)	
 		EndIf
 		
 
 		
-		If Right(Folder , 1) = "\" Or Right(Folder , 1) = "/" Then
-			Folder = Left(Folder, Len(Folder)-1)
+		If Right(Folder , 1) = "\" Or Right(Folder , 1) = "/" then
+			Folder = Left(Folder, Len(Folder) - 1)
 		EndIf
 		
 		ReadFiles = ReadDir(Folder )
 		Repeat
 			File = NextFile(ReadFiles)
-			If File="" Then Exit
-			If File="." Or File=".." Then Continue
-			If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
-				If FileType(Folder + FolderSlash + File) = 2 Then
-					index = OnlineWin.SourceItemsList.InsertStringItem( a , "")
-					OnlineWin.SourceItemsList.SetStringItem(index , 1 , Folder + FolderSlash + File)
-					PrintF("Add to List: "+Folder + FolderSlash + File)
+			If File = "" then Exit
+			If File = "." Or File = ".." then Continue
+			If GlobalPlatforms.GetPlatformByName(Self.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
+				If FileType(Folder + FolderSlash + File) = 2 then
+					index = Self.SourceItemsList.InsertStringItem( a , "")
+					Self.SourceItemsList.SetStringItem(index , 1 , Folder + FolderSlash + File)
+					PrintF("Add to List: " + Folder + FolderSlash + File)
 				EndIf
-			Else
-				If FileType(Folder + FolderSlash + File) = 1 Then
-					index = OnlineWin.SourceItemsList.InsertStringItem( a , "")
-					OnlineWin.SourceItemsList.SetStringItem(index , 1 , Folder + FolderSlash + File)
-					PrintF("Add to List: "+Folder + FolderSlash + File)
+			else
+				If FileType(Folder + FolderSlash + File) = 1 then
+					index = Self.SourceItemsList.InsertStringItem( a , "")
+					Self.SourceItemsList.SetStringItem(index , 1 , Folder + FolderSlash + File)
+					PrintF("Add to List: " + Folder + FolderSlash + File)
 				EndIf			
 			EndIf
 			a = a + 1		
 		Forever
 		CloseDir(ReadFiles)
 		
-		OnlineWin.SourceItemsList.SetColumnWidth(1 , wxLIST_AUTOSIZE)
-		
+		Self.SourceItemsList.SetColumnWidth(1 , wxLIST_AUTOSIZE)
+	End Method
+
+	Function SourceUpdateFun(event:wxEvent)
+		Local OnlineWin:OnlineAdd = OnlineAdd(event.parent)
+		OnlineWin.SourceUpdate()	
 	End Function
 	
 	Function SetGameFun(event:wxEvent)
@@ -342,7 +331,7 @@ Type OnlineAdd Extends wxFrame
 		col2.SetMask(wxLIST_MASK_TEXT)
 		OnlineWin.SourceItemsList.GetItem(col2)
 		ManualGEWindow.SetValues(OnlineWin , col2.GetText() , OnlineWin.OA_PlatCombo.GetValue() )
-		ManualGEWindow.Search()
+		'ManualGEWindow.Search()
 		OnlineWin.Hide()
 	End Function
 	
@@ -395,7 +384,7 @@ Type OnlineAdd Extends wxFrame
 				ID = s.ReadLine()
 				Print ID
 			EndIf
-			If ID="" Or ID=" " Then
+			If ID = "" Or ID = " " then
 				WriteGameList(GName , GPlat)
 				SortGameList(GName)			
 				ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
@@ -562,65 +551,50 @@ End Type
 
 
 
-Type ManualGESearch Extends wxFrame 
+Type ManualGESearch Extends wxFrame
 	Field ParentWin:OnlineAdd
-	Field SearchText:wxTextCtrl
-	Field SearchButton:wxButton
-	Field SearchList:wxListBox
 	Field EXEList:wxListBox
 	Field EXETList:TList
 	Field GameFilePath:String
 	Field UnHideWindow:OnlineAdd
-	'Field PlatText:wxStaticText
-	'Field PathText:wxStaticText
-	Field Platform:String
+	
+	Field PlatformNum:Int
 	Field RP_SText:wxStaticText
-	Field EXEShown:Int
-	Field SelectedGame:Int
+	Field GameSelected:Int
+	Field SearchSource:wxComboBox
+	Field DatabaseSearchPanel:DatabaseSearchPanelType
 	
 	Method OnInit()
 		PrintF("Initialising ManualGESearch")
-		Self.EXEShown = False
-		Self.SelectedGame = -1
+		Self.GameSelected = False
 		ParentWin = OnlineAdd(GetParent() )
 		Local hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 
 		
+		
+		
+		
 		Local LeftPanel:wxPanel = New wxPanel.Create(Self , - 1)
-		LeftPanel.SetBackgroundColour(New wxColour.Create(200,200,255))
+		LeftPanel.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
 		Local LPvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
-		Local LP_SText:wxStaticText = New wxStaticText.Create(LeftPanel , wxID_ANY , OA_LP_Text , -1 , -1 , - 1 , - 1 , wxALIGN_CENTRE)
-		'PathText = New wxStaticText.Create(LeftPanel , wxID_ANY , "Path: C:\Program Files (x86)\BlitzMax\mod\wx.mod\tutorials" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
-				
-		LPPanel1:wxPanel = New wxPanel.Create(LeftPanel , - 1)
-		LPPanel1.SetBackgroundColour(New wxColour.Create(200,200,255))
-		Local LPP1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		SearchTxt:wxStaticText = New wxStaticText.Create(LPPanel1 , wxID_ANY , "Search: ")
-		SearchText = New wxTextCtrl.Create(LPPanel1 , MS_ST , "", - 1 , - 1 , - 1 , - 1 , wxTE_PROCESS_ENTER)
-		'SearchText.ChangeValue("")
-		SearchButton = New wxButton.Create(LPPanel1 , MS_SB , "Search")
 		
-		LPP1hbox.Add(SearchTxt , 1 , wxEXPAND | wxALL, 10)
-		LPP1hbox.Add(SearchText , 3 , wxEXPAND | wxALL, 10)
-		LPP1hbox.Add(SearchButton , 1 , wxEXPAND | wxALL , 10)
-		LPPanel1.SetSizer(LPP1hbox)	
-				
-		SearchList = New wxListBox.Create(LeftPanel,MS_SL,Null,-1,-1,-1,-1,wxLB_SINGLE)
+		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(LeftPanel, MS_DSP) )
+		
+		
+		Local LP_SText:wxStaticText = New wxStaticText.Create(LeftPanel , wxID_ANY , OA_LP_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
 		
 		LPPanel2:wxPanel = New wxPanel.Create(LeftPanel , - 1)
-		LPPanel2.SetBackgroundColour(New wxColour.Create(200,200,255))
+		LPPanel2.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
 		Local LPP2hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Exitbutton = New wxButton.Create(LPPanel2 , MS_EB , "Cancel")
 		LPP2hbox.Add(Exitbutton , 1 , wxEXPAND | wxALL , 10)
 		LPP2hbox.AddStretchSpacer(2)
 		LPPanel2.SetSizer(LPP2hbox)
 		
-		'LPvbox.Add(PathText , 0 , wxEXPAND , 0)
 		LPvbox.Add(LP_SText , 0 , wxEXPAND , 0)	
-		LPvbox.Add(LPPanel1 , 1 , wxEXPAND , 0)					
-		LPvbox.Add(SearchList , 10 , wxEXPAND , 0)
-		LPvbox.Add(LPPanel2,  0 , wxEXPAND , 0)								
+		LPvbox.Add(DatabaseSearchPanel, 1, wxEXPAND, 0)
+		LPvbox.Add(LPPanel2, 0 , wxEXPAND , 0)								
 		LeftPanel.SetSizer(LPvbox)
 		
 		
@@ -654,16 +628,23 @@ Type ManualGESearch Extends wxFrame
 		Self.Hide()
 		Show()
 		
-		Connect(MS_ST , wxTE_PROCESS_ENTER , ProcessSearch)
-		Connect(MS_SB  , wxEVT_COMMAND_BUTTON_CLICKED , ProcessSearch)
-		Connect(MS_EB , wxEVT_COMMAND_BUTTON_CLICKED , ExitFun)
-		Connect(MS_SL, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED ,GameSelectedFun)
+		'Connect(MS_ST , wxTE_PROCESS_ENTER , ProcessSearch)
+		'Connect(MS_SB , wxEVT_COMMAND_BUTTON_CLICKED , ProcessSearch)
+		
+		'Connect(MS_SL, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED ,GameSelectedFun)
+		
+		'Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , FinishFun)
 		
 		Connect(MS_EL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , OkClickedFun)
 		Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , OkClickedFun)
 		
-		'Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , FinishFun)
-		Connect(wxID_ANY , wxEVT_CLOSE , ExitFun)
+		
+		Connect(MS_EB , wxEVT_COMMAND_BUTTON_CLICKED , Exitfun)
+		Connect(wxID_ANY , wxEVT_CLOSE , Exitfun)
+		
+		Connect(MS_DSP, wxEVT_COMMAND_SEARCHPANEL_SELECTED, GameSelectedFun)
+		Connect(MS_DSP, wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED, ResetSearchFun)
+		Connect(MS_DSP , wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH, ResetSearchFun)
 		
 		ConnectAny(wxEVT_CLOSE , CloseApp)
 	End Method
@@ -673,127 +654,107 @@ Type ManualGESearch Extends wxFrame
 		Local MainWin:MainWindow = OnlineAdd(ManualGESearch(event.parent).ParentWin).ParentWin
 		MainWin.Close(True)
 	End Function	
-
-
-	Method Search()
-		PrintF("Search - ManualGESearch")
-		Self.EXEShown = False
-		Self.SelectedGame = - 1
-		Self.EXEList.Clear()		
-		SText:String = SearchText.GetValue()
-		SPlat:String = Self.Platform
-		PrintF("Searching T:"+SText+" P:"+SPlat)
-		Local a=1
-		Local ID:String , GameName:String , Platform:String
-		If SPlat = "All" Then SPlat = ""
-		DeleteFile(TEMPFOLDER +"SearchGameList.txt")
-		WriteGameList(SText , SPlat)
-		SortGameList(SText)
-		SearchList.Clear()
-		PlaySound SearchBeep
-		ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
-		Repeat
-			ID = ReadLine(ReadGameSearch)
-			GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
-			Platform = ReadLine(ReadGameSearch)
-			If GameName = "" Or GameName = " " Then
-				If a = 1 Then
-					PrintF("Appending: "+"No Search Results Returned")
-					SearchList.Append("No Search Results Returned")
-					Exit
-				Else
-					Exit
-				EndIf
-			EndIf
-			PrintF("Appending: "+ID + "::" + GameName + "::" + Platform)
-			SearchList.Append(ID + "::" + GameName + "::" + Platform)
-			a=a+1
-		Forever
-	End Method
-
 	
 
 	Method SetValues(val1:OnlineAdd , val2:String , val3:String)
 		PrintF("Initialising Values")
 		Self.UnHideWindow = val1
 		Self.GameFilePath = val2
-		Self.Platform = val3
+		Self.PlatformNum = GlobalPlatforms.GetPlatformByName(val3).ID
 		Self.SetTitle("Searching for: " + val2 + " (" + val3 + ")")
 		Self.Update()
-		PrintF("FilePath: "+val2+" Plat: "+val3)
-		If GlobalPlatforms.GetPlatformByName(Self.Platform).PlatType = "Folder" then
+		PrintF("FilePath: " + val2 + " Plat: " + val3)
+		If GlobalPlatforms.GetPlatformByID(Self.PlatformNum).PlatType = "Folder" then
 		
-		Else
+		else
 			Self.RP_SText.SetLabel("")
 			Self.EXEList.Hide()
 		EndIf
-		SearchText.ChangeValue(StripExt(StripDir(Self.GameFilePath)))
+		DatabaseSearchPanel.SearchText.ChangeValue(StripExt(StripDir(Self.GameFilePath) ) )
 	End Method
 
 	Function OkClickedFun(event:wxEvent)
 		PrintF("OkClickedFun - ManualGESearch")
 		Local ManualGESearchWin:ManualGESearch = ManualGESearch(event.parent)
 		Local MessageBox:wxMessageDialog
-		Local item:Int = ManualGESearchWin.SearchList.GetSelection()
-		If item = - 1 Or ManualGESearchWin.SearchList.GetString(item)= "No Search Results Returned" Then
-			MessageBox = New wxMessageDialog.Create(Null , "Please select a game" , "Error" , wxOK | wxICON_ERROR)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			PrintF("No game selected")	
-			Return
-		EndIf
+		Local item:Int = - 1
+		Local EXEitem:Int
 		
-		If GlobalPlatforms.GetPlatformByName(ManualGESearchWin.Platform ).PlatType = "Folder" then
-			If item = ManualGESearchWin.SelectedGame Then
-			Else
-				ManualGESearchWin.EXEShown = False
-				PrintF("Selected Game Changed")
-			EndIf
-			
-			If ManualGESearchWin.EXEShown = False Then
-				ManualGESearchWin.GameSelectedFun(event)
-			ElseIf ManualGESearchWin.EXEShown = True
-				Local EXEitem:Int = ManualGESearchWin.EXEList.GetSelection()
-				If EXEitem = - 1 Or ManualGESearchWin.EXEList.GetString(EXEitem)= "No Executables Found" Then
-					MessageBox = New wxMessageDialog.Create(Null , "Please select an executable" , "Error" , wxOK | wxICON_ERROR)
+		If ManualGESearchWin.GameSelected = False then
+			If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
+				MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
+				MessageBox.ShowModal()
+				MessageBox.Free()	
+				Return
+			else
+				If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
+					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
 					MessageBox.ShowModal()
-					PrintF("No executable selected")
 					MessageBox.Free()		
 					Return
+				else
+					ManualGESearchWin.DatabaseSearchPanel.ListItemSelected()
+					Return
 				EndIf
-				ManualGESearchWin.UnHideWindow.UpdateListWithGameData(ManualGESearchWin.SearchList.GetString(item), ManualGESearchWin.EXEList.GetString(EXEitem))
-				ManualGESearchWin.Exitfun(event)				
 			EndIf
-		Else
-			ManualGESearchWin.UnHideWindow.UpdateListWithGameData(ManualGESearchWin.SearchList.GetString(item) )
-			ManualGESearchWin.Exitfun(event)
+		else
+			If ManualGESearchWin.EXEList.GetSelection() = wxNOT_FOUND then
+				MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
+				MessageBox.ShowModal()
+				MessageBox.Free()		
+				Return
+			else
+				If ManualGESearchWin.EXEList.GetStringSelection() = "No Executables Found" then
+					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
+					MessageBox.ShowModal()
+					MessageBox.Free()		
+					Return
+				else
+					'EXE and Search correct
+					item = ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection()
+					EXEitem = ManualGESearchWin.EXEList.GetSelection()
+					ManualGESearchWin.UnHideWindow.UpdateListWithGameData(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetString(item), ManualGESearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ) , ManualGESearchWin.EXEList.GetString(EXEitem) )
+					ManualGESearchWin.Exitfun(event)				
+				EndIf
+			EndIf
 		EndIf
-
-
+		
+	End Function
+	
+	Function ResetSearchFun(event:wxEvent)
+		PrintF("ResetSearchFun - ManualGESearch")
+		Local ManualGESearchWin:ManualGESearch = ManualGESearch(event.parent)
+		ManualGESearchWin.GameSelected = 0
+		ManualGESearchWin.EXEList.Clear()
 	End Function
 	
 	Function GameSelectedFun(event:wxEvent)
+		'Rem
 		PrintF("GameSelectedFun - ManualGESearch")
 		Local ManualGESearchWin:ManualGESearch = ManualGESearch(event.parent)
 		Local MessageBox:wxMessageDialog
-
-		If GlobalPlatforms.GetPlatformByName(ManualGESearchWin.Platform ).PlatType = "Folder" then
-			Local item:Int = ManualGESearchWin.SearchList.GetSelection()
-			If item = - 1 Or ManualGESearchWin.SearchList.GetString(item)= "No Search Results Returned" Then
+		If GlobalPlatforms.GetPlatformByID(ManualGESearchWin.PlatformNum ).PlatType = "Folder" then
+			Rem
+			Local item:Int = ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection()
+			If item = - 1 Or ManualGESearchWin.SearchList.GetString(item) = "No Search Results Returned" then
 				MessageBox = New wxMessageDialog.Create(Null , "Please select a game" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()	
 				PrintF("No game selected")	
 				Return
 			EndIf			
-			ManualGESearchWin.SelectedGame = item
-			GName:String = ManualGESearchWin.SearchList.GetString(item)
-			PrintF("Selected: "+item+" "+GName)
-			Local Start:Int = -1
-			Local Finish:Int = -1
+			EndRem
+			ManualGESearchWin.GameSelected = True
+			
+			GName:String = ManualGESearchWin.DatabaseSearchPanel.SearchText.GetStringSelection()
+			
+			Rem
+			PrintF("Selected: " + GName)
+			Local Start:Int = - 1
+			Local Finish:Int = - 1
 			For a = 1 To Len(GName)
-				If Mid(GName , a , 2) = "::" Then
-					If Start = - 1 Then
+				If Mid(GName , a , 2) = "::" then
+					If Start = - 1 then
 						Start = a + 2
 					Else
 						Finish = a 
@@ -802,6 +763,7 @@ Type ManualGESearch Extends wxFrame
 				EndIf
 			Next
 			GName = Mid(GName , Start , Finish-Start)
+			EndRem
 		
 			ManualGESearchWin.EXETList = GetEXEList(ManualGESearchWin.GameFilePath , GName)
 			ManualGESearchWin.EXEList.Clear()
@@ -809,26 +771,34 @@ Type ManualGESearch Extends wxFrame
 			For EXE:String = EachIn ManualGESearchWin.EXETList
 				ManualGESearchWin.EXEList.Append(EXE)
 			Next
-			If CountList(ManualGESearchWin.EXETList) < 1 Then
+			If CountList(ManualGESearchWin.EXETList) < 1 then
 				ManualGESearchWin.EXEList.Append("No Executables Found")
 			EndIf
-			ManualGESearchWin.EXEShown = True
-		Else
+		else
 			OkClickedFun(event)
 		EndIf
+		
+		'EndRem
 	End Function
 
 	Function Exitfun(event:wxEvent)
 		Local ManualGESearchWin:ManualGESearch = ManualGESearch(event.parent)
 		ManualGESearchWin.UnHideWindow.Show()
 		ManualGESearchWin.Destroy()
-		ManualGESearchWin = Null 
+		ManualGESearchWin = Null
 		PrintF("Finish ManualGESearch")
 	End Function
 
+	Method Destroy()
+		Self.DatabaseSearchPanel.Destroy()
+		Self.DatabaseSearchPanel = Null
+		Super.Destroy()
+	End Method
 
+	Rem
 	Function ProcessSearch(event:wxEvent)
 		Local ManualGESearchWin:ManualGESearch = ManualGESearch(event.parent)
 		ManualGESearchWin.Search()
 	End Function
+	EndRem
 End Type

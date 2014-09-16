@@ -1,6 +1,27 @@
 Global PROGRAMICON:String = RESFOLDER + "Database.ico"
 'Global ExtractProgLoc:String = APPFOLDER+"ResourcesExtract\ResourcesExtract.exe"
 
+Global SearchSourceLuaList:String[]
+
+Global LuaVM:Byte Ptr
+Global LuaBlank:String = "function GetPlatforms(PlatformID,List)~nend~nfunction GetText()~nend~nfunction SearchGame(Text,Platform,ListDepth,List)~nend"
+
+Global wxEVT_COMMAND_SEARCHPANEL_SELECTED:Int = wxNewEventType()
+Global wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED:Int = wxNewEventType()
+Global wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH:Int = wxNewEventType()
+
+?Threaded
+Global LuaEventMutex:TMutex = CreateMutex()
+Global LuaMutex:TMutex = CreateMutex()
+?
+Global LuaEvent:String = ""
+
+?Threaded
+Global LogWinListMutex:TMutex = CreateMutex()
+?
+Global LogWinList:TList = CreateList()
+
+
 Global SteamFolder:String = ""
 Global SteamID:String = ""
 Global ReloadApp = False
@@ -250,6 +271,19 @@ Const OI2_EXIT = 1200
 Const OI2_SAVE = 1201
 Const OI2_SEL = 1202
 Const OI2_DESEL = 1203
+
+Const DSP_SS = 1300
+Const DSP_ST = 1301
+Const DSP_SB = 1302
+Const DSP_SL = 1303
+Const DSP_SP = 1304
+Const DSP_HLC = 1305
+Const DSP_T = 1306
+
+Const MS_DSP = 1350
+
+Const LW_T = 1400
+Const LW_T2 = 1401
 
 Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back", "Menu", "Search", "Rotate Platforms", "View ScreenShots", "End" ]
 Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info", "Rotate Platforms", "View ScreenShots", "End" ]

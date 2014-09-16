@@ -41,15 +41,16 @@ Global SkipBatchWait:Int = 0
 Global FinishProgramRunning:Int = 0
 
 
-Global GAMEDATAFOLDER:String = TempFolderPath+"Games"+FolderSlash
+Global GAMEDATAFOLDER:String = TempFolderPath + "Games" + FolderSlash
 Global SETTINGSFOLDER:String = TempFolderPath + "Settings" + FolderSlash
-Global TEMPFOLDER:String = TempFolderPath+"Temp"+FolderSlash
-Global LOGFOLDER:String = TempFolderPath+"Log"+FolderSlash
+Global TEMPFOLDER:String = TempFolderPath + "Temp" + FolderSlash
+Global LOGFOLDER:String = TempFolderPath + "Log" + FolderSlash
 
 
 Global MOUNTERFOLDER:String = "Mounters"+FolderSlash
 Global RESFOLDER:String = "Resources"+FolderSlash
-Global APPFOLDER:String = "Plugins"+FolderSlash
+Global APPFOLDER:String = "Plugins" + FolderSlash
+Global LUAFOLDER:String = "Lua" + FolderSlash
 
 ?Win32
 Global SevenZipPath:String = APPFOLDER + "critical\7zip\7z.exe"

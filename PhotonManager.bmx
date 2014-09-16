@@ -1,4 +1,7 @@
+'Still need to implement the game and art download for Lua scripts. Started with OnlineAdd not quite finished that one yet
+
 'SUPER IMPORTANT
+
 'TODO: Fix the way platforms are done...
 
 'END OF SUPER IMPORTANT
@@ -65,6 +68,7 @@ Import wx.wxStaticLine
 Import wx.wxPlatformInfo
 Import wx.wxSplitterWindow
 Import wx.wxMouseEvent
+Import wx.wxHyperlinkCtrl
 
 Import BaH.libcurlssl
 Import Bah.libxml
@@ -74,6 +78,7 @@ Import bah.regex
 Import BRL.JPGLoader
 Import BRL.PNGLoader
 'Import BAH.FreeImage
+Import BRL.Threads
 
 Import BRL.StandardIO
 Import BRL.LinkedList
@@ -90,14 +95,24 @@ Import Pub.FreeJoy
 
 Import sidesign.minib3d
 
+?Win32
+Import "Icons\PhotonManager.o"
+?
+
+
+Import LuGI.Core
+Include "ManagerGlue.bmx"
+
+''Must Generate Glue Code in UnThreaded Mode
+'Import LuGI.Generator
+'GenerateGlueCode("ManagerGlue.bmx")
+'End
 
 
 ?Not Win32
 Global FolderSlash:String = "/"
-
 ?Win32
-Import "Icons\PhotonManager.o"
-Global FolderSlash:String ="\"
+Global FolderSlash:String = "\"
 ?
 
 Local TempFolderPath:String
@@ -211,6 +226,10 @@ EndIf
 	WinExplorer = False
 ?
 
+LuaVM = luaL_newstate()
+InitLuGI(LuaVM)
+luaL_openlibs(LuaVM)
+
 
 Local RunWizard:Int = -1
 
@@ -249,7 +268,7 @@ If RunWizard = 1 Then
 	DatabaseApp.Run()
 	End
 EndIf 
-EndRem 
+EndRem
 
 DatabaseApp = New DatabaseManager
 DatabaseApp.Run()
@@ -261,18 +280,26 @@ End
 
 Type DatabaseManager Extends wxApp
 	Field Menu:MainWindow
+	'Field Menu2:DatabaseSearchPanelType
+	
 	Method OnInit:Int()
 		wxImage.AddHandler( New wxICOHandler)		
 		wxImage.AddHandler( New wxPNGHandler)		
 		wxImage.AddHandler( New wxJPEGHandler)
 		'wxImage.AddHandler( New wxJPEGHandler)			
-			
+		
+		New PMFactory
+		
+		'Local Menu2 = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400) )
+   
 		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400) )
 		Return True
 
 	End Method
 	
 End Type
+
+lua_close(LuaVM)
 
 '----------------------------------------------------------------------------------------------------------
 '-------------------------------------MAIN WINDOW----------------------------------------------------------
@@ -1035,7 +1062,7 @@ Type SteamMenu Extends wxFrame
 		Local MainWin:MainWindow = SteamMenu(event.parent).ParentWin
 		
 		
-		If FindSteamFolderMain() = - 1 Then
+		If FindSteamFolderMain() = - 1 then
 			MessageBox = New wxMessageDialog.Create(Null , "Steam Folder invalid, please manually select it in the settings menu" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()			
@@ -2131,48 +2158,66 @@ End Type
 'Possible Fix: Create LogClosed Function, then get value of function not Log1.LogClosed in other files.
 '				Within the function return value of LogClosed and when a true is returned set LogClosed back to zero
 '				Make sure in other files that a single function will exit from a single LogClosed Value
-Type LogWindow Extends wxFrame 
+Type LogWindow Extends wxFrame
 	Field LogBox:wxTextCtrl
 	Field LogClosed:Int
-	Field Timer:wxTimer
 	
 	Method OnInit()
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )		
-		'ParentWin = MainWindow(GetParent())
 		LogClosed = False
-		Timer = New wxTimer.Create(Self)
+		Local Timer:wxTimer = New wxTimer.Create(Self, LW_T)
 		Timer.Start(10)
+		Local Timer2:wxTimer = New wxTimer.Create(Self, LW_T2)
+		Timer2.Start(100)
+		
 		Local hbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		LogBox = New wxTextCtrl.Create(Self, LW_L, "", -1 , -1 , -1 , -1, wxTE_READONLY | wxTE_MULTILINE | wxTE_BESTWRAP)
-		hbox.Add(LogBox,  1 , wxEXPAND, 0)		
+		LogBox = New wxTextCtrl.Create(Self, LW_L, "", - 1 , - 1 , - 1 , - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_BESTWRAP)
+		hbox.Add(LogBox, 1 , wxEXPAND, 0)		
 		SetSizer(hbox)
 		Centre()	
 		Show(0)	
-		'Connect(101, wxEVT_COMMAND_BUTTON_CLICKED, ShowMainMenu)
-		'ConnectAny(wxEVT_TIMER, OnTick)
-		ConnectAny(wxEVT_CLOSE , CloseLog)
+		
+		Connect(LW_T, wxEVT_CLOSE , CloseLog)
+		Connect(LW_T2, wxEVT_CLOSE , UpdateTexts)
 	End Method
 	
+	Function UpdateTexts(event:wxEvent)
+		LogWin:LogWindow = LogWindow(event.parent)
+		If TryLockMutex(LogWinListMutex) = 0 then Return
+		While CountList(LogWinList) > 0
+			LogWin.LogBox.AppendText(String(LogWinList.RemoveFirst() + Chr(10) ) )
+		Wend
+		
+		DatabaseApp.Yield()
+		LogWin.SetFocus()
+		LogWin.Raise()	
+		
+		UnlockMutex(LogWinListMutex)
+	End Function
+	
 	Method Show(Val:Int)
-		LogClosed = False 
+		LogClosed = False
 		Super.Show(Val)
-		If Val = 0 Then 
+		If Val = 0 then
 			LogBox.Clear()
-		EndIf 
-	End Method 
+		EndIf
+	End Method
 	
 	Function CloseLog(event:wxEvent)
-		Log1:LogWindow = LogWindow(event.parent)
-		Log1.LogClosed = True
-		Log1.AddText("Closing...")
+		LogWin:LogWindow = LogWindow(event.parent)
+		LogWin.LogClosed = True
+		LogWin.AddText("Closing...")
 	End Function
 
 	Method AddText(Tex:String)
-		LogBox.AppendText(Tex + Chr(10) )
-		DatabaseApp.Yield()
-		Self.SetFocus()
-		Self.Raise()		
+		?Threaded
+		LockMutex(LogWinListMutex)
+		?
+		ListAddLast(LogWinList, Tex)
+		?Threaded
+		UnlockMutex(LogWinListMutex)
+		?
 	End Method
 	
 End Type
@@ -2671,7 +2716,7 @@ Function LoadGlobalSettings()
 		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
 	EndIf			
 	If ReadSettings.GetSetting("ShowInfoButton") <> "" Then		
-		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton"))
+		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton") )
 	EndIf		
 	If ReadSettings.GetSetting("ShowScreenButton") <> "" Then		
 		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton"))
@@ -2708,6 +2753,16 @@ Function SaveGlobalSettings()
 	
 End Function
 
+Type PMFactory Extends TCustomEventFactory
+        Method CreateEvent:wxEvent(wxEventPtr:Byte Ptr, evt:TEventHandler)
+                Select evt.eventType
+                        Case wxEVT_COMMAND_SEARCHPANEL_SELECTED, wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED, wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH
+                                Return wxCommandEvent.Create(wxEventPtr, evt)
+                End Select
+                Return Null
+        End Method
+End Type
+
 Rem
 Function RestartProgram()
 	If Debug = True Then
@@ -2727,5 +2782,7 @@ Include "Includes\General\General.bmx"
 Include "Includes\DatabaseManager\Games.bmx"
 Include "Includes\DatabaseManager\PluginConfigs.bmx"
 Include "Includes\DatabaseManager\InputSettings.bmx"
+Include "Includes\DatabaseManager\LuaFunctions.bmx"
+Include "Includes\DatabaseManager\DatabaseSearchPanelType.bmx"
 
 
