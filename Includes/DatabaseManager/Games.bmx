@@ -607,6 +607,51 @@ Type GameType Extends GameReadType
 		CloseDir(ReadGames)		
 	End Method
 	
+	Method DownloadGameInfoLua:Int()
+		
+		LuaMutexLock()
+		
+		Local Error:Int
+		
+		'Create Platform List
+		Local LuaList:LuaListType = New LuaListType.Create()
+		'Get Lua File
+		Local LuaFile:String = LUAFOLDER + "Search" + FolderSlash + Self.LuaFile
+		Local newInternet:Internet = Internet(New Internet.Create() )
+		
+		If LuaHelper_LoadString(LuaVM, "" , LuaFile) <> 0 then
+			LuaMutexUnlock()
+			Return 1
+		EndIf
+		
+		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetGame")
+		lua_pushbmaxobject( LuaVM, GameReadType(Self) )
+		lua_pushbmaxobject( LuaVM, newInternet)
+		lua_pushbmaxobject( LuaVM, Self.LuaIDData)
+		
+		If LuaHelper_pcall(LuaVM, 3, 2) <> 0 then
+			LuaMutexUnlock()
+			Return 1
+		EndIf
+		
+		'Get Return status
+		Error = luaL_checkint( LuaVM, 1 )
+		
+		If Error <> 0 then
+			LuaHelper_FunctionError(LuaVM, Error)
+			LuaMutexUnlock()
+			Return 1
+		EndIf
+		
+		LuaHelper_CleanStack(LuaVM)
+		
+		LuaMutexUnlock()		
+		
+		Self.SaveGame()
+		
+		Return 0
+	End Method
+	
 	Method DownloadGameInfo()
 		Local GameDB:String = "http://thegamesdb.net"
 		Local tempCurrentSearchLine:String
