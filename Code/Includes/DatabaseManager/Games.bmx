@@ -127,6 +127,127 @@ Type GameType Extends GameReadType
 		?
 	End Method
 	
+	
+	
+	Method DownloadArtWorkThumbs(Log1:LogWindow , ArtType:Int)
+		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
+		Local a:Int = 0
+		Local MessageBox:wxMessageDialog
+		Local NumCorrect = 0
+		
+		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "Thumbs" + String(ArtType) ) = 2 Then
+		
+			ReadThumbs = ReadDir(GAMEDATAFOLDER + GName + FolderSlash +"Thumbs" + String(ArtType) )
+			Repeat
+				file:String = NextFile(ReadThumbs)
+				If file="." Or file=".." Then Continue 
+				If file = "" then Exit
+				b = b + 1
+			Forever
+			
+			Select ArtType
+				Case 3
+					If CountList(Self.Fanart) = b then
+						NumCorrect = 1
+					EndIf
+				Case 4
+					If CountList(Self.BannerArt) = b then
+						NumCorrect = 1
+					EndIf					
+			End Select
+		
+			If NumCorrect = 1 then
+		
+				MessageBox = New wxMessageDialog.Create(Null, "Would you like to refresh Artwork Thumbs?" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
+				If MessageBox.ShowModal() = wxID_NO Then
+					Return
+				EndIf
+			EndIf
+		EndIf
+		
+		DeleteCreateFolder(GAMEDATAFOLDER + GName + FolderSlash + "Thumbs" + String(ArtType) )
+		DeleteCreateFolder(TEMPFOLDER + "Thumbs")
+		
+		Local curl:TCurlEasy
+		Local TFile:TStream
+		Local Pixmap:TPixmap
+		Local res:Int
+		curl = TCurlEasy.Create()
+		'perform Download		
+			
+		
+		
+		Select ArtType
+			Case 3 'Fanart
+				For ThumbURL:String = EachIn Self.FanartThumbs
+					Log1.AddText("Downloading Thumb" + String(a) )
+					TFile = WriteFile(TEMPFOLDER + "Thumbs" + FolderSlash + "Thumb" + String(a) )
+			
+					ThumbURL = Replace(ThumbURL, " ", "%20")
+
+					curl.setOptString(CURLOPT_URL, ThumbURL)
+					curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
+					curl.setProgressCallback(DownloadArtwork_ProgressCallback)
+					curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
+					curl.setWriteStream(TFile)
+					
+					res = curl.perform()
+					
+					CloseFile(TFile)
+
+					If res then
+						PrintF("DownloadError: " + CurlError(res) )
+						Log1.AddText("Download failed")
+						DeleteFile(TEMPFOLDER + "Thumbs" + FolderSlash + "Thumb" + String(a) )
+					Else
+						'perform convert to correct type, move
+						Pixmap = LoadPixmap(TEMPFOLDER + "Thumbs" + FolderSlash + "Thumb" + String(a) )
+						SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + "Thumbs" + String(ArtType) + FolderSlash + "Thumb" + String(a) + ".jpg" , 100 )	
+					EndIf	
+					
+					a = a + 1
+					If Log1.LogClosed = True then
+						Exit
+					EndIf				
+				Next
+			Case 4 'Banner
+				For ThumbURL:String = EachIn Self.BannerArt
+					Log1.AddText("Downloading Thumb" + String(a) )
+					TFile = WriteFile(TEMPFOLDER + "Thumbs" + FolderSlash + "Thumb" + String(a) )
+			
+					ThumbURL = Replace(ThumbURL, " ", "%20")
+
+					curl.setOptString(CURLOPT_URL, ThumbURL)
+					curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
+					curl.setProgressCallback(DownloadArtwork_ProgressCallback)
+					curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
+					curl.setWriteStream(TFile)
+					
+					res = curl.perform()
+					
+					CloseFile(TFile)
+
+					If res then
+						PrintF("DownloadError: " + CurlError(res) )
+						Log1.AddText("Download failed")
+						DeleteFile(TEMPFOLDER + "Thumbs" + FolderSlash + "Thumb" + String(a) )
+					Else
+						'perform convert to correct type, move
+						Pixmap = LoadPixmap(TEMPFOLDER + "Thumbs" + FolderSlash + "Thumb" + String(a) )
+						SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + "Thumbs" + String(ArtType) + FolderSlash + "Thumb" + String(a) + ".jpg" , 100 )	
+					EndIf						
+					
+					a = a + 1
+					If Log1.LogClosed = True then
+						Exit 
+					EndIf
+				Next
+		End Select
+		Delay 1000	
+	End Method
+	
+	
+	Rem
 	Method DownloadArtWorkThumbs(Log1:LogWindow , ArtType:Int)
 		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
 		Local MessageBox:wxMessageDialog
@@ -139,7 +260,7 @@ Type GameType Extends GameReadType
 			Repeat
 				file:String = NextFile(ReadThumbs)
 				If file="." Or file=".." Then Continue 
-				If file = "" Then Exit
+				If file = "" then Exit
 				b = b + 1
 			Forever
 			
@@ -213,7 +334,8 @@ Type GameType Extends GameReadType
 		Delay 1000		
 		Return
 	End Method
-
+	EndRem
+	
 	Method DownloadGameArtWork(Override:Int)
 		Local ArtworkListItem:DownloadArtworkListItemType
 		Local URL:String
@@ -331,6 +453,7 @@ Type GameType Extends GameReadType
 
 
 		Local curl:TCurlEasy
+		Local Pixmap:TPixmap
 		curl = TCurlEasy.Create()
 		
 		Repeat
@@ -371,10 +494,16 @@ Type GameType Extends GameReadType
 				SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + ArtworkListItem.Filename + ".jpg" , 100 )				
 			EndIf			
 
+			If Log1.LogClosed = True then
+				Exit
+			EndIf	
+
 		Forever		
 		
+		If Log1.LogClosed = False then
+			Self.OptimizeArtwork()
+		EndIf
 		
-		Self.OptimizeArtwork()
 	End Method
 	
 	Method OptimizeArtwork()
@@ -397,6 +526,9 @@ Type GameType Extends GameReadType
 		
 		ReadGames = ReadDir(GAMEDATAFOLDER + GName )
 		Repeat
+			If Log1.LogClosed = True then
+				Exit
+			EndIf
 			File = NextFile(ReadGames)
 			If File = "" Then Exit
 			If File = "." Or File = ".." then Continue
@@ -540,53 +672,6 @@ Type GameType Extends GameReadType
 		CloseDir(ReadGames)		
 	End Method
 	
-Rem	
-	
-	Method DownloadGameInfoLua:Int()
-		
-		LuaMutexLock()
-		
-		Local Error:Int
-		
-		'Create Platform List
-		Local LuaList:LuaListType = New LuaListType.Create()
-		'Get Lua File
-		Local LuaFile:String = LUAFOLDER + "Search" + FolderSlash + Self.LuaFile
-		Local newInternet:LuaInternetType = LuaInternetType(New LuaInternetType.Create() )
-		
-		If LuaHelper_LoadString(LuaVM, "" , LuaFile) <> 0 Then
-			LuaMutexUnlock()
-			Return 1
-		EndIf
-		
-		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetGame")
-		lua_pushbmaxobject( LuaVM, GameReadType(Self) )
-		lua_pushbmaxobject( LuaVM, newInternet)
-		lua_pushbmaxobject( LuaVM, Self.LuaIDData)
-		
-		If LuaHelper_pcall(LuaVM, 3, 2) <> 0 Then
-			LuaMutexUnlock()
-			Return 1
-		EndIf
-		
-		'Get Return status
-		Error = luaL_checkint( LuaVM, 1 )
-		
-		If Error <> 0 Then
-			LuaHelper_FunctionError(LuaVM, Error)
-			LuaMutexUnlock()
-			Return 1
-		EndIf
-		
-		LuaHelper_CleanStack(LuaVM)
-		
-		LuaMutexUnlock()		
-		
-		Self.SaveGame()
-		
-		Return 0
-	End Method
-EndRem
 
 	Method DownloadGameInfo()
 		Local ErrorMessage:String
@@ -1076,5 +1161,9 @@ Function DownloadArtwork_ProgressCallback:Int(data:Object, dltotal:Double, dlnow
 	?Not Threaded
 	DatabaseApp.Yield()
 	?
+	
+	If Log1.LogClosed = True then
+		Return 1
+	EndIf	
 	Return 0	
 End Function
