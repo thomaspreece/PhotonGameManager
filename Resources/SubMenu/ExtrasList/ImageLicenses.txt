@@ -1,0 +1,6 @@
+Manual - No licencing requirements
+Walkthroughs - Free for commercial 
+ScreenShots - LGPL
+Patches - LGPL
+Cheats - LGPL
+
