@@ -1,3 +1,86 @@
+Function Thread_SaveGames_SOI:Object(obj:Object)
+	PrintF("Saving Games - SteamOnlineImport2")
+	Local OnlineWin:SteamOnlineImport2 = SteamOnlineImport2(obj)
+	OnlineWin.Hide()
+	Log1.Show(1)
+	Local item = - 1
+	Local GName:String
+	Local col1:wxListItem , col3:wxListItem
+	Local MessageBox:wxMessageDialog
+	Local ClientData:String
+	
+	Repeat	
+		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+		If item = - 1 Then Exit
+		
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" Then
+			col1 = New wxListItem.Create()
+			col1.SetId(item)
+			col1.SetColumn(1)
+			col1.SetMask(wxLIST_MASK_TEXT)
+			OnlineWin.SourceItemsList.GetItem(col1)
+			
+			col3 = New wxListItem.Create()
+			col3.SetId(item)
+			col3.SetColumn(3)
+			col3.SetMask(wxLIST_MASK_TEXT)
+			OnlineWin.SourceItemsList.GetItem(col3)
+			
+			GName = col1.GetText()
+			Local GameNode:GameType = New GameType
+			
+			GameNode.RunEXE = col3.GetText()
+			
+			?Win32
+			GameNode.Plat = "PC"
+			GameNode.PlatformNum = 24
+			?MacOS
+			GameNode.Plat = "Mac OS"
+			GameNode.PlatformNum = 12	
+			?Linux
+			GameNode.Plat = "Linux"
+			GameNode.PlatformNum = 40
+			?
+			
+			ClientData = String(OnlineWin.SourceItemsList.GetItemData(item) )
+			
+			For a = 1 To Len(ClientData)
+				If Mid(ClientData, a, 2) = "||" then
+					GameNode.LuaFile = Left(ClientData, a - 1) + ".lua"
+					GameNode.LuaIDData = Right(ClientData, Len(ClientData) - a - 1)
+					Exit
+				EndIf
+			Next
+			
+			GameNode.OEXEs = CreateList()
+			GameNode.OEXEsName = CreateList()
+			
+			Log1.AddText("Geting info for: " + GName)
+			PrintF("Geting info for: " + GName)
+
+			
+			
+			GameNode.DownloadGameInfo()
+			
+			GameNode.OverideArtwork = 1
+			GameNode.DownloadGameArtWork()
+			Log1.AddText("")
+			
+			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")					
+		EndIf
+		If Log1.LogClosed = True Then Exit
+	Forever
+	OnlineWin.UnSavedChanges = False
+	MessageBox = New wxMessageDialog.Create(Null , "Completed" , "Info" , wxOK | wxICON_INFORMATION)
+	MessageBox.ShowModal()
+	MessageBox.Free()
+
+	'Log1.Destroy()
+	Log1.Show(0)
+	OnlineWin.Show()
+End Function
+
+
 Type SteamOnlineImport2 Extends wxFrame
 	Field ParentWin:MainWindow
 	Field SourceItemsList:wxListCtrl 
@@ -108,7 +191,7 @@ Type SteamOnlineImport2 Extends wxFrame
 			'FIX: FolderSlash not used here at all
 			Repeat
 				File = NextFile(ReadSteamFolder)
-				If File = "" Then Exit
+				If File = "" then Exit
 				If File="." Or File=".." Then Continue
 				PrintF(File)
 				
@@ -133,89 +216,12 @@ Type SteamOnlineImport2 Extends wxFrame
 	End Method
 
 	Function SaveGamesFun(event:wxEvent)
-		PrintF("Saving Games - SteamOnlineImport2")
 		Local OnlineWin:SteamOnlineImport2 = SteamOnlineImport2(event.parent)
-		OnlineWin.Hide()
-		Log1.Show(1)
-		Local item = - 1
-		Local GName:String
-		Local col1:wxListItem , col3:wxListItem
-		Local MessageBox:wxMessageDialog
-
-		Repeat	
-			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 Then Exit
-			
-			If OnlineWin.SourceItemsList.GetItemText(item) = "True" Then
-				col1 = New wxListItem.Create()
-				col1.SetId(item)
-				col1.SetColumn(1)
-				col1.SetMask(wxLIST_MASK_TEXT)
-				OnlineWin.SourceItemsList.GetItem(col1)
-				
-				col3 = New wxListItem.Create()
-				col3.SetId(item)
-				col3.SetColumn(3)
-				col3.SetMask(wxLIST_MASK_TEXT)
-				OnlineWin.SourceItemsList.GetItem(col3)
-				
-				GName = col1.GetText()
-				Local GameNode:GameType = New GameType
-				
-				GameNode.RunEXE = col3.GetText()
-				
-				?Win32
-				GameNode.Plat = "PC"
-				GameNode.PlatformNum = 24
-				?MacOS
-				GameNode.Plat = "Mac OS"
-				GameNode.PlatformNum = 12	
-				?Linux
-				GameNode.Plat = "Linux"
-				GameNode.PlatformNum = 40
-				?
-				
-				Local Start:Int = - 1
-				Local Middle:Int = -1
-				For a = 1 To Len(GName)
-					If Mid(GName , a , 2) = "::" Then
-						Start = a -1
-						Exit
-					EndIf
-				Next
-				For b = Start + 3 To Len(GName)
-					If Mid(GName , b , 2) = "::" Then
-						Middle = b
-						Exit
-					EndIf
-				Next				
-	
-				GameNode.ID = Int(Left(GName , Start) )
-				
-				GameNode.OEXEs = CreateList()
-				GameNode.OEXEsName = CreateList()
-				
-				Log1.AddText("Geting info for: " + GName)
-				PrintF("Geting info for: " + GName)
-	
-				
-				
-				GameNode.DownloadGameInfo()
-				GameNode.DownloadGameArtWork()
-				Log1.AddText("")
-				
-				OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")					
-			EndIf
-			If Log1.LogClosed = True Then Exit
-		Forever
-		OnlineWin.UnSavedChanges = False
-		MessageBox = New wxMessageDialog.Create(Null , "Completed" , "Info" , wxOK | wxICON_INFORMATION)
-		MessageBox.ShowModal()
-		MessageBox.Free()
-	
-		'Log1.Destroy()
-		Log1.Show(0)
-		OnlineWin.Show()
+		?Threaded
+		Local SaveGamesThread:TThread = CreateThread(Thread_SaveGames_SOI, OnlineWin)
+		?Not Threaded
+		Thread_SaveGames_SOI(OnlineWin)
+		?	
 	End Function
 
 
@@ -325,8 +331,7 @@ Type SteamOnlineImport2 Extends wxFrame
 		col2.SetColumn(2)
 		col2.SetMask(wxLIST_MASK_TEXT)
 		OnlineWin.SourceItemsList.GetItem(col2)
-		ManualSGWindow.SetValues(OnlineWin.SourceItemsList,col2.GetText(),item)
-		ManualSGWindow.Search()
+		ManualSGWindow.SetValues(OnlineWin.SourceItemsList, col2.GetText(), item)
 		OnlineWin.Hide()
 	End Function
 	
@@ -365,18 +370,52 @@ End Type
 
 
 
-Type ManualSGSearch Extends wxFrame 
+Type ManualSGSearch Extends wxFrame
 	Field ParentWin:SteamOnlineImport2
-	Field SearchText:wxTextCtrl
-	Field SearchButton:wxButton
-	Field SearchList:wxListBox
-	Field SourceItemsList:wxListCtrl 
+	'Field SearchText:wxTextCtrl
+	'Field SearchButton:wxButton
+	'Field SearchList:wxListBox
+	Field SourceItemsList:wxListCtrl
 	Field ListItemNum:Int
 	
+	
+	Field DatabaseSearchPanel:DatabaseSearchPanelType	
+	
 	Method OnInit()
-		ParentWin = SteamOnlineImport2(GetParent())
+		ParentWin = SteamOnlineImport2(GetParent() )
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
+		
+		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Self, MS_DSP) )
+		
+		
+		Local panel2:wxPanel = New wxPanel.Create(Self , - 1)
+		Local hbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local Exitbutton:wxButton = New wxButton.Create(panel2 , MS_EB , "Cancel")
+		Local Finishbutton:wxButton = New wxButton.Create(panel2 , MS_FB , "OK")
+		hbox2.Add(Exitbutton , 1 , wxEXPAND | wxALL , 10)
+		hbox2.AddStretchSpacer(1)
+		hbox2.Add(Finishbutton , 1 , wxEXPAND | wxALL, 10)
+		panel2.SetSizer(hbox2)
+		
+		
+		vbox.Add(DatabaseSearchPanel , 1 , wxEXPAND , 0)
+		vbox.Add(panel2, 0, wxEXPAND, 0)
+		SetSizer(vbox)
+		Centre()		
+		Self.Show(0)
+		Self.Show(1)
+		
+		Connect(wxID_ANY , wxEVT_CLOSE , Exitfun)
+		Connect(MS_EB , wxEVT_COMMAND_BUTTON_CLICKED , Exitfun)
+		
+		Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , FinishButtonFun)
+		Connect(MS_DSP, wxEVT_COMMAND_SEARCHPANEL_SELECTED, FinishFun)
+		
+		Rem	
+		ParentWin = SteamOnlineImport2(GetParent() )
+		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+	
 		panel1:wxPanel = New wxPanel.Create(Self , - 1)
 		Local hbox1:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		SearchTxt:wxStaticText = New wxStaticText.Create(panel1 , wxID_ANY , "Search: ")
@@ -402,7 +441,7 @@ Type ManualSGSearch Extends wxFrame
 		
 		vbox.Add(panel1 , 1 , wxEXPAND , 0)					
 		vbox.Add(SearchList , 8 , wxEXPAND , 0)
-		vbox.Add(panel2,  1.5 , wxEXPAND , 0)								
+		vbox.Add(panel2, 1.5 , wxEXPAND , 0)								
 		SetSizer(vbox)
 		Centre()		
 		Self.Show(0)
@@ -413,56 +452,17 @@ Type ManualSGSearch Extends wxFrame
 		Connect(MS_EB  , wxEVT_COMMAND_BUTTON_CLICKED , ExitFun)
 		Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , FinishFun)
 		Connect(wxID_ANY , wxEVT_CLOSE , ExitFun)
+		EndRem
+		
 		
 		
 	End Method
 
 	Method SetValues(SourceList:wxListCtrl,SText:String,Num:Int)
 		SourceItemsList = SourceList
-		SearchText.ChangeValue(SText)
+		Self.DatabaseSearchPanel.InitialSearch = SText
 		ListItemNum = Num
 	End Method
-
-	Method Search()
-		
-		SText:String = SearchText.GetValue()
-		SPlat:String = "PC"
-		
-		?Win32
-		SPlat:String = "PC"
-		?MacOS
-		SPlat:String = "Mac OS"
-		?Linux
-		SPlat:String = "Linux"
-		?		
-		
-		PrintF("Searching T:" + SText + " P:" + SPlat)
-		Local a=1
-		Local ID:String , GameName:String , Platform:String
-		WriteGameList(SText , SPlat)
-		SortGameList(SText)
-		SearchList.Clear()
-		PlaySound SearchBeep
-		ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
-		Repeat
-			ID = ReadLine(ReadGameSearch)
-			GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
-			Platform = ReadLine(ReadGameSearch) 
-			If GameName = "" Or GameName = " " Then
-				If a = 1 Then
-					PrintF("Appending: "+"No Search Results Returned")
-					SearchList.Append("No Search Results Returned")
-					Exit
-				Else
-					Exit
-				EndIf
-			EndIf
-			PrintF("Appending: "+ID + "::" + GameName + "::" + Platform)
-			SearchList.Append(ID + "::" + GameName + "::" + Platform)
-			a=a+1
-		Forever
-	End Method
-	
 
 	Function Exitfun(event:wxEvent)
 		Local ManualSearchWin:ManualSGSearch = ManualSGSearch(event.parent)
@@ -471,6 +471,49 @@ Type ManualSGSearch Extends wxFrame
 		PrintF("Finish Manual Search")
 	End Function
 	
+	Method Destroy()
+		Self.DatabaseSearchPanel.Destroy()
+		Self.DatabaseSearchPanel = Null
+		Super.Destroy()
+	End Method	
+
+	Function FinishButtonFun(event:wxEvent)
+		Local MessageBox:wxMessageDialog
+		Local ManualSearchWin:ManualSGSearch = ManualSGSearch(event.parent)
+		If ManualSearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
+			MessageBox = New wxMessageDialog.Create(Null , "Please select an item" , "Error" , wxOK | wxICON_ERROR)
+			MessageBox.ShowModal()
+			MessageBox.Free()	
+			Return
+		Else
+			If ManualSearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
+				MessageBox = New wxMessageDialog.Create(Null , "Please select an item" , "Error" , wxOK | wxICON_ERROR)
+				MessageBox.ShowModal()
+				MessageBox.Free()		
+				Return
+			Else
+				ManualSearchWin.DatabaseSearchPanel.ListItemSelected()
+				Return
+			EndIf
+		EndIf
+	End Function
+	
+	Function FinishFun(event:wxEvent)
+		Local ManualSearchWin:ManualSGSearch = ManualSGSearch(event.parent)
+		Local item:Int = ManualSearchWin.DatabaseSearchPanel.SearchList.GetSelection()
+		
+		ManualSearchWin.SourceItemsList.SetStringItem(ManualSearchWin.ListItemNum , 1 , ManualSearchWin.DatabaseSearchPanel.SearchList.GetString(item) )
+		ManualSearchWin.SourceItemsList.SetStringItem(ManualSearchWin.ListItemNum , 0 , "True")
+		ManualSearchWin.SourceItemsList.SetItemData(ManualSearchWin.ListItemNum , ManualSearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualSearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ))
+		ManualSearchWin.ParentWin.UnSavedChanges = True
+		ManualSearchWin.ParentWin.Show()
+		ManualSearchWin.Destroy()			
+		
+	End Function
+	
+	
+
+Rem	
 	Function FinishFun(event:wxEvent)
 		PrintF("Updating Pulldown")
 		Local ManualSearchWin:ManualSGSearch = ManualSGSearch(event.parent)
@@ -500,9 +543,5 @@ Type ManualSGSearch Extends wxFrame
 
 	End Function
 
-	Function ProcessSearch(event:wxEvent)
-		Local ManualSearchWin:ManualSGSearch = ManualSGSearch(event.parent)
-		ManualSearchWin.Search()
-	End Function
-
+EndRem
 End Type

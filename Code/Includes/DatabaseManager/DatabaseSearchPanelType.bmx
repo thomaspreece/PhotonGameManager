@@ -11,6 +11,8 @@ Type DatabaseSearchPanelType Extends wxPanel
 	Field OldSearch:String
 	
 	Field LuaTimer:wxTimer
+	
+	Field InitialSearch:String
 
 	Method OnInit()
 		PrintF("Creating DatabaseSearchPanelType")
@@ -167,6 +169,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		?Threaded
 		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 3, "SourceChanged", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
+		
 		?Not Threaded
 		If LuaHelper_pcall(LuaVM, 2, 3) <> 0 then Return
 		SourceChangedReturn()
@@ -230,6 +233,14 @@ Type DatabaseSearchPanelType Extends wxPanel
 		If LuaHelper_LoadString(LuaVM, LuaBlank) <> 0 then CustomRuntimeError("Blank Lua Code Error")
 		
 		LuaMutexUnlock()
+		
+		If Self.InitialSearch = Null Or Self.InitialSearch = "" then
+			Return
+		Else
+			Self.SearchText.ChangeValue(Self.InitialSearch)
+			Self.InitialSearch = ""
+			Self.Search()
+		EndIf
 	End Method
 	
 	Method Search()
@@ -272,6 +283,8 @@ Type DatabaseSearchPanelType Extends wxPanel
 		?Threaded
 		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 3, "Search", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
+		PlaySound SearchBeep
+		
 		?Not Threaded
 		If LuaHelper_pcall(LuaVM, 6, 3) <> 0 then Return
 		SearchReturn()
