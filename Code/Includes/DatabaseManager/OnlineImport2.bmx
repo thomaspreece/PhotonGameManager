@@ -4,14 +4,20 @@ Type OnlineImport2 Extends wxFrame
 	Field ScrollBox:wxScrolledWindow
 	Field UnSavedChanges:Int = 0	
 	
-	Field VPanelList:TList
-	Field CheckBoxList:TList
-	Field GDFNameList:TList
-	Field GameNameList:TList
-	Field EXEName:TList		
+	
+	Field OnlineImportList:TList
+	
+	
+	'Field VPanelList:TList
+	'Field CheckBoxList:TList
+	'Field GDFNameList:TList
+	'Field GameNameList:TList
+	'Field EXEName:TList		
 		
 	Method OnInit()
-		ParentWin = MainWindow(GetParent())
+		
+	
+		ParentWin = MainWindow(GetParent() )
 
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
@@ -104,15 +110,17 @@ Type OnlineImport2 Extends wxFrame
 	End Function
 
 	Method GameNameSelect()
-		Local temp2:wxComboBox
-		For temp2 = EachIn GameNameList
-			If temp2.GetValue() = "Manual Search" Then
+		Local ListLine:OnlineImportListLineType
+		For ListLine = EachIn Self.OnlineImportList
+			If ListLine.Name.GetValue() = "Search Online For Game Data" then
 				PrintF("Manual Search")
-				ManualSearchWindow:ManualSearch = ManualSearch(New ManualSearch.Create(Self, wxID_ANY, "Manual Search", , , 600, 500))
-				ManualSearchWindow.SetValues(temp2,Self)
-				temp2.SelectItem(0)
+				Local ManualSearchWindow:ManualSearch = ManualSearch(New ManualSearch.Create(Self, wxID_ANY, "Manual Search", , , 600, 500) )
+				ManualSearchWindow.SetValues(ListLine.Name, ListLine.Text.GetLabel() )
+				ListLine.Name.SelectItem(0)
 				Self.Disable()
 				ManualSearchWindow.Show()
+			ElseIf ListLine.Name.GetValue() = "----------" then
+				ListLine.Name.SelectItem(0)
 			EndIf
 		Next		
 	End Method
@@ -123,25 +131,25 @@ Type OnlineImport2 Extends wxFrame
 	End Function
 	
 	Method SelectAll()
-		For temp2:wxCheckBox = EachIn CheckBoxList
-			temp2.SetValue(True)
-		Next
+	'	For temp2:wxCheckBox = EachIn CheckBoxList
+	'		temp2.SetValue(True)
+	'	Next
 	End Method
 	
 	Method DeSelectAll()
-		For temp2:wxCheckBox = EachIn CheckBoxList
-			temp2.SetValue(False)
-		Next
+	'	For temp2:wxCheckBox = EachIn CheckBoxList
+	'		temp2.SetValue(False)
+	'	Next
 	End Method	
 
 	Function SelectAllFun(event:wxEvent)
-		Local OnlineWin:OnlineImport2 = OnlineImport2(event.parent)
-		OnlineWin.SelectAll()
-	End Function 
+	'	Local OnlineWin:OnlineImport2 = OnlineImport2(event.parent)
+	'	OnlineWin.SelectAll()
+	End Function
 
 	Function DeSelectAllFun(event:wxEvent)
-		Local OnlineWin:OnlineImport2 = OnlineImport2(event.parent)
-		OnlineWin.DeSelectAll()
+	'	Local OnlineWin:OnlineImport2 = OnlineImport2(event.parent)
+	'	OnlineWin.DeSelectAll()
 	End Function 	
 
 	Function CloseApp(event:wxEvent)
@@ -196,35 +204,11 @@ Type OnlineImport2 Extends wxFrame
 		Local tempEXEName:wxComboBox		
 		Local tempStaticText:wxStaticText
 		Local sl:wxStaticLine
-
-		VPanelList = CreateList()
-		CheckBoxList = CreateList()
-		GDFNameList = CreateList()
-		GameNameList = CreateList()
-		EXEName = CreateList()
-			
-		Rem			
-		tempPanel = New wxPanel.Create(ScrollBox , - 1)
-		ListAddLast VPanelList,tempPanel
-		tempPanel.SetBackgroundColour(New wxColour.Create(200,200,200))
-		tempVbox = New wxBoxSizer.Create(wxHORIZONTAL)
-
-		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Import?")
-		tempVbox.Add(tempStaticText , 0 , wxEXPAND | wxALL , 20)
-		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Game Explorer Name")
-		tempVbox.Add(tempStaticText , 1 , wxEXPAND | wxALL , 20)	
-		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Online Database Name")
-		tempVbox.Add(tempStaticText , 1 , wxEXPAND | wxALL , 20)		
-		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "EXE Name")
-		tempVbox.Add(tempStaticText , 1 , wxEXPAND | wxALL , 20)			
-		tempPanel.SetSizer(tempVbox)
-		EndRem
-		
+	
+		OnlineImportList = CreateList()
+				
 		Delay 300
-		
-		'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Searching Online For Games" , , , 300 , 400) )
-		Log1.Show(1)
-		Log1.AddText("Searching Online For Games")
+			
 		ReadGDFFolder = ReadDir(TEMPFOLDER + "GDF")
 		Local File:String , Title:String
 		Local GDFEXEs:String
@@ -232,30 +216,16 @@ Type OnlineImport2 Extends wxFrame
 		Local GameName:String
 		Local Platform:String
 		
-		'tempPanel1 = New wxPanel.Create(ScrollBox , - 1)
-		'tempPanel2 = New wxPanel.Create(ScrollBox , - 1)
-		'tempPanel3 = New wxPanel.Create(ScrollBox , - 1)
-		'tempPanel4 = New wxPanel.Create(ScrollBox , - 1)
-		
-		'tempVbox1 = New wxBoxSizer.Create(wxVERTICAL)
-		'tempVbox2 = New wxBoxSizer.Create(wxVERTICAL)
-		'tempVbox3 = New wxBoxSizer.Create(wxVERTICAL)
-		'tempVbox4 = New wxBoxSizer.Create(wxVERTICAL)
-		
 		tempPanel = New wxPanel.Create(ScrollBox , - 1)
-		gridbox = New wxFlexGridSizer.CreateRC(0, 4, 10, 10)		
+		gridbox = New wxFlexGridSizer.CreateRC(0, 3, 10, 10)		
 
-		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Import?", - 1, - 1, - 1, - 1, wxALIGN_CENTER)
-		'tempStaticText.SetFont(BOLDFONT1)
-		gridbox.Add(tempStaticText , 1 , wxEXPAND | wxTOP, 20)
-		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Game Explorer Name", - 1, - 1, - 1, - 1, wxALIGN_CENTER)
-		'tempStaticText.SetFont(BOLDFONT1)
+		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Game Explorer Name", - 1, - 1, - 1, - 1, wxALIGN_CENTER)	
 		gridbox.Add(tempStaticText , 1 , wxEXPAND | wxTOP , 20)		
+		
 		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Online Database Name", - 1, - 1, - 1, - 1, wxALIGN_CENTER)
-		'tempStaticText.SetFont(BOLDFONT1)
 		gridbox.Add(tempStaticText , 1 , wxEXPAND | wxTOP , 20)				
+		
 		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "EXE Name", - 1, - 1, - 1, - 1, wxALIGN_CENTER)
-		'tempStaticText.SetFont(BOLDFONT1)
 		gridbox.Add(tempStaticText , 1 , wxEXPAND | wxTOP , 20)	
 		
 		Repeat
@@ -273,23 +243,17 @@ Type OnlineImport2 Extends wxFrame
 			ReadLine(ReadGDFFile)
 			GDFEXEs = ReadLine(ReadGDFFile)
 			
-			
-		
-			tempCheckBox = New wxCheckBox.Create(tempPanel , wxID_ANY)
-			ListAddLast CheckBoxList, tempCheckBox
-			gridbox.Add(tempCheckBox, 0 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 20)
-			
+					
 			tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , Title)
-			ListAddLast GDFNameList , tempStaticText
 			gridbox.Add(tempStaticText , 0 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 20)
 			
 			tempGameName = New wxComboBox.Create(tempPanel , OI_GN, Null, Null, - 1, - 1, - 1, - 1, wxCB_READONLY)
-			ListAddLast GameNameList , tempGameName	
 			gridbox.Add(tempGameName , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 20)			
 
 			tempEXEName = New wxComboBox.Create(tempPanel , wxID_ANY, Null, Null, - 1, - 1, - 1, - 1, wxCB_READONLY)
-			ListAddLast EXEName , tempEXEName
 			gridbox.Add(tempEXEName , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 20)
+			
+			ListAddLast(OnlineImportList, New OnlineImportListLineType.Create(tempStaticText, tempGameName, tempEXEName) )
 			
 			Local tempString:String
 			
@@ -319,32 +283,14 @@ Type OnlineImport2 Extends wxFrame
 			tempEXEName.Append(tempString )
 			tempEXEName.SelectItem(0)
 			
-			Log1.AddText("Searching for: "+Title)
-			WriteGameList(Title , "PC")
-			SortGameList(Title)
-			ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
-			For a = 1 To 5
-				ID = ReadLine(ReadGameSearch)
-				GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
-				Platform = ReadLine(ReadGameSearch) 
-				If GameName = "" Or GameName = " " Then
-					If a=1 Then
-						tempGameName.Append("")
-						Exit
-					Else
-						Exit
-					EndIf
-				EndIf
-				tempGameName.Append(ID + "::" + GameName + "::" + Platform)
-				
-			Next
-			tempGameName.Append("Manual Search")
+					
+			tempGameName.Append("Don't Import","DONT-IMPORT")		
+			tempGameName.Append("Search Online For Game Data")
+			tempGameName.Append("----------", "DONT-IMPORT")			
+			
 			tempGameName.SelectItem(0)
-			CloseFile(ReadGameSearch)
-			'tempPanel.SetSizer(tempVbox)
-			'ListAddLast VPanelList, tempPanel
+			
 			CloseFile(ReadGDFFile)
-			If Log1.LogClosed = True then Exit
 		Forever		
 		CloseDir(ReadGDFFolder)
 		gridbox.SetFlexibleDirection(wxHORIZONTAL)
@@ -364,11 +310,11 @@ Type OnlineImport2 Extends wxFrame
 		'Self.SelectAll()
 		PrintF("Finished Updating")
 		'Log1.Destroy()		
-		Log1.Show(0)
+		'Log1.Show(0)
 	End Method
 
 	Method UpdateGames()
-		
+Rem		
 		PrintF("Starting to Update Games")
 		Local MessageBox:wxMessageDialog
 
@@ -545,14 +491,125 @@ Type OnlineImport2 Extends wxFrame
 		MessageBox = New wxMessageDialog.Create(Null , "Games successfully added to database" , "Info" , wxOK | wxICON_INFORMATION)
 		MessageBox.ShowModal()
 		MessageBox.Free()
-		
+	EndRem	
 	End Method
 
 End Type
 
 
 
-Type ManualSearch Extends wxFrame 
+Type OnlineImportListLineType
+	Field Text:wxStaticText
+	Field Name:wxComboBox
+	Field EXE:wxComboBox
+
+	Method Create:OnlineImportListLineType(Text:wxStaticText, Name:wxComboBox, EXE:wxComboBox)
+		Self.Text = Text
+		Self.Name = Name
+		Self.EXE = EXE
+		Return Self
+	End Method
+
+End Type
+
+
+Type ManualSearch Extends wxFrame
+	Field ParentWin:OnlineImport2
+	'Field SearchText:wxTextCtrl
+	'Field SearchButton:wxButton
+	'Field SearchList:wxListBox
+	Field UpdateCombo:wxComboBox
+	
+	
+	Field DatabaseSearchPanel:DatabaseSearchPanelType	
+	
+	Method OnInit()
+		ParentWin = OnlineImport2(GetParent() )
+		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+		
+		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Self, MS_DSP) )
+		
+		Local panel2:wxPanel = New wxPanel.Create(Self , - 1)
+		Local hbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local Exitbutton:wxButton = New wxButton.Create(panel2 , MS_EB , "Cancel")
+		Local Finishbutton:wxButton = New wxButton.Create(panel2 , MS_FB , "OK")
+		hbox2.Add(Exitbutton , 1 , wxEXPAND | wxALL , 10)
+		hbox2.AddStretchSpacer(1)
+		hbox2.Add(Finishbutton , 1 , wxEXPAND | wxALL, 10)
+		panel2.SetSizer(hbox2)
+		
+		
+		vbox.Add(DatabaseSearchPanel , 1 , wxEXPAND , 0)
+		vbox.Add(panel2, 0, wxEXPAND, 0)
+		SetSizer(vbox)
+		Centre()		
+		Self.Show(0)
+		Self.Show(1)
+		
+		Connect(wxID_ANY , wxEVT_CLOSE , Exitfun)
+		Connect(MS_EB , wxEVT_COMMAND_BUTTON_CLICKED , Exitfun)
+		
+		Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , FinishButtonFun)
+		Connect(MS_DSP, wxEVT_COMMAND_SEARCHPANEL_SELECTED, FinishFun)
+			
+	End Method
+
+	Method SetValues(OnlineChoiceCombo:wxComboBox, SearchString:String)
+		Self.UpdateCombo = OnlineChoiceCombo
+		Self.DatabaseSearchPanel.InitialSearch = SearchString
+	End Method
+
+	Function Exitfun(event:wxEvent)
+		Local ManualSearchWin:ManualSearch = ManualSearch(event.parent)
+		ManualSearchWin.ParentWin.Enable()
+		ManualSearchWin.Destroy()
+		PrintF("Finish Manual Search")
+	End Function
+	
+	Method Destroy()
+		Self.DatabaseSearchPanel.Destroy()
+		Self.DatabaseSearchPanel = Null
+		Super.Destroy()
+	End Method	
+
+	Function FinishButtonFun(event:wxEvent)
+		Local MessageBox:wxMessageDialog
+		Local ManualSearchWin:ManualSearch = ManualSearch(event.parent)
+		If ManualSearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
+			MessageBox = New wxMessageDialog.Create(Null , "Please select an item" , "Error" , wxOK | wxICON_ERROR)
+			MessageBox.ShowModal()
+			MessageBox.Free()	
+			Return
+		Else
+			If ManualSearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
+				MessageBox = New wxMessageDialog.Create(Null , "Please select an item" , "Error" , wxOK | wxICON_ERROR)
+				MessageBox.ShowModal()
+				MessageBox.Free()		
+				Return
+			Else
+				ManualSearchWin.DatabaseSearchPanel.ListItemSelected()
+				Return
+			EndIf
+		EndIf
+	End Function
+	
+	Function FinishFun(event:wxEvent)
+		Local ManualSearchWin:ManualSearch = ManualSearch(event.parent)
+		Local item:Int = ManualSearchWin.DatabaseSearchPanel.SearchList.GetSelection()
+		
+		ManualSearchWin.UpdateCombo.Append(ManualSearchWin.DatabaseSearchPanel.SearchList.GetString(item), ManualSearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualSearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ) )
+		ManualSearchWin.UpdateCombo.SetSelection(ManualSearchWin.UpdateCombo.GetCount() - 1)
+		ManualSearchWin.ParentWin.UnSavedChanges = True
+		ManualSearchWin.ParentWin.Enable()
+		ManualSearchWin.Destroy()			
+	End Function
+	
+	
+End Type
+
+Rem
+Type ManualSearch Extends wxFrame
 	Field ParentWin:MainWindow
 	Field SearchText:wxTextCtrl
 	Field SearchButton:wxButton
@@ -577,19 +634,7 @@ Type ManualSearch Extends wxFrame
 		hbox1.Add(SearchButton , 1 , wxEXPAND | wxALL , 10)
 		panel1.SetSizer(hbox1)	
 		
-		Rem
-		panel3:wxPanel = New wxPanel.Create(Self , - 1)
-		Local hbox3:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		PlatText:wxStaticText = New wxStaticText.Create(panel3 , wxID_ANY , "Platform: ")
-		PlatList = New wxComboBox.Create(panel3, MS_PL, "PC", PLATFORMS, -1, -1, -1, -1, wxCB_DROPDOWN)
-		
-
-		hbox3.Add(PlatText , 1 , wxEXPAND | wxLEFT | wxRIGHT , 10)
-		hbox3.Add(PlatList , 3 , wxEXPAND | wxLEFT | wxRIGHT , 10)
-		hbox3.AddStretchSpacer(1)
-		
-		panel3.SetSizer(hbox3)
-		endrem			
+			
 		
 		SearchList = New wxListBox.Create(Self,MS_SL,Null,-1,-1,-1,-1,wxLB_SINGLE)
 		
@@ -703,4 +748,4 @@ Type ManualSearch Extends wxFrame
 
 End Type
 
-
+EndRem
