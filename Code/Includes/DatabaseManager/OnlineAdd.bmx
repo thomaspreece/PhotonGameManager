@@ -682,7 +682,7 @@ Type ManualGESearch Extends wxFrame
 			Self.RP_SText.SetLabel("")
 			Self.EXEList.Hide()
 		EndIf
-		DatabaseSearchPanel.SearchText.ChangeValue(StripExt(StripDir(Self.GameFilePath) ) )
+		DatabaseSearchPanel.InitialSearch = StripExt(StripDir(Self.GameFilePath) )
 	End Method
 
 	Function OkClickedFun(event:wxEvent)
