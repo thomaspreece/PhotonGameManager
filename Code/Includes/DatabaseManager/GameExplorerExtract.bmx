@@ -3,15 +3,35 @@ Function OutputGDFs()
 	PrintF("----------------------------OutputGDFs----------------------------")
 	'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Log" , , , 300 , 400) )
 	Log1.Show(1)
+	Log1.AddText("Looking for games...")
 	Local MessageBox:wxMessageDialog
+	?Threaded
+	Local RawGDFThread:TThread
+	?
 	'If OUTPUTGDFSCOMPLETED = False Then
 	If FileType(TEMPFOLDER + "GDF") = 2 Then
 		MessageBox = New wxMessageDialog.Create(Null, "Refresh Local Game Explorer Data? (Only needed if new games have been added to game explorer since last import)" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 		If MessageBox.ShowModal() = wxID_YES Then
-			WriteRawGDF(Log1)		
+			?Threaded
+			RawGDFThread = CreateThread(Thread_WriteRawGDF, Null)
+			While RawGDFThread.Running()
+				DatabaseApp.Yield()
+				Delay 100
+			Wend
+			?Not Threaded
+			Thread_WriteRawGDF(Null)
+			?
 		EndIf
 	Else
-		WriteRawGDF(Log1)
+		?Threaded
+		RawGDFThread = CreateThread(Thread_WriteRawGDF, Null)
+		While RawGDFThread.Running()
+			DatabaseApp.Yield()
+			Delay 100
+		Wend
+		?Not Threaded
+		Thread_WriteRawGDF(Null)
+		?
 	EndIf
 	'EndIf
 	PrintF("Finish GDF Output")
@@ -70,7 +90,7 @@ Repeat
 	For a = 1 To Len(Name)
 		
 		If Mid(Name,a,1)=Chr(34) Then 
-			Name=Left(Name,a-1)+Right(Name,Len(Name)-a)
+			Name = Left(Name, a - 1) + Right(Name, Len(Name) - a)
 			Exit
 		EndIf
 	Next
@@ -80,7 +100,7 @@ Repeat
 Forever
 End Function
 
-Function WriteRawGDF(Log1:LogWindow)	
+Function Thread_WriteRawGDF:Object(obj:Object)	
 	DeleteCreateFolder(TEMPFOLDER + "GDF")
 	Local RegKeys$
 	Local GameRegs$
@@ -94,7 +114,7 @@ Function WriteRawGDF(Log1:LogWindow)
 	Repeat
 		For a = 1 To Len(RegKeys)
 			If Mid(RegKeys, a, 1) = "|" then
-				Game$=Left(RegKeys,a-1)
+				Game$ = Left(RegKeys, a - 1)
 				GameRegs = GameRegs + ReturnReg(Game)
 				RegKeys = Right(RegKeys, Len(RegKeys) - a)
 				
@@ -478,6 +498,12 @@ Function WriteRawGDF(Log1:LogWindow)
 	DeleteDir(TEMPFOLDER + "GDFExtract"+FolderSlash , 0)	
 	DeleteFile(TEMPFOLDER + "RawGDF.txt")	
 	DeleteFile(TEMPFOLDER + "Reg.txt")
+	
+	Log1.AddText("Finished")
+	?Threaded
+	Delay 1000
+	?	
+	
 End Function
 
 
