@@ -96,8 +96,6 @@ function GetGame(GameContainer,Internet,LuaIDData)
 					GameContainer.Name = elementText(v2)
 				elseif v2.name == "Overview" then 
 					GameContainer.Desc = elementText(v2)
-				elseif v2.name == "Platform" then 
-					GameContainer.Plat = elementText(v2)
 				elseif v2.name == "ReleaseDate" then 
 					GameContainer.ReleaseDate = elementText(v2)
 				elseif v2.name == "ESRB" then 
