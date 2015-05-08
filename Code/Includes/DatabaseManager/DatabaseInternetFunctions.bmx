@@ -186,7 +186,7 @@ Function ReturnTagInfo2$(SearchLine$,Tag$,EndTag$)
 	EndRem
 	StartPos=0
 	EndPos=0
-	StartFound=False
+	StartFound = False
 	For a=1 To Len(SearchLine)-Len(Tag)
 		If Mid(SearchLine,a,Len(Tag))=Tag$ Then
 			StartPos=a+Len(Tag)
@@ -208,7 +208,7 @@ Function ReturnTagInfo2$(SearchLine$,Tag$,EndTag$)
 	EndIf
 End Function
 
-Function WriteGameList(SearchTerm$,Platform:String)
+Function WriteGameList(SearchTerm$, Platform:String)
 	Rem
 	Function: Searches for SearchTerm via online database using function Search()
 			Filters and sorts raw search HTML into a list of valid Game Names/IDs
@@ -386,7 +386,7 @@ Function GetGameInfo(id$)
 	Next
 	For a=1 To 5
 		GI:TStream = WriteFile(TEMPFOLDER+"GameInfo.txt")
-		If GI=Null Then
+		If GI = Null then
 
 		Else
 			Exit

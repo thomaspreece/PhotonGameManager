@@ -411,51 +411,7 @@ Type ManualSGSearch Extends wxFrame
 		
 		Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , FinishButtonFun)
 		Connect(MS_DSP, wxEVT_COMMAND_SEARCHPANEL_SELECTED, FinishFun)
-		
-		Rem	
-		ParentWin = SteamOnlineImport2(GetParent() )
-		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-	
-		panel1:wxPanel = New wxPanel.Create(Self , - 1)
-		Local hbox1:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		SearchTxt:wxStaticText = New wxStaticText.Create(panel1 , wxID_ANY , "Search: ")
-		SearchText = New wxTextCtrl.Create(panel1 , MS_ST , "" , - 1 , - 1 , - 1 , - 1 , wxTE_PROCESS_ENTER)
-		'SearchText.ChangeValue("")
-		SearchButton = New wxButton.Create(panel1 , MS_SB , "Search")
-		
-		hbox1.Add(SearchTxt , 1 , wxEXPAND | wxALL, 10)
-		hbox1.Add(SearchText , 3 , wxEXPAND | wxALL, 10)
-		hbox1.Add(SearchButton , 1 , wxEXPAND | wxALL , 10)
-		panel1.SetSizer(hbox1)	
-				
-		SearchList = New wxListBox.Create(Self,MS_SL,Null,-1,-1,-1,-1,wxLB_SINGLE)
-		
-		panel2:wxPanel = New wxPanel.Create(Self , - 1)
-		Local hbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Exitbutton = New wxButton.Create(panel2 , MS_EB , "Cancel")
-		Finishbutton = New wxButton.Create(panel2 , MS_FB , "OK")
-		hbox2.Add(Exitbutton , 1 , wxEXPAND | wxALL , 10)
-		hbox2.AddStretchSpacer(1)
-		hbox2.Add(Finishbutton , 1 , wxEXPAND | wxALL, 10)
-		panel2.SetSizer(hbox2)
-		
-		vbox.Add(panel1 , 1 , wxEXPAND , 0)					
-		vbox.Add(SearchList , 8 , wxEXPAND , 0)
-		vbox.Add(panel2, 1.5 , wxEXPAND , 0)								
-		SetSizer(vbox)
-		Centre()		
-		Self.Show(0)
-		Self.Show(1)
-		
-		Connect(MS_ST , wxTE_PROCESS_ENTER , ProcessSearch)
-		Connect(MS_SB  , wxEVT_COMMAND_BUTTON_CLICKED , ProcessSearch)
-		Connect(MS_EB  , wxEVT_COMMAND_BUTTON_CLICKED , ExitFun)
-		Connect(MS_FB , wxEVT_COMMAND_BUTTON_CLICKED , FinishFun)
-		Connect(wxID_ANY , wxEVT_CLOSE , ExitFun)
-		EndRem
-		
-		
-		
+			
 	End Method
 
 	Method SetValues(SourceList:wxListCtrl,SText:String,Num:Int)
@@ -512,36 +468,4 @@ Type ManualSGSearch Extends wxFrame
 	End Function
 	
 	
-
-Rem	
-	Function FinishFun(event:wxEvent)
-		PrintF("Updating Pulldown")
-		Local ManualSearchWin:ManualSGSearch = ManualSGSearch(event.parent)
-		Local MessageBox:wxMessageDialog
-		ItemNums:Int = ManualSearchWin.SearchList.GetCount()
-		If ManualSearchWin.SearchList.GetString(0) = "No Search Results Returned" Then
-			MessageBox = New wxMessageDialog.Create(Null , "No Search Results have been Returned" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()			
-			Return		
-		EndIf
-		
-		If ManualSearchWin.SearchList.GetSelection()=-1 Then
-			MessageBox = New wxMessageDialog.Create(Null , "Please select a game from the above list" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return
-		EndIf
-		
-		
-		
-		ManualSearchWin.SourceItemsList.SetStringItem(ManualSearchWin.ListItemNum , 1 , ManualSearchWin.SearchList.GetString(ManualSearchWin.SearchList.GetSelection()))
-		ManualSearchWin.SourceItemsList.SetStringItem(ManualSearchWin.ListItemNum , 0 , "True")
-		ManualSearchWin.ParentWin.UnSavedChanges = True 
-		ManualSearchWin.ParentWin.Show()
-		ManualSearchWin.Destroy()	
-
-	End Function
-
-EndRem
 End Type

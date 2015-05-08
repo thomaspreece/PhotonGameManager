@@ -166,6 +166,9 @@ Function Thread_GetRawSteamOnline:Object(ob:Object)
 		EndIf 
 	Next
 	Log1.AddText("Finished")
+	?Threaded
+	Delay 1000
+	?
 End Function 
 
 Rem
