@@ -572,7 +572,9 @@ Type GameReadType {expose}
 		
 	Field GameRunnerAlwaysOn:Int 
 	Field StartWaitEnabled:Int 
-	Field WatchEXEs:TList 
+	Field WatchEXEs:TList
+	
+	Field OverideArtwork:Int = 0
 	
 	'Field ScreenShotNumber:Int '1 if there is screenshots/0 otherwise
 	Field ScreenShotsAvailable:Int
@@ -783,7 +785,8 @@ Type GameReadType {expose}
 					EndIf		
 				
 				Case "ID"
-					Self.ID = Int(node.getText())
+					Self.LuaFile = "thegamesdb.net.lua"
+					Self.LuaIDData = Int(node.GetText() )
 				Case "Rating"
 					Self.Rating = Int(node.getText())
 			End Select
@@ -1815,7 +1818,7 @@ If inNum=163 Then Return "Control (Right)"
 If inNum=164 Then Return "Alt key (Left)"
 If inNum=165 Then Return "Alt key (Right)"
 If inNum=192 Then Return "Tilde"
-If inNum=107 Then Return "Minus"
+If inNum = 107 then Return "Minus"
 If inNum=109 Then Return "Equals"
 If inNum=219 Then Return "Bracket (Open)"
 If inNum=221 Then Return "Bracket (Close)"
@@ -1832,10 +1835,10 @@ End Function
 
 
 ?Not Threaded
-Function TryLockMutex(obj:Object)
-End Function
+'Function TryLockMutex(obj:Object)
+'End Function
 
-Function UnlockMutex(obj:Object)
-End Function
+'Function UnlockMutex(obj:Object)
+'End Function
 ?
 

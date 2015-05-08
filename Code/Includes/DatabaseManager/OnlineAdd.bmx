@@ -68,7 +68,8 @@ Function Thread_SaveGames:Object(obj:Object)
 			
 			GameNode.DownloadGameInfo()
 			
-			GameNode.DownloadGameArtWork(1)
+			GameNode.OverideArtwork = 1
+			GameNode.DownloadGameArtWork()
 			'ListAddLast(LogWinList, "")
 							
 		EndIf

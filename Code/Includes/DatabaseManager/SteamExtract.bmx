@@ -3,11 +3,22 @@ Function OutputSteam(Online:Int)
 	'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Outputting Steam Games" , , , 300 , 400) )
 	Log1.Show(1)
 	Local MessageBox:wxMessageDialog
+	?Threaded
+	Local RawSteamThread:TThread
+	?
 	If FileType(TEMPFOLDER + "Steam") = 2 then
 		MessageBox = New wxMessageDialog.Create(Null, "Refresh Local Steam Data? (Only needed if new games have been added to Steam since last import)" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 		If MessageBox.ShowModal() = wxID_YES then
-			If Online=True Then 
-				GetRawSteamOnline(Log1)
+			If Online = True then
+				?Threaded
+				RawSteamThread = CreateThread(Thread_GetRawSteamOnline, Null)
+				While RawSteamThread.Running()
+					DatabaseApp.Yield()
+					Delay 100
+				Wend
+				?Not Threaded
+				Thread_GetRawSteamOnline(Null)
+				?
 			Else	
 				'GetRawSteam(Log1)	
 				CustomRuntimeError("Error: Offline steam extract not possible")
@@ -15,7 +26,15 @@ Function OutputSteam(Online:Int)
 		EndIf
 	else
 		If Online=True Then 
-			GetRawSteamOnline(Log1)
+			?Threaded
+			RawSteamThread = CreateThread(Thread_GetRawSteamOnline, Null)
+			While RawSteamThread.Running()
+				DatabaseApp.Yield()
+				Delay 100
+			Wend
+			?Not Threaded
+			Thread_GetRawSteamOnline(Null)
+			?
 		Else	
 			CustomRuntimeError("Error: Offline steam extract not possible")
 		EndIf 
@@ -27,7 +46,7 @@ Function OutputSteam(Online:Int)
 End Function
 
 
-Function GetRawSteamOnline(Log1:LogWindow)
+Function Thread_GetRawSteamOnline:Object(ob:Object)
 	Local MessageBox:wxMessageDialog
 	Log1.AddText("Searching for Steam Games")
 	SteamFolder = StripSlash(SteamFolder)

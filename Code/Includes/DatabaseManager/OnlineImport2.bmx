@@ -529,7 +529,7 @@ Type OnlineImport2 Extends wxFrame
 				PrintF("Game ID: "+ID)
 				Log1.AddText("Downloading game infoformation")
 				If GameNode.DownloadGameInfo() = 1 then
-					GameNode.DownloadGameArtWork(0)
+					GameNode.DownloadGameArtWork()
 				EndIf
 			EndIf	
 			If Log1.LogClosed = True Then Exit	

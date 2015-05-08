@@ -127,7 +127,7 @@ Type SteamOfflineImport Extends wxWizard
 
 	Method UpdateList()
 		PrintF("Update OnlineImport List")
-		OutputSteam(false)
+		OutputSteam(0)
 
 		Local hbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		

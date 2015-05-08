@@ -36,6 +36,10 @@
 
 'END OF NOTHING IMPORTANT HERE
 
+
+
+
+
 Framework wx.wxApp
 Import wx.wxFrame
 'Import wx.wxtimer
@@ -2096,7 +2100,7 @@ Type SettingsMenu Extends wxFrame
 			Log1.Show(1)
 			Local tempdir:String = CurrentDir()
 			ChangeDir(GAMEDATAFOLDER)
-			Local zipProcess:TProcess = RunProcess( SevenZipPath+" a -t7z " + Chr(34) + BakFilename + Chr(34) + " " + "" + "* -mx9" , 0)
+			Local zipProcess:TProcess = RunProcess( SevenZipPath + " a -t7z " + Chr(34) + BakFilename + Chr(34) + " " + "" + "* -mx9" , 0)
 			ChangeDir(tempdir)
 			Repeat
 				
@@ -2203,14 +2207,16 @@ Type LogWindow Extends wxFrame
 	
 	Function UpdateTexts(event:wxEvent)
 		LogWin:LogWindow = LogWindow(event.parent)
+		?Threaded
 		If TryLockMutex(LogWinListMutex) = 0 then Return
+		?
 		While CountList(LogWinList) > 0
-			LogWin.LogBox.AppendText(String(LogWinList.RemoveFirst()) + Chr(10)  )
+			LogWin.LogBox.AppendText(String(LogWinList.RemoveFirst() ) + Chr(10) )
 		Wend
-		
-		DatabaseApp.Yield()
-
+			
+		?Threaded
 		UnlockMutex(LogWinListMutex)
+		?
 	End Function
 	
 	Method Show(Val:Int)
@@ -2239,6 +2245,9 @@ Type LogWindow Extends wxFrame
 	End Function
 
 	Method AddText(Tex:String)
+		?Not Threaded
+		DatabaseApp.Yield()
+		?
 		?Threaded
 		LockMutex(LogWinListMutex)
 		?
