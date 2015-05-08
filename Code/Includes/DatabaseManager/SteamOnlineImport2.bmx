@@ -3,10 +3,10 @@ Type SteamOnlineImport2 Extends wxFrame
 	Field SourceItemsList:wxListCtrl 
 	Field OA_SourcePath:wxTextCtrl
 	Field OA_PlatCombo:wxComboBox
-	Field UnSavedChanges:Int 
+	Field UnSavedChanges:Int
 	
 	Method OnInit()
-		ParentWin = MainWindow(GetParent())
+		ParentWin = MainWindow(GetParent() )
 
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
@@ -81,7 +81,7 @@ Type SteamOnlineImport2 Extends wxFrame
 		ConnectAny(wxEVT_CLOSE , CloseApp)
 		
 		OutputSteam(True)
-		
+
 		SourceItemsList.ClearAll()
 		
 		SourceItemsList.InsertColumn(0 , "Unsaved?")
@@ -96,7 +96,7 @@ Type SteamOnlineImport2 Extends wxFrame
 
 
 
-		If FileType(TEMPFOLDER + "Steam")=2 Then
+		If FileType(TEMPFOLDER + "Steam") = 2 then
 			Local a:Int = 0
 			Local ReadSteamFolder:Int
 			Local ReadSteamData:TStream
@@ -201,7 +201,7 @@ Type SteamOnlineImport2 Extends wxFrame
 				
 				
 				GameNode.DownloadGameInfo()
-				GameNode.DownloadGameArtWork(GameUpdateMode )
+				GameNode.DownloadGameArtWork()
 				Log1.AddText("")
 				
 				OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")					

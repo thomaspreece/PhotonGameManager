@@ -336,7 +336,9 @@ Type GameType Extends GameReadType
 	End Method
 	EndRem
 	
-	Method DownloadGameArtWork(Override:Int)
+	Method DownloadGameArtWork()
+		Local Override:Int = Self.OverideArtwork
+		Self.OverideArtwork = 0
 		Local ArtworkListItem:DownloadArtworkListItemType
 		Local URL:String
 		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
@@ -501,6 +503,7 @@ Type GameType Extends GameReadType
 		Forever		
 		
 		If Log1.LogClosed = False then
+			Log1.AddText("Optimizing Artwork...")
 			Self.OptimizeArtwork()
 		EndIf
 		
@@ -540,6 +543,7 @@ Type GameType Extends GameReadType
 			EndIf
 			Select FileName
 				Case "Screen"
+					Log1.AddText("Optimizing " + FileName)
 					'background
 					PrintF(GAMEDATAFOLDER + GName + FolderSlash + File)
 					Pixmap = LoadPixmap(GAMEDATAFOLDER + GName + FolderSlash + File)
@@ -571,6 +575,7 @@ Type GameType Extends GameReadType
 					SavePixmapJPeg(SmallPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_THUMB.jpg" , ArtworkCompression )
 				
 				Case "Front" , "Back"
+					Log1.AddText("Optimizing " + FileName)
 					PrintF(GAMEDATAFOLDER + GName + FolderSlash + File)
 					Pixmap = LoadPixmap(GAMEDATAFOLDER + GName + FolderSlash + File)
 					PixmapW = PixmapWidth(Pixmap)
@@ -609,6 +614,7 @@ Type GameType Extends GameReadType
 					SavePixmapJPeg(SmallPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_THUMB.jpg" , ArtworkCompression )
 				
 				Case "Shot1" , "Shot2"
+					Log1.AddText("Optimizing " + FileName)
 					PrintF(GAMEDATAFOLDER + GName + FolderSlash + File)
 					Pixmap = LoadPixmap(GAMEDATAFOLDER + GName + FolderSlash + File)
 					PixmapW = PixmapWidth(Pixmap)
@@ -644,6 +650,7 @@ Type GameType Extends GameReadType
 					SavePixmapJPeg(OptPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_OPT.jpg" , ArtworkCompression )
 					SavePixmapJPeg(SmallPixmap , GAMEDATAFOLDER + GName + FolderSlash + FileName + "_THUMB.jpg" , ArtworkCompression )
 				Case "Banner"
+					Log1.AddText("Optimizing "+Filename)
 					Pixmap = LoadPixmap(GAMEDATAFOLDER + GName + FolderSlash + File)
 					PixmapW = PixmapWidth(Pixmap)
 					PixmapH = PixmapHeight(Pixmap)
@@ -1042,7 +1049,6 @@ Type GameType Extends GameReadType
 			ArtThumbNode.addTextChild("FanArt" , Null , FTA)
 		Next				
 		
-		RootNode.addTextChild("ID" , Null , Self.ID)
 		RootNode.addTextChild("Rating" , Null , Self.Rating)
 		
 		'TODO: Not sure whether this CopyFile is useless due to CreateEmptyXML() above wiping file first

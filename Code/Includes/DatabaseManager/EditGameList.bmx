@@ -2782,7 +2782,7 @@ EndRem
 		Local GameEXE:String
 		Local GamePlat:String
 		Local GameUpdateMode:Int = - 1
-		If CheckInternet() = 0 Then
+		If CheckInternet() = 0 then
 			PrintF("Not Connected to Internet")
 			MessageBox = New wxMessageDialog.Create(Null, "You are not connected to the internet.", "Error", wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
@@ -2790,7 +2790,7 @@ EndRem
 			Return 					
 		EndIf
 		
-		If EditGameWin.Selection = - 1 Then
+		If EditGameWin.Selection = - 1 then
 			PrintF("GameList Returned: -1, Update Pressed")
 			MessageBox = New wxMessageDialog.Create(Null, "Please select a game to Update", "Info", wxOK)
 			MessageBox.ShowModal()
@@ -2803,15 +2803,15 @@ EndRem
 			Local GameName:String = String(GameNamesArray[EditGameWin.Selection])
 			
 			Local GameNode:GameType = New GameType
-			PrintF("GameList Selection: "+GameName)
+			PrintF("GameList Selection: " + GameName)
 
-			If GameNode.GetGame(GameName) = - 1 Then
+			If GameNode.GetGame(GameName) = - 1 then
 				CustomRuntimeError("Error 4: Unable to find info.txt in UpdateGame") 'MARK: Error 4			
 			Else
 				PrintF("Reading Info File")
 
 				
-				If GameNode.ID = 0 Then
+				If GameNode.LuaFile = Null Or GameNode.LuaFile = "" Or GameNode.LuaIDData = Null Or GameNode.LuaIDData = "" then
 					PrintF("ID=0: Message Shown End Loop")
 					MessageBox = New wxMessageDialog.Create(Null , "This game was added manually, please select a game added via the online database to use the update feature" , "Info" , wxOK)
 					MessageBox.ShowModal()
@@ -2821,30 +2821,33 @@ EndRem
 					MessageBox = New wxMessageDialog.Create(Null, "Would you like to overwrite old files?"+Chr(10)+" Yes - redownloads all game artwork"+Chr(10)+" No - download new artwork only" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 					If MessageBox.ShowModal() = wxID_YES Then
 						PrintF("Overwrite True")
-						GameUpdateMode = 1
+						GameNode.OverideArtwork = 1
 					Else
 						PrintF("Overwrite False")
-						GameUpdateMode = 0
+						GameNode.OverideArtwork = 0
 					EndIf
 					MessageBox.Free()	
 					PrintF("Running Main Update Function")				
 					
-					'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Updating Game" , , , 300 , 400) )
 					
-					Log1.Show(1)
-					Log1.AddText("Downloading Game Info ID:"+GameNode.ID)
-					GameNode.DownloadGameInfo()
-					GameNode.DownloadGameArtWork(GameUpdateMode)
-					Log1.AddText("Finished")
-					'Log1.Destroy()
-					Log1.Show(0)
-					'Log1 = Null 
+					?Threaded
+					Local UpdateGameThread:TThread = CreateThread(Thread_UpdateGame, GameNode)
+					While UpdateGameThread.Running()
+						DatabaseApp.Yield()
+						Delay 100
+					Wend
+					?Not Threaded
+					Thread_UpdateGame(GameNode)
+					?					
+								
+
+					
 					MessageBox = New wxMessageDialog.Create(Null , "Game Successfully Updated" , "Info" , wxOK)
 					MessageBox.ShowModal()
 					MessageBox.Free()	
 				EndIf	
 				
-				GameNode = Null 
+				GameNode = Null
 				
 				'EditGameWin.Enable()
 				EditGameWin.ParentWin.ResetEditGameWindow()
@@ -3380,3 +3383,15 @@ Type ArtworkPicker Extends wxFrame
 	End Function		
 End Type
 
+Function Thread_UpdateGame:Object(Game:Object)
+	Local GameNode:GameType = GameType(Game)
+	
+	
+	Log1.Show(1)
+	Log1.AddText("Downloading Game Info ID:" + GameNode.LuaIDData )
+	GameNode.DownloadGameInfo()
+	GameNode.DownloadGameArtWork()
+	Log1.AddText("Finished")
+	Log1.Show(0)
+
+End Function
