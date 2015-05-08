@@ -36,7 +36,21 @@ end
 --			2. The next depth to provide SearchGame or 0 for finished selecting
 --			3. The List
 function SearchGame(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
+ListDepth = tonumber(ListDepth)
 
+	if ListDepth==1 then 
+		List:LuaListAddLast("Item1","Client1")
+		List:LuaListAddLast("Item2","Client2")
+		return 0,2,List
+	elseif ListDepth==2 then 
+		List:LuaListAddLast("Item3","Client3")
+		List:LuaListAddLast("Item4","Client4")
+		return 0,0,List
+	else
+		--Error
+		return 1,0,List
+	end
+	
 	return 0,0,List
 end
 

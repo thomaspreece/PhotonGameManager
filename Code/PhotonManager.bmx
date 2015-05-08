@@ -1,4 +1,14 @@
-'Still need to implement the game and art download for Lua scripts. Started with OnlineAdd not quite finished that one yet
+'TODO: Finish Lua Implementation of
+'	-AutoSearch OnlineAdd
+'	-AutoSearch SearchOnlineImport
+'	-AutoSearch GameExplorerImport
+'	-ManualSearch GameExplorerImport
+
+'TODO: Add Sorting to thegamesdb.net lua script
+'TODO: Reorder settings window
+'TODO: Add progress bars to Log Window
+'TODO: Re-enable automatic Icon extract
+'TODO: Convert OnlineImport2 to similar format as SteamOnlineImport2
 
 'SUPER IMPORTANT
 
@@ -2233,9 +2243,10 @@ Type LogWindow Extends wxFrame
 		
 		LogClosed = False
 		Super.Show(Val)
-		If Val = 0 then
-			LogBox.Clear()
-		EndIf
+		LogBox.Clear()
+		'If Val = 0 then
+		'	LogBox.Clear()
+		'EndIf
 	End Method
 	
 	Function CloseLog(event:wxEvent)

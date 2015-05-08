@@ -375,11 +375,11 @@ Type OnlineAdd Extends wxFrame
 			
 			GNameConv = SanitiseForInternet(GName)
 			
-			If EXEDatabaseOff = False Then
+			If EXEDatabaseOff = False then
 				For b = 1 To 5
 					Print "Searching Stream"
 					NoStream = False
-					Print "http::photongamemanager.com/GamesEXEDatabase/GetGame.php?Folder="+GNameConv+"&"
+					Print "http::photongamemanager.com/GamesEXEDatabase/GetGame.php?Folder=" + GNameConv + "&"
 					s:TStream = ReadStream("http::photongamemanager.com/GamesEXEDatabase/GetGame.php?Folder="+GNameConv+"&")
 					If s = Null Then
 						NoStream=True
@@ -392,14 +392,14 @@ Type OnlineAdd Extends wxFrame
 				NoStream = True
 			EndIf
 			ID = ""
-			If NoStream=False Then
+			If NoStream = False then
 				ID = s.ReadLine()
 				Print ID
 			EndIf
 			If ID = "" Or ID = " " then
 				WriteGameList(GName , GPlat)
 				SortGameList(GName)			
-				ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
+				ReadGameSearch = ReadFile(TEMPFOLDER + "SearchGameList.txt")
 					ID = ReadLine(ReadGameSearch)
 					GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
 					Platform = ReadLine(ReadGameSearch)
