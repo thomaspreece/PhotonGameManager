@@ -69,7 +69,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		Self.SetSizer(vbox)
 	
-		Connect(DSP_ST , wxTE_PROCESS_ENTER , SearchFun)
+		Connect(DSP_ST , wxEVT_COMMAND_TEXT_ENTER , SearchFun)
 		Connect(DSP_SB , wxEVT_COMMAND_BUTTON_CLICKED , SearchFun)
 		
 		Connect(DSP_SL, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , ListItemSelectedFun)
@@ -283,7 +283,6 @@ Type DatabaseSearchPanelType Extends wxPanel
 		?Threaded
 		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 3, "Search", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
-		PlaySound SearchBeep
 		
 		?Not Threaded
 		If LuaHelper_pcall(LuaVM, 6, 3) <> 0 then Return
@@ -293,6 +292,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 	End Method
 		
 	Method SearchReturn()
+		PlaySound SearchBeep
 		LuaMutexLock()
 		Local Error:Int
 		
