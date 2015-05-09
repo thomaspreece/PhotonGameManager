@@ -1,8 +1,22 @@
 Type LuaInternetType {expose disablenew}
 	Field curl:TCurlEasy
 	Field LastError:String
+	Field Time:Int
+	Field Timeout:Int = 10000
+	Field Currentdl:Double
 
 	Function progressCallback:Int(data:Object, dltotal:Double, dlnow:Double, ultotal:Double, ulnow:Double) {hidden}
+		Local LuaInternet:LuaInternetType = LuaInternetType(data)
+		If LuaInternet.Currentdl - dlnow = 0 then
+			If MilliSecs() - LuaInternet.Time > LuaInternet.Timeout then
+				PrintF("Internet Timeout!")
+				Return 1
+			EndIf
+		Else
+			LuaInternet.Currentdl = dltotal
+			LuaInternet.Time = MilliSecs()
+		EndIf
+		
 		PrintF( " ++++ " + dlnow + " bytes")
 		Return 0	
 	End Function
@@ -17,13 +31,18 @@ Type LuaInternetType {expose disablenew}
 	End Method
 	
 	Method Reset()
+		LuaMutexLock()
 		curl.cleanup()
 		curl = TCurlEasy.Create()
+		LuaMutexUnlock()
 	End Method
 	
 	Method GET:String(URL:String, filename:String)
 		'strip any bad path
 		filename = StripDir(filename)
+		
+		Self.Time = - 1
+		Self.Currentdl = - 1
 		
 		Local TFile:TStream = WriteFile(TEMPFOLDER + filename)
 
@@ -31,7 +50,7 @@ Type LuaInternetType {expose disablenew}
 
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
-		curl.setProgressCallback(Self.progressCallback)
+		curl.setProgressCallback(Self.progressCallback, Object(Self) )
 		curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 		curl.setWriteStream(TFile)
 		
@@ -40,6 +59,7 @@ Type LuaInternetType {expose disablenew}
 		CloseFile(TFile)
 
 		If res then
+			PrintF("LuaInternet GET Error: " + URL + "  " + CurlError(res) )
 			Self.LastError = CurlError(res)
 			Return "-1"
 		else
@@ -48,15 +68,18 @@ Type LuaInternetType {expose disablenew}
 		EndIf
 	End Method
 	
-	Method POST:String(URL:String,filename:String,data:String)
+	Method POST:String(URL:String, filename:String, data:String)
 		'strip any bad path
 		filename = StripDir(filename)
+
+		Self.Time = - 1
+		Self.Currentdl = - 1
 		
 		Local TFile:TStream = WriteFile(TEMPFOLDER + filename)
 
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
-		curl.setProgressCallback(Self.progressCallback)
+		curl.setProgressCallback(Self.progressCallback, Object(Self) )
 		curl.setOptString(CURLOPT_POSTFIELDS, data)		
 		curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 		curl.setWriteStream(TFile)
@@ -65,7 +88,14 @@ Type LuaInternetType {expose disablenew}
 		
 		CloseFile(TFile)
 
-		Return TEMPFOLDER + filename 'FullPathToFile
+		If res then
+			PrintF("LuaInternet POST Error: " + URL + "  " + CurlError(res) )
+			Self.LastError = CurlError(res)
+			Return "-1"
+		Else
+			Self.LastError = ""
+			Return TEMPFOLDER + filename 'FullPathToFile
+		EndIf 
 	End Method	
 End Type
 
@@ -96,12 +126,12 @@ Type LuaListType {expose disablenew}
 	End Method
 End Type
 
-Function LuaHelper_FunctionError:Int(Lua:Byte Ptr, Error:Int)
+Function LuaHelper_FunctionError:Int(Lua:Byte Ptr, Error:Int, ErrorMessage:String)
 	Local MessageBox:wxMessageDialog
-	
+	If ErrorMessage = "Operation was aborted by an application callback" then ErrorMessage = "Internet operation timeout"
 	If Error <> 0 then
-		PrintF("Lua function returned error code: " + Error)
-		MessageBox = New wxMessageDialog.Create(Null , "Lua function returned error code: " + Error , "Error" , wxOK | wxICON_EXCLAMATION)
+		PrintF("Lua function returned error code: " + Error + " with message: " + ErrorMessage)
+		MessageBox = New wxMessageDialog.Create(Null , "Error: " + ErrorMessage + "~nError Code: " + Error , "Error" , wxOK | wxICON_EXCLAMATION)
 		MessageBox.ShowModal()
 		MessageBox.Free()				
 	EndIf

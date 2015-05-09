@@ -707,19 +707,25 @@ Type GameType Extends GameReadType
 		'Call Lua Function
 		
 
-		Result = lua_pcall(LuaVM, 3, 2, 0)
+		Result = lua_pcall(LuaVM, 3, 3, 0)
 	
 			
 		If (Result <> 0) then
 			ErrorMessage = luaL_checkstring(LuaVM, - 1)
-			LuaHelper_CleanStack(LuaVM)
-			LuaMutexUnlock()
+		
+			LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
 			
-			PrintF("Lua Runtime Error: ~n" + ErrorMessage)
-			MessageBox = New wxMessageDialog.Create(Null , "Lua Runtime Error: ~n" + ErrorMessage, "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()
+			LuaMutexUnlock()
 			'Return without saving game
+			Return 0
+		EndIf
+		
+		Error = luaL_checkint( LuaVM, 1 )
+		
+		If Error <> 0 then
+			ErrorMessage = luaL_checkstring(LuaVM , 2)
+			LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
+			LuaMutexUnlock()
 			Return 0
 		EndIf
 		

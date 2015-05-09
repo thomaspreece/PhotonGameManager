@@ -1,5 +1,6 @@
 
 Type DatabaseSearchPanelType Extends wxPanel
+	Field ParentWin:wxWindow
 	Field SearchSource:wxComboBox
 	Field SearchText:wxTextCtrl
 	Field SearchList:wxListBox
@@ -15,6 +16,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 	Field InitialSearch:String
 
 	Method OnInit()
+		ParentWin = GetParent()
 		PrintF("Creating DatabaseSearchPanelType")
 		LuaInternet.Reset()
 		OldSearch = ""
@@ -82,7 +84,9 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Self.Show(1)
 		
 		'SourceText.SetLabel("")
+		
 		Self.SourceChanged()
+		
 		vbox.RecalcSizes()
 		
 		'Local event:wxCommandEvent = New wxCommandEvent.NewEvent(wxEVT_COMMAND_TEXT_UPDATED, SearchSource.GetId() )
@@ -167,11 +171,17 @@ Type DatabaseSearchPanelType Extends wxPanel
 		LuaMutexUnlock()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 3, "SourceChanged", wxWindow(Self) )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 4, "SourceChanged", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
-		If LuaHelper_pcall(LuaVM, 2, 3) <> 0 then Return
+		LuaMutexLock()
+		If LuaHelper_pcall(LuaVM, 2, 4) <> 0 then
+			Return
+			LuaMutexUnlock()
+		Else
+			LuaMutexUnlock()
+		EndIf
 		SourceChangedReturn()
 		?
 	End Method
@@ -187,15 +197,16 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Error = luaL_checkint( LuaVM, 1 )
 		
 		If Error <> 0 then
-			LuaHelper_FunctionError(LuaVM, Error)
+			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
+			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
 			LuaMutexUnlock()
 			Return
 		EndIf
 		
 		
 		'Get selected platform
-		Local SelectedPlatform:String = luaL_checkstring(LuaVM , 2)
-		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 3 ) )
+		Local SelectedPlatform:String = luaL_checkstring(LuaVM , 3)
+		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		Local SinglePlatform:LuaListItemType
 		
 		'Remove 2 return values from stack
@@ -217,7 +228,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Error = luaL_checkint( LuaVM, 1 )
 		
 		If Error <> 0 then
-			LuaHelper_FunctionError(LuaVM, Error)
+			LuaHelper_FunctionError(LuaVM, Error, "Error Getting Website Source Link")
 			LuaMutexUnlock()
 			Return
 		EndIf
@@ -281,11 +292,17 @@ Type DatabaseSearchPanelType Extends wxPanel
 		LuaMutexUnlock()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 3, "Search", wxWindow(Self) )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "Search", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
-		If LuaHelper_pcall(LuaVM, 6, 3) <> 0 then Return
+		LuaMutexLock()
+		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+			Return
+			LuaMutexUnlock()
+		Else
+			LuaMutexUnlock()
+		EndIf
 		SearchReturn()
 		?
 		
@@ -300,13 +317,14 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Error = luaL_checkint( LuaVM, 1 )
 		
 		If Error <> 0 then
-			LuaHelper_FunctionError(LuaVM, Error)
+			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
+			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
 			LuaMutexUnlock()
 			Return
 		EndIf
 				
-		Self.ListDepth = luaL_checkint( LuaVM , 2)
-		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 3 ) )
+		Self.ListDepth = luaL_checkint( LuaVM , 3)
+		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		
 		LuaHelper_CleanStack(LuaVM)
 		
@@ -377,10 +395,16 @@ Type DatabaseSearchPanelType Extends wxPanel
 		LuaMutexUnlock()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 3, "FurtherSearch", wxWindow(Self) )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "FurtherSearch", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		?Not Threaded
-		If LuaHelper_pcall(LuaVM, 6, 3) <> 0 then Return
+		LuaMutexLock()
+		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+			Return
+			LuaMutexUnlock()
+		Else
+			LuaMutexUnlock()
+		EndIf
 		FurtherSearchReturn()
 		?
 		
@@ -395,13 +419,14 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Error = luaL_checkint( LuaVM, 1 )
 		
 		If Error <> 0 then
-			LuaHelper_FunctionError(LuaVM, Error)
+			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
+			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
 			LuaMutexUnlock()
 			Return
 		EndIf
 				
-		Self.ListDepth = luaL_checkint( LuaVM , 2)
-		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 3 ) )
+		Self.ListDepth = luaL_checkint( LuaVM , 3)
+		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		
 		LuaHelper_CleanStack(LuaVM)
 		
