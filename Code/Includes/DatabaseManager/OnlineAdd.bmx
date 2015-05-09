@@ -549,7 +549,7 @@ Type OnlineAdd Extends wxFrame
 		EndIf
 		
 		
-		MainWin.Show()
+		MainWin.AddGamesMenuField.Show()
 		MainWin.OnlineAddField.Destroy()
 		MainWin.OnlineAddField = Null 			
 	End Function

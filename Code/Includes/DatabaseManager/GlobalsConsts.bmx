@@ -196,6 +196,7 @@ Const OA_P3_CB = 307
 Const OA_P3_SCB = 308
 
 Const MS_EL = 350
+Const MS_CB = 351
 
 Const SCA_BB = 400
 Const SCA_NTB = 401
