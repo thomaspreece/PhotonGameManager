@@ -97,9 +97,9 @@ Type KeyGenFrame Extends wxFrame
 			WriteLine(WriteKey,Key)			
 			CloseFile(WriteKey)
 			
-			Local Body:String = "body=Thank you for your purchase of Photon GameManager V4. You license key is below%2c please copy the attached file into the GameManager V4 folder to activate the program.%0d%0aUsername: " + Username + "%0d%0aKey: " + Key + "%0d%0a%0d%0aIf you have any problems or find any bugs please send an email to the below address or visit http://bugs.photongamemanager.com/" + "%0d%0aThanks%0d%0aPhoton GameManager Team%0d%0aCustomerSupport@photongamemanager.com"
+			Local Body:String = "body=Thank you for your purchase of Photon V4. You license key is below%2c please copy the attached file into the Photon V4 program folder (default: C:\Program Files\GameManagerV4) to activate the program.%0d%0aUsername: " + Username + "%0d%0aKey: " + Key + "%0d%0a%0d%0aIf you have any problems or find any bugs please send an email to the below address or visit http://photongamemanager.com/BugTracker" + "%0d%0aThanks%0d%0aPhoton Customer Support%0d%0aCustomerSupport@photongamemanager.com"
 			Body = Replace(Body, " ", "%20")
-			Local Name:String = Chr(34) + "C:\Program Files (x86)\Mozilla Thunderbird\thunderbird.exe" + Chr(34) + " -compose " + Chr(34) + "to='"+Username+"',subject='GameManager V4 License Key',"+Body+",attachment='file:///C:/ProgramKey.txt'"+Chr(34)
+			Local Name:String = Chr(34) + "C:\Program Files (x86)\Mozilla Thunderbird\thunderbird.exe" + Chr(34) + " -compose " + Chr(34) + "to='"+Username+"',subject='Photon V4 License Key',"+Body+",attachment='file:///C:/ProgramKey.txt'"+Chr(34)
 			
 			Process = CreateProcess(Name)
 			'ProcessDetach(Process)
