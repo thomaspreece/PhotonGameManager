@@ -377,17 +377,23 @@ Type ManualSGSearch Extends wxFrame
 	'Field SearchList:wxListBox
 	Field SourceItemsList:wxListCtrl
 	Field ListItemNum:Int
-	
+	Field PlatformNum:Int
 	
 	Field DatabaseSearchPanel:DatabaseSearchPanelType	
 	
 	Method OnInit()
 		ParentWin = SteamOnlineImport2(GetParent() )
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
+		?Win32
+		Self.PlatformNum = 24
+		?MacOS
+		Self.PlatformNum = 12	
+		?Linux
+		Self.PlatformNum = 40
+		?
 		
 		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Self, MS_DSP) )
-		
+		Self.DatabaseSearchPanel.SetPlatformNum(Self.PlatformNum)
 		
 		Local panel2:wxPanel = New wxPanel.Create(Self , - 1)
 		Local hbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)

@@ -29,9 +29,9 @@ Type GameType Extends GameReadType
 		GName = Lower(GName)
 		
 		
-		If Self.OrginalName = Lower(Self.OrginalName) Then
+		If Self.OrginalName = Lower(Self.OrginalName) then
 		
-		Else 
+		Else
 			RenameFile(GAMEDATAFOLDER + Self.OrginalName , GAMEDATAFOLDER + Lower(Self.OrginalName) )
 			Self.OrginalName = Lower(Self.OrginalName)
 		EndIf

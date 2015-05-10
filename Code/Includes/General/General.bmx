@@ -1,4 +1,7 @@
 Include "PlatformReader.bmx"
+Include "SanitiseFunctions.bmx"
+Include "StartupChecks.bmx"
+Include "DBUpdates.bmx"
 
 Function GetLuaList:TList(LuaCat:Int)
 	Local LuaList:TList = CreateList()
@@ -437,37 +440,6 @@ Function PlatformListChecks()
 	PrintF("Finished Checking Platforms.txt")
 End Function
 
-Function FolderCheck()
-	If FileType(StripSlash(LOGFOLDER) ) = 0 Then
-		CreateDir(StripSlash(LOGFOLDER),1 )
-		'PrintF("Creating Log Folder: "+LOGFOLDER)
-	EndIf		
-	If FileType(StripSlash(SETTINGSFOLDER) ) = 0 Then
-		CreateDir(StripSlash(SETTINGSFOLDER),1 )
-		'PrintF("Creating Settings Folder: "+SETTINGSFOLDER)
-	EndIf
-	If FileType(StripSlash(GAMEDATAFOLDER) ) = 0 Then
-		CreateDir(StripSlash(GAMEDATAFOLDER),1 )
-		'PrintF("Creating Games Folder: "+GAMEDATAFOLDER)
-	EndIf
-	If FileType(StripSlash(TEMPFOLDER) ) = 0 Then
-		CreateDir(StripSlash(TEMPFOLDER),1 )
-		'PrintF("Creating Temp Folder: "+TEMPFOLDER)
-	EndIf
-	If FileType(StripSlash(RESFOLDER) ) = 0 Then
-		CreateDir(StripSlash(RESFOLDER),1 )
-		'PrintF("Creating Res Folder: "+RESFOLDER)
-	EndIf	
-	If FileType(StripSlash(APPFOLDER) ) = 0 Then
-		CreateDir(StripSlash(APPFOLDER),1 )
-		'PrintF("Creating App Folder: "+APPFOLDER)
-	EndIf	
-	If FileType(StripSlash(MOUNTERFOLDER) ) = 0 Then
-		CreateDir(StripSlash(MOUNTERFOLDER),1 )
-		'PrintF("Creating Mounter Folder: "+MOUNTERFOLDER)
-	EndIf		
-
-End Function
 
 Function DeleteCreateFolder(Folder:String)
 	Folder = StripSlash(Folder)
@@ -579,6 +551,45 @@ Type GameReadType {expose}
 	'Field ScreenShotNumber:Int '1 if there is screenshots/0 otherwise
 	Field ScreenShotsAvailable:Int
 	
+
+	Function GameNameFilter:String(Text:String)
+		'Strips out all characters that cannot be displayed in GameManager suite programs	
+		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
+		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
+		
+		Text = Regfilter.ReplaceAll(Text, "&")
+		Text = Regfilter2.ReplaceAll(Text, "")
+		
+		Return Text
+		
+	End Function
+
+	Function GameDescFilter:String(Text:String)
+		'Strips out all characters that cannot be displayed in GameManager suite programs	
+		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
+		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
+		
+		Text = Regfilter.ReplaceAll(Text, "&")
+		Text = Regfilter2.ReplaceAll(Text, "")
+		
+		Return Text
+	End Function
+
+
+	Function GameNameDirFilter:String(Text:String)
+		'Strips out all characters not allowed in filesystems
+		
+		Local Regfilter:TRegEx = New TRegEx.Create("&(amp;|)")
+		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\- _]")
+		Local Regfilter3:TRegEx = New TRegEx.Create(" ")
+
+		Text = Regfilter.ReplaceAll(Text, "and")
+		Text = Regfilter2.ReplaceAll(Text, "")
+		Text = Regfilter3.ReplaceAll(Text, "_")
+
+		Return Text
+	End Function	
+	
 	Method NewGame()
 		IntialiseFanartLists()
 		Self.Genres = CreateList()	
@@ -617,7 +628,7 @@ Type GameReadType {expose}
 		GName = Self.GameNameDirFilter(GName)
 		Self.OrginalName = GName
 		
-		If FileType(GAMEDATAFOLDER + GName +FolderSlash+"Info.xml") = 1 Then
+		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "Info.xml") = 1 then
 		Else
 			Return -1
 		EndIf		
@@ -850,43 +861,6 @@ Type GameReadType {expose}
 	End Method 
 	
 
-	Function GameNameFilter:String(Text:String)
-		'Strips out all characters that cannot be displayed in GameManager suite programs	
-		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
-		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
-		
-		Text = Regfilter.ReplaceAll(Text, "&")
-		Text = Regfilter2.ReplaceAll(Text, "")
-		
-		Return Text
-		
-	End Function
-
-	Function GameDescFilter:String(Text:String)
-		'Strips out all characters that cannot be displayed in GameManager suite programs	
-		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
-		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
-		
-		Text = Regfilter.ReplaceAll(Text, "&")
-		Text = Regfilter2.ReplaceAll(Text, "")
-		
-		Return Text
-	End Function
-
-
-	Function GameNameDirFilter:String(Text:String)
-		'Strips out all characters not allowed in filesystems
-		
-		Local Regfilter:TRegEx = New TRegEx.Create("&(amp;|)")
-		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\- _]")
-		Local Regfilter3:TRegEx = New TRegEx.Create(" ")
-
-		Text = Regfilter.ReplaceAll(Text, "and")
-		Text = Regfilter2.ReplaceAll(Text, "")
-		Text = Regfilter3.ReplaceAll(Text, "_")
-
-		Return Text
-	End Function
 
 	Rem
 
@@ -1531,7 +1505,7 @@ Function keygen:String(name:String, v:String = "23456DDE7ES3428HG9ABCDEFGHHUEYSJ
 	Local e:Int
 	For ee = 0 To 19
 		e = encrypt[ee] Mod Len(v) - 1
-		If e = -1 Then e = 0
+		If e = - 1 then e = 0
 		encrypted = encrypted + Chr(v[e])
 	Next
 

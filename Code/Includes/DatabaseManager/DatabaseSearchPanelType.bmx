@@ -15,6 +15,10 @@ Type DatabaseSearchPanelType Extends wxPanel
 	
 	Field InitialSearch:String
 
+	Method SetPlatformNum(PlatformNum:Int)
+		Self.PlatformNum = PlatformNum
+	End Method
+
 	Method OnInit()
 		ParentWin = GetParent()
 		PrintF("Creating DatabaseSearchPanelType")
