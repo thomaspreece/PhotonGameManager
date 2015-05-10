@@ -1,3 +1,209 @@
+Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = OnlineAdd(obj)
+		OnlineWin.Hide()
+		Log1.Show(1)
+		Local item = - 1
+		Local GName:String , GPath:String , GNameConv:String
+		Local ErrorMessage:String
+		Local EXE:String
+		Local EXEList:TList
+		Local col2:wxListItem
+		Local AutoSearchLuaFile:String = "thegamesdb.net"
+		Local GPlat:String = OnlineWin.OA_PlatCombo.GetValue()
+
+		LuaMutexLock()
+		
+		Local LuaList:LuaListType = New LuaListType.Create()
+	
+		Local LuaFile:String = LUAFOLDER + "Game" + FolderSlash + AutoSearchLuaFile + ".lua"
+		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+			LuaMutexUnlock()
+			LuaHelper_FunctionError(LuaVM, - 1, "Could Not Load Lua File")
+			Log1.Show(0)
+			OnlineWin.Show()
+			Return
+		EndIf
+
+		'Create Platform List
+		Local LuaPlatformList:LuaListType = New LuaListType.Create()
+		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
+		lua_pushinteger( LuaVM , GlobalPlatforms.GetPlatformByName(GPlat ).ID)
+		lua_pushbmaxobject( LuaVM, LuaPlatformList )
+		
+		Result = lua_pcall(LuaVM, 2, 4, 0)
+				
+		If (Result <> 0) then
+			ErrorMessage = luaL_checkstring(LuaVM, - 1)
+		
+			LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
+			
+			LuaMutexUnlock()
+			Log1.Show(0)
+			OnlineWin.Show()
+			Return
+		EndIf
+		
+		Error = luaL_checkint( LuaVM, 1 )
+		
+		If Error <> 0 then
+			ErrorMessage = luaL_checkstring(LuaVM , 2)
+			LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
+			LuaMutexUnlock()
+			Log1.Show(0)
+			OnlineWin.Show()
+			Return
+		EndIf
+		
+		Local PlatformName:String = luaL_checkstring(LuaVM , 3)
+		Local PlatformData:String = ""
+		Local Platform:LuaListItemType
+		
+		For Platform = EachIn LuaPlatformList.List
+			If Platform.ItemName = PlatformName then
+				PlatformData = Platform.ClientData
+				Exit
+			EndIf
+		Next
+		
+		If PlatformData = "" then
+			LuaHelper_FunctionError(LuaVM, - 1 , "Could not get a platform match")
+			LuaMutexUnlock()
+			Log1.Show(0)
+			OnlineWin.Show()
+			Return
+		EndIf
+		
+		LuaHelper_CleanStack(LuaVM)
+		
+		Local LuaSearchList:LuaListType
+		Local NextDepth:Int
+		Local NextLuaData:String
+		Local NextLuaName:String
+		Local SkipRepeat:Int
+		
+		'Repeat through list
+		Repeat	
+			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+			If item = - 1 then Exit
+			col2 = New wxListItem.Create()
+			col2.SetId(item)
+			col2.SetColumn(1)
+			col2.SetMask(wxLIST_MASK_TEXT)
+			OnlineWin.SourceItemsList.GetItem(col2)
+			GPath = col2.GetText()
+			GName = StripExt(StripDir(GPath) )
+			Log1.AddText("Searching: " + GName)
+			PrintF("Searching: " + GName + " item: " + item)
+				
+			NextDepth = 1
+			NextLuaData = ""
+			NextLuaName = ""
+			SkipRepeat = 0
+			
+			'Repeat through all search depths required choosing first returned item
+			
+			Repeat
+				LuaSearchList = New LuaListType.Create()
+					
+				'Get Lua Function
+				lua_getfield(LuaVM, LUA_GLOBALSINDEX, "SearchGame")
+				'Push PlatformNum and empty list
+				lua_pushbmaxobject( LuaVM , GName)
+				lua_pushbmaxobject( LuaVM , NextLuaData)
+				lua_pushbmaxobject( LuaVM , PlatformData)
+				lua_pushinteger( LuaVM , NextDepth)
+				lua_pushbmaxobject( LuaVM, LuaInternet )
+				lua_pushbmaxobject( LuaVM, LuaSearchList )
+				
+				Result = lua_pcall(LuaVM, 6, 4, 0)
+					
+				If (Result <> 0) then
+					ErrorMessage = luaL_checkstring(LuaVM, - 1)
+					LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
+					Log1.AddText("Nothing Found")
+					Log1.AddText("")	
+					PrintF("Lua Search pcall Error")
+					SkipRepeat = 1
+					Exit
+				EndIf
+				
+				Error = luaL_checkint( LuaVM, 1 )
+				
+				If Error <> 0 then
+					ErrorMessage = luaL_checkstring(LuaVM , 2)
+					LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
+					Log1.AddText("Nothing Found")
+					Log1.AddText("")	
+					PrintF("Lua Search Error")
+					SkipRepeat = 1
+					Exit 
+				EndIf
+				
+				
+				
+				NextDepth = luaL_checkint( LuaVM, 3 )
+				LuaHelper_CleanStack(LuaVM)
+				
+				If LuaSearchList.List.Count() > 0 then
+					NextLuaData = LuaListItemType(LuaSearchList.List.First() ).ClientData
+					NextLuaName = LuaListItemType(LuaSearchList.List.First() ).ItemName
+				Else
+					Log1.AddText("Nothing Found")
+					Log1.AddText("")	
+					PrintF("Nothing Returned")
+					SkipRepeat = 1
+					Exit
+				EndIf
+				
+				If NextDepth = 0 then
+					Exit 			
+				EndIf
+				
+			Forever
+			If SkipRepeat = 1 then Continue
+			
+			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
+			OnlineWin.SourceItemsList.SetStringItem(item , 2 , NextLuaName)			
+			OnlineWin.SourceItemsList.SetItemData(item, AutoSearchLuaFile + "||" + NextLuaData)
+			
+			PrintF(AutoSearchLuaFile + "||" + NextLuaData)
+			
+			If GlobalPlatforms.GetPlatformByName(GPlat ).PlatType = "Folder" then
+				EXEList = GetEXEList(GPath , NextLuaName)
+				If CountList(EXEList) < 1 then
+					Log1.AddText("Nothing Found")
+					Log1.AddText("")	
+					PrintF("No EXE")			
+					Continue
+				EndIf
+				EXE = String(EXEList.First() )
+				If IsntNull(EXE) = False then
+					Log1.AddText("Nothing Found")
+					Log1.AddText("")
+					PrintF("Null EXE")
+					Continue
+				EndIf
+				OnlineWin.SourceItemsList.SetStringItem(item , 3 , EXE)
+				Log1.AddText("EXE: " + EXE)
+			EndIf
+			
+			Log1.AddText("Found: " + NextLuaName)
+			Log1.AddText("")
+			
+			If Log1.LogClosed = True then Exit
+		Forever
+		LuaMutexUnlock()
+		
+		OnlineWin.SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
+		If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then
+			OnlineWin.SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
+		EndIf		
+		
+		'Log1.Destroy()
+		Delay 2000
+		Log1.Show(0)
+		OnlineWin.Show()
+End Function
+
 
 
 Function Thread_SaveGames:Object(obj:Object)
@@ -221,7 +427,7 @@ Type OnlineAdd Extends wxFrame
 			SourceItemsList.SetStringItem(item , 3 , EXE)
 			SourceItemsList.SetItemData(item, Obj)
 			SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
-		else
+		Else
 			SourceItemsList.SetStringItem(item , 0 , "True")
 			SourceItemsList.SetStringItem(item , 2 , Game)
 			SourceItemsList.SetItemData(item, Obj)
@@ -350,150 +556,11 @@ Type OnlineAdd Extends wxFrame
 	Function AutoSearch(event:wxEvent)
 		PrintF("AutoSearch - OnlineAdd")
 		Local OnlineWin:OnlineAdd = OnlineAdd(event.parent)
-		OnlineWin.Hide()
-		'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Auto searching for games" , , , 300 , 400) )
-		Log1.Show(1)
-		Local item = - 1
-		Local GName:String , GPath:String , GNameConv:String
-		Local GPlat:String = OnlineWin.OA_PlatCombo.GetValue()
-		Local GameName:String , ID:String , Platform:String, EXE:String
-		Local EXEList:TList
-		Local col2:wxListItem
-		Local NoStream:Int
-		Repeat	
-			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 Then Exit
-			col2 = New wxListItem.Create()
-			col2.SetId(item)
-			col2.SetColumn(1)
-			col2.SetMask(wxLIST_MASK_TEXT)
-			OnlineWin.SourceItemsList.GetItem(col2)
-			GPath = col2.GetText()
-			GName = StripExt(StripDir(GPath))
-			Log1.AddText("Searching: " + GName)
-			PrintF("Searching: " + GName + " item: " + item)
-			
-			GNameConv = SanitiseForInternet(GName)
-			
-			If EXEDatabaseOff = False then
-				For b = 1 To 5
-					Print "Searching Stream"
-					NoStream = False
-					Print "http::photongamemanager.com/GamesEXEDatabase/GetGame.php?Folder=" + GNameConv + "&"
-					s:TStream = ReadStream("http::photongamemanager.com/GamesEXEDatabase/GetGame.php?Folder="+GNameConv+"&")
-					If s = Null Then
-						NoStream=True
-					Else
-						Print "Found Stream"
-						Exit
-					EndIf
-				Next	
-			Else
-				NoStream = True
-			EndIf
-			ID = ""
-			If NoStream = False then
-				ID = s.ReadLine()
-				Print ID
-			EndIf
-			If ID = "" Or ID = " " then
-				WriteGameList(GName , GPlat)
-				SortGameList(GName)			
-				ReadGameSearch = ReadFile(TEMPFOLDER + "SearchGameList.txt")
-					ID = ReadLine(ReadGameSearch)
-					GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
-					Platform = ReadLine(ReadGameSearch)
-				CloseFile(ReadGameSearch)
-				If IsntNull(ID) = False Or IsntNull(GameName) = False Or IsntNull(Platform) = False then
-					Log1.AddText("Nothing Found")
-					Log1.AddText("")	
-					PrintF("Null Data")
-					Continue
-				EndIf
-				
-				Log1.AddText("Found: " + GameName)
-				
-				If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then
-					EXEList = GetEXEList(GPath , GameName)
-					If CountList(EXEList) < 1 Then
-						Log1.AddText("Nothing Found")
-						Log1.AddText("")	
-						PrintF("No EXE")			
-						Continue
-					EndIf
-					EXE = String(EXEList.first() )
-					If IsntNull(EXE) = False Then
-						Log1.AddText("Nothing Found")
-						Log1.AddText("")
-						PrintF("Null EXE")
-						Continue
-					EndIf
-					OnlineWin.SourceItemsList.SetStringItem(item , 3 , EXE)
-					Log1.AddText("EXE: " + EXE)
-				EndIf
-				
-				
-				PrintF("Found: " + GName+ "EXE: "+EXE)
-				Log1.AddText("")
-				OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
-				OnlineWin.SourceItemsList.SetStringItem(item , 2 , ID+"::"+GameName+"::"+Platform)
-			
-			Else
-				EXE:String=s.ReadLine()
-				GameName:String=s.ReadLine()	
-				
-				Log1.AddText("Database Found: " + GameName)
-				
-				If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then
-					Repeat 
-					If Left(EXE,1)="\" Or Left(EXE,1)="/" Then 
-						EXE = Right(EXE,Len(EXE)-1)
-					Else
-						Exit
-					EndIf 
-					Forever
-					
-					If FileType(GPath+FolderSlash+EXE) <> 1 Then 
-						EXEList = GetEXEList(GPath , GameName)
-						If CountList(EXEList) < 1 Then
-							Log1.AddText("Nothing Found")
-							Log1.AddText("")	
-							PrintF("No EXE")			
-							Continue
-						EndIf
-						EXE = String(EXEList.first() )
-						If IsntNull(EXE) = False Then
-							Log1.AddText("Nothing Found")
-							Log1.AddText("")
-							PrintF("Null EXE")
-							Continue
-						EndIf
-						
-					EndIf 
-					OnlineWin.SourceItemsList.SetStringItem(item , 3 , EXE)
-					Log1.AddText("EXE: " + EXE)
-				EndIf
-				
-				PrintF("Found: " + GName + "EXE: " + EXE)	
-				Log1.AddText("")							
-				OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
-				OnlineWin.SourceItemsList.SetStringItem(item , 2 , ID+"::"+GameName+"::"+GPlat)			
-			EndIf	
-			If NoStream=False Then
-				CloseStream(s)
-			EndIf
-			If Log1.LogClosed = True Then Exit
-
-			
-		Forever
-		OnlineWin.SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
-		If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then 
-			OnlineWin.SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
-		EndIf
-		'Log1.Destroy()
-		Log1.Show(0)
-		OnlineWin.Show()
-		
+		?Threaded
+		Local AutoSearchThread:TThread = CreateThread(Thread_AutoSearch, OnlineWin)
+		?Not Threaded
+		Thread_AutoSearch(OnlineWin)
+		?		
 	End Function
 	
 	
@@ -594,6 +661,7 @@ Type ManualGESearch Extends wxFrame
 		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(LeftPanel, MS_DSP) )
 		
 		
+		
 		Local LP_SText:wxStaticText = New wxStaticText.Create(LeftPanel , wxID_ANY , OA_LP_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
 		
 		LPPanel2:wxPanel = New wxPanel.Create(LeftPanel , - 1)
@@ -672,13 +740,16 @@ Type ManualGESearch Extends wxFrame
 		PrintF("Initialising Values")
 		Self.UnHideWindow = val1
 		Self.GameFilePath = val2
+		
 		Self.PlatformNum = GlobalPlatforms.GetPlatformByName(val3).ID
+		Self.DatabaseSearchPanel.SetPlatformNum(Self.PlatformNum)
+				
 		Self.SetTitle("Searching for: " + val2 + " (" + val3 + ")")
 		Self.Update()
 		PrintF("FilePath: " + val2 + " Plat: " + val3)
 		If GlobalPlatforms.GetPlatformByID(Self.PlatformNum).PlatType = "Folder" then
 		
-		else
+		Else
 			Self.RP_SText.SetLabel("")
 			Self.EXEList.Hide()
 		EndIf
@@ -692,44 +763,72 @@ Type ManualGESearch Extends wxFrame
 		Local item:Int = - 1
 		Local EXEitem:Int
 		
-		If ManualGESearchWin.GameSelected = False then
+		If GlobalPlatforms.GetPlatformByID(ManualGESearchWin.PlatformNum ).PlatType = "Folder" then	
+			If ManualGESearchWin.GameSelected = False then
+				If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
+					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
+					MessageBox.ShowModal()
+					MessageBox.Free()	
+					Return
+				Else
+					If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
+						MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
+						MessageBox.ShowModal()
+						MessageBox.Free()		
+						Return
+					Else
+						ManualGESearchWin.DatabaseSearchPanel.ListItemSelected()
+						Return
+					EndIf
+				EndIf
+			Else
+			
+				If ManualGESearchWin.EXEList.GetSelection() = wxNOT_FOUND then
+					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
+					MessageBox.ShowModal()
+					MessageBox.Free()		
+					Return
+				else
+					If ManualGESearchWin.EXEList.GetStringSelection() = "No Executables Found" then
+						MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
+						MessageBox.ShowModal()
+						MessageBox.Free()		
+						Return
+					Else
+						'EXE and Search correct
+						item = ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection()
+						EXEitem = ManualGESearchWin.EXEList.GetSelection()
+						ManualGESearchWin.UnHideWindow.UpdateListWithGameData(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetString(item), ManualGESearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ) , ManualGESearchWin.EXEList.GetString(EXEitem) )
+						ManualGESearchWin.Exitfun(event)				
+					EndIf
+				EndIf
+			EndIf			
+		Else
+		
+		
 			If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
 				MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()	
 				Return
-			else
+			Else
 				If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
 					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
 					MessageBox.ShowModal()
 					MessageBox.Free()		
 					Return
-				else
-					ManualGESearchWin.DatabaseSearchPanel.ListItemSelected()
-					Return
-				EndIf
-			EndIf
-		else
-			If ManualGESearchWin.EXEList.GetSelection() = wxNOT_FOUND then
-				MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
-				MessageBox.ShowModal()
-				MessageBox.Free()		
-				Return
-			else
-				If ManualGESearchWin.EXEList.GetStringSelection() = "No Executables Found" then
-					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
-					MessageBox.ShowModal()
-					MessageBox.Free()		
-					Return
 				Else
-					'EXE and Search correct
 					item = ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection()
-					EXEitem = ManualGESearchWin.EXEList.GetSelection()
-					ManualGESearchWin.UnHideWindow.UpdateListWithGameData(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetString(item), ManualGESearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ) , ManualGESearchWin.EXEList.GetString(EXEitem) )
-					ManualGESearchWin.Exitfun(event)				
+					ManualGESearchWin.UnHideWindow.UpdateListWithGameData(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetString(item), ManualGESearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ) )
+					ManualGESearchWin.Exitfun(event)
 				EndIf
-			EndIf
-		EndIf
+			EndIf		
+		
+		
+		
+		
+
+		EndIf		
 		
 	End Function
 	
@@ -786,7 +885,7 @@ Type ManualGESearch Extends wxFrame
 			If CountList(ManualGESearchWin.EXETList) < 1 then
 				ManualGESearchWin.EXEList.Append("No Executables Found")
 			EndIf
-		else
+		Else
 			OkClickedFun(event)
 		EndIf
 		

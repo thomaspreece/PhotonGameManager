@@ -176,7 +176,8 @@ If FileType("DebugLog.txt")=1 Then
 EndIf
 
 FolderCheck()
-LogName = "Log-Manager "+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
+GamesCheck()
+LogName = "Log-Manager " + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
 CreateFile(LOGFOLDER+LogName)
 
 AppTitle = "PhotonManager"
@@ -197,7 +198,7 @@ PrintF("Windows Folder: "+WinDir)
 
 
 GlobalPlatforms = New PlatformReader
-If FileType(SETTINGSFOLDER + "Platforms.xml") = 1 Then
+If FileType(SETTINGSFOLDER + "Platforms.xml") = 1 then
 	GlobalPlatforms.ReadInPlatforms()	
 Else
 	GlobalPlatforms.PopulateDefaultPlatforms()

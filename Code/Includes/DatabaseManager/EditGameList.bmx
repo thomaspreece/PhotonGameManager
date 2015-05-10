@@ -1093,7 +1093,7 @@ EndRem
 		Local w:Int
 		Local h:Int 
 		Self.GetSize(w,h)
-		Self.SetSize(w+1,h)
+		Self.SetSize(w + 1, h)
 		?
 		PrintF("PopulateGameList Complete")
 	End Method
@@ -1118,9 +1118,9 @@ EndRem
 		PrintF("Platform: "+PlatformFilterType)
 		GameDir = ReadDir(GAMEDATAFOLDER)
 		Repeat
-			item$=NextFile(GameDir)
-			If item = "" Then Exit
-			If item="." Or item=".." Then Continue
+			item$ = NextFile(GameDir)
+			If item = "" then Exit
+			If item = "." Or item = ".." then Continue
 			GameNode:GameType = New GameType
 			If GameNode.GetGame(item) = - 1 Then
 			
@@ -1129,25 +1129,7 @@ EndRem
 					ListAddLast(GamesTList,item)
 				EndIf				
 			EndIf
-			Rem
-			If FileType(GAMEDATAFOLDER+item)=2 And FileType(GAMEDATAFOLDER+item+"\Info.txt")=1 Then
-				'If FileType(GAMEDATAFOLDER+item+"\Info.txt")=1 Then
-				InfoFile=ReadFile(GAMEDATAFOLDER+item+"\Info.txt")
-				For a=1 To 11
-					ReadLine(InfoFile)
-				Next
-				itemPlat=ReadLine(InfoFile)
-				CloseFile(InfoFile)
-				If itemPlat=PlatformFilterType Or PlatformFilterType="All" Then
-					ListAddLast(GamesTList,item)
-				Else
-
-				EndIf
-				'Else
-					
-				'EndIf
-			EndIf
-			EndRem
+		
 		Forever
 		CloseDir(GameDir)
 		PrintF("Sorting by: "+SortCombo.GetValue())

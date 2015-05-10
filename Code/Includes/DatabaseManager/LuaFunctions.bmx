@@ -46,7 +46,7 @@ Type LuaInternetType {expose disablenew}
 		
 		Local TFile:TStream = WriteFile(TEMPFOLDER + filename)
 
-		URL = Replace(URL, " ", "%20")
+		URL = URLEncode(URL)
 
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
@@ -71,7 +71,9 @@ Type LuaInternetType {expose disablenew}
 	Method POST:String(URL:String, filename:String, data:String)
 		'strip any bad path
 		filename = StripDir(filename)
-
+		
+		URL = URLEncode(URL)
+		
 		Self.Time = - 1
 		Self.Currentdl = - 1
 		
@@ -116,8 +118,8 @@ Type LuaListType {expose disablenew}
 	
 	Method LuaListAddLast(Text:String, Text2:String)
 		Local LualistItem:LuaListItemType = New LuaListItemType
-		LuaListItem.ItemName = Text
-		LuaListItem.ClientData = Text2
+		LualistItem.ItemName = Text
+		LualistItem.ClientData = Text2
 		ListAddLast(Self.List, LualistItem)
 	End Method
 	
@@ -196,11 +198,15 @@ Function LuaThread_pcall_Funct:Object(nobject:Object)
 	Local ErrorMessage:String
 	
 	LuaMutexLock()
-	If Not LuaThread_pcall.Window = Null then
+	If LuaThread_pcall.Window = Null then
+	
+	Else
 		LuaThread_pcall.Window.Disable()
 	EndIf
 	Result = lua_pcall(LuaThread_pcall.Lua, LuaThread_pcall.Inputs, LuaThread_pcall.Outputs, 0)
-	If Not LuaThread_pcall.Window = Null then
+	If LuaThread_pcall.Window = Null then
+	
+	Else
 		LuaThread_pcall.Window.Enable()
 	EndIf
 	LuaMutexUnlock()

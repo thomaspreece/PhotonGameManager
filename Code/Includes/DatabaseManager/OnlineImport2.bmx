@@ -1,3 +1,94 @@
+Function Thread_SaveGames_OI:Object(obj:Object)
+	PrintF("Saving Games - SteamOnlineImport2")
+	Local OnlineWin:OnlineImport2 = OnlineImport2(obj)
+	OnlineWin.Hide()
+	Log1.Show(1)
+	Local item = - 1
+	Local GName:String
+	Local col1:wxListItem , col3:wxListItem
+	Local MessageBox:wxMessageDialog
+	Local ClientData:String
+	Local EXEArray:Object[] = OnlineWin.EXEList.ToArray()
+	Local SubEXEList:TList
+	Local EXEName:EXENameType
+	
+	Repeat	
+		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+		If item = - 1 Then Exit
+		
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+			SubEXEList = TList(EXEArray[item])
+			col1 = New wxListItem.Create()
+			col1.SetId(item)
+			col1.SetColumn(1)
+			col1.SetMask(wxLIST_MASK_TEXT)
+			OnlineWin.SourceItemsList.GetItem(col1)
+			
+			col3 = New wxListItem.Create()
+			col3.SetId(item)
+			col3.SetColumn(3)
+			col3.SetMask(wxLIST_MASK_TEXT)
+			OnlineWin.SourceItemsList.GetItem(col3)
+			
+			GName = col1.GetText()
+			Local GameNode:GameType = New GameType
+			
+			GameNode.RunEXE = col3.GetText()
+			
+			?Win32
+			GameNode.Plat = "PC"
+			GameNode.PlatformNum = 24
+			?MacOS
+			GameNode.Plat = "Mac OS"
+			GameNode.PlatformNum = 12	
+			?Linux
+			GameNode.Plat = "Linux"
+			GameNode.PlatformNum = 40
+			?
+			
+			ClientData = String(OnlineWin.SourceItemsList.GetItemData(item) )
+			
+			For a = 1 To Len(ClientData)
+				If Mid(ClientData, a, 2) = "||" then
+					GameNode.LuaFile = Left(ClientData, a - 1) + ".lua"
+					GameNode.LuaIDData = Right(ClientData, Len(ClientData) - a - 1)
+					Exit
+				EndIf
+			Next
+			
+			GameNode.OEXEs = CreateList()
+			GameNode.OEXEsName = CreateList()
+			
+			For EXEName = EachIn SubEXEList
+				If col3.GetText() = EXEName.Name then Continue
+				ListAddLast(GameNode.OEXEs , EXEName.EXE )
+				ListAddLast(GameNode.OEXEsName , EXEName.Name )				
+			Next
+			
+			Log1.AddText("Geting info for: " + GName)
+			PrintF("Geting info for: " + GName)
+
+			
+			GameNode.DownloadGameInfo()
+			
+			GameNode.OverideArtwork = 1
+			GameNode.DownloadGameArtWork()
+			Log1.AddText("")
+			
+			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")					
+		EndIf
+		If Log1.LogClosed = True Then Exit
+	Forever
+	OnlineWin.UnSavedChanges = False
+	MessageBox = New wxMessageDialog.Create(Null , "Completed" , "Info" , wxOK | wxICON_INFORMATION)
+	MessageBox.ShowModal()
+	MessageBox.Free()
+
+	'Log1.Destroy()
+	Log1.Show(0)
+	OnlineWin.Show()
+End Function
+
 Type OnlineImport2 Extends wxFrame
 	Field ParentWin:MainWindow
 	Field SourceItemsList:wxListCtrl
@@ -101,7 +192,7 @@ Type OnlineImport2 Extends wxFrame
 			Local File:String , Title:String
 			Local GDFEXEs:String
 			Local b:Int, a:Int
-			Local tempString:String  
+			Local tempString:String , tempEXE:String, tempName:String
 			Local itemNum:Int = 0
 			
 			
@@ -128,11 +219,12 @@ Type OnlineImport2 Extends wxFrame
 						tempString = Mid(GDFEXEs , b , a - b)
 						For c = 1 To Len(tempString)
 							If Mid(tempString, c , 1) = "|" then
-								tempString = Left(tempString, c - 1)
+								tempEXE = Left(tempString, c - 1)
+								tempName = Right(tempString , Len(tempString) - c )
 								Exit
 							EndIf
 						Next
-						ListAddLast(SubEXEList, tempString)
+						ListAddLast(SubEXEList, New EXENameType.Create(tempEXE, tempName) )
 						b = a + 2
 					EndIf
 				Next	
@@ -140,11 +232,12 @@ Type OnlineImport2 Extends wxFrame
 				tempString = Mid(GDFEXEs , b)
 				For c = 1 To Len(tempString)
 					If Mid(tempString, c , 1) = "|" then
-						tempString = Left(tempString, c - 1)
+						tempEXE = Left(tempString, c - 1)
+						tempName = Right(tempString , Len(tempString) - c )
 						Exit
 					EndIf
 				Next			
-				ListAddLast(SubEXEList, tempString)
+				ListAddLast(SubEXEList, New EXENameType.Create(tempEXE, tempName) )
 				
 				CloseFile(ReadGDFFile)
 				
@@ -164,9 +257,9 @@ Type OnlineImport2 Extends wxFrame
 	Function SaveGamesFun(event:wxEvent)
 		Local OnlineWin:OnlineImport2 = OnlineImport2(event.parent)
 		?Threaded
-		'Local SaveGamesThread:TThread = CreateThread(Thread_SaveGames_SOI, OnlineWin)
+		Local SaveGamesThread:TThread = CreateThread(Thread_SaveGames_OI, OnlineWin)
 		?Not Threaded
-		'Thread_SaveGames_SOI(OnlineWin)
+		Thread_SaveGames_OI(OnlineWin)
 		?	
 	End Function
 
@@ -321,6 +414,7 @@ Type ManualSearch Extends wxFrame
 	Field EXEListCombo:wxComboBox
 	Field SourceItemsList:wxListCtrl
 	Field ListItemNum:Int
+	Field PlatformNum:Int 
 	
 	
 	Field DatabaseSearchPanel:DatabaseSearchPanelType	
@@ -328,10 +422,16 @@ Type ManualSearch Extends wxFrame
 	Method OnInit()
 		ParentWin = OnlineImport2(GetParent() )
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
+		?Win32
+		Self.PlatformNum = 24
+		?MacOS
+		Self.PlatformNum = 12	
+		?Linux
+		Self.PlatformNum = 40
+		?
 		
 		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Self, MS_DSP) )
-		
+		Self.DatabaseSearchPanel.SetPlatformNum(Self.PlatformNum)
 		
 		Local panel1:wxPanel = New wxPanel.Create(Self , - 1)
 		Local hbox1:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
@@ -374,12 +474,13 @@ Type ManualSearch Extends wxFrame
 		SourceItemsList = SourceList
 		Self.DatabaseSearchPanel.InitialSearch = SText
 		ListItemNum = Num
-		Local EXE:String
-		For EXE = EachIn EXEList
-			EXEListCombo.Append(EXE)		
+		Local EXEName:EXENameType
+		For EXEName = EachIn EXEList
+			EXEListCombo.Append(EXEName.EXE)		
 		Next
 		EXEListCombo.SetSelection(0)
 	End Method
+
 
 	Function Exitfun(event:wxEvent)
 		Local ManualSearchWin:ManualSearch = ManualSearch(event.parent)
@@ -430,4 +531,16 @@ Type ManualSearch Extends wxFrame
 	End Function
 	
 	
+End Type
+
+
+Type EXENameType
+	Field EXE:String
+	Field Name:String
+	
+	Method Create:EXENameType(EXE:String, Name:String)
+		Self.EXE = EXE
+		Self.Name = Name
+		Return Self 
+	End Method
 End Type
