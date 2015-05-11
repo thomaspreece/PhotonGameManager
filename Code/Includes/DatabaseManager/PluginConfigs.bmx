@@ -1,9 +1,9 @@
-Type HotkeyPluginWindow Extends wxFrame 
+Type HotkeyPluginWindow Extends wxFrame
 	Field KeyCode:wxTextCtrl
 	Field ConfigLocation:String 
 	
 	Method OnInit()
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)	
 		Local ST1 = New wxStaticText.Create(Self , wxID_ANY , "Enter hotkey number for this plugin. ~nUse the button to bring up a list of valid hotkey values (Use binary values)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)			
 		Local KeyCodeButton:wxButton = New wxButton.Create(Self , HKPW_KCB , "Open Keycode List")
@@ -70,7 +70,7 @@ Type PowerPlanPluginWindow Extends wxFrame
 	Method OnInit()
 		PowPlans = Self.GetPowerPlans()
 		
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local ST1 = New wxStaticText.Create(Self , wxID_ANY , "Game Start PowerPlan" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	

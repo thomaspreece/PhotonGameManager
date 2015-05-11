@@ -5,11 +5,14 @@
 '	-ManualSearch GameExplorerImport
 
 'TODO: Add Sorting to thegamesdb.net lua script
-'TODO: Reorder settings window
 'TODO: Add progress bars to Log Window
 'TODO: Re-enable automatic Icon extract
-'TODO: Convert OnlineImport2 to similar format as SteamOnlineImport2
-
+'TODO: Add setting for default lua file for autosearchs
+'TODO: Finish URLEncode function
+'TODO: Update Artwork BrowseOnline Function
+'TODO: Fix crash when overiding default save path
+'TODO: add clear cache to Settings
+'TODO: OnlineAdd remember platform
 
 'SUPER IMPORTANT
 
@@ -171,7 +174,7 @@ Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
 
-If FileType("DebugLog.txt")=1 Then 
+If FileType("DebugLog.txt") = 1 then
 	DebugLogEnabled = True
 EndIf
 
@@ -365,7 +368,7 @@ Type MainWindow Extends wxFrame
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		'Self.Refresh
 		
 		
@@ -449,7 +452,7 @@ Type MainWindow Extends wxFrame
 		'EditGameListField Now loaded on demand
 		
 		'Menus not needed to be loaded on demand
-		ImportMenuField = ImportMenu(New ImportMenu.Create(Self , wxID_ANY , "Import Select" , , , 600 , 400) )
+		ImportMenuField = ImportMenu(New ImportMenu.Create(Self , wxID_ANY , "Game Explorer Import Select" , , , 600 , 400) )
 		SteamMenuField = SteamMenu(New SteamMenu.Create(Self, wxID_ANY, "Steam Import Select", , , 600, 400) )
 		AddGamesMenuField = AddGamesMenu(New AddGamesMenu.Create(Self, wxID_ANY, "Add Games Select", , , 600, 400) )
 		SettingsMenuField = SettingsMenu(New SettingsMenu.Create(Self , wxID_ANY , "Settings Select" , , , 600 , 400) )	
@@ -562,9 +565,9 @@ Type AddGamesMenu Extends wxFrame
 	Method OnInit()
 		ParentWin = MainWindow(GetParent() )
 		
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )		
-		Self.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )	
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 
 		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
@@ -666,7 +669,7 @@ Type AddGamesMenu Extends wxFrame
 		Local MessageBox:wxMessageDialog	
 		PrintF("----------------------------Online Game Add Selected----------------------------")
 		Local MainWin:MainWindow = AddGamesMenu(event.parent).ParentWin
-		If Connected = False Then 
+		If Connected = False then
 			CheckInternet()		
 		EndIf 	
 		If Connected = True Then 
@@ -737,12 +740,12 @@ Type SteamCustomAdd Extends wxFrame
 	Field IDTextBox:wxTextCtrl
 	
 	Method OnInit()
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 
 		ParentWin = MainWindow(GetParent())
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Self.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		
 		Local ExplainST:wxStaticText = New wxStaticText.Create(Self , wxID_ANY , SCA_ET_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		
@@ -752,7 +755,7 @@ Type SteamCustomAdd Extends wxFrame
 		IDTextBox = New wxTextCtrl.Create(Self, SCA_ITB , "" , - 1 , - 1 , - 1 , - 1 , 0 )	
 		
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel1.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
+		Panel1.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local P1Hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		BackButton:wxButton = New wxButton.Create(Panel1 , SCA_BB , "Back")
 		HelpButton:wxButton = New wxButton.Create(Panel1, SCA_HB , "Help")
@@ -798,13 +801,13 @@ Type SteamCustomAdd Extends wxFrame
 	Function SaveCustomSteamGame(event:wxEvent)
 		Local MainWin:MainWindow = SteamCustomAdd(event.parent).ParentWin
 		Local MessageBox:wxMessageDialog
-		If IsntNull(MainWin.SteamCustomAddField.NameTextBox.GetValue()) = False Then
+		If IsntNull(MainWin.SteamCustomAddField.NameTextBox.GetValue() ) = False then
 			MessageBox = New wxMessageDialog.Create(Null , "Please enter a name for the steam game" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()	
 			Return
 		EndIf
-		If Int(MainWin.SteamCustomAddField.IDTextBox.GetValue() ) < 1 Then
+		If Int(MainWin.SteamCustomAddField.IDTextBox.GetValue() ) < 1 then
 			MessageBox = New wxMessageDialog.Create(Null , "Please enter a number for the steam game" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()	
@@ -831,16 +834,18 @@ Type SteamCustomAdd Extends wxFrame
 		GameNode.SaveGame()
 
 
-		newevent:wxEvent = event
-		newevent.parent = MainWin.GetEventHandler()
+		'newevent:wxEvent = event
+		'newevent.parent = MainWin.GetEventHandler()
 		
-		MainWin.ShowEditGameList(event)		
+		'MainWin.ShowEditGameList(event)		
 		MainWin.SteamCustomAddField.Hide()	
 				
-		MainWin.EditGameListField.PopulateGameList()
+		MainWin.SteamMenuField.Show(1)		
+				
+		'MainWin.EditGameListField.PopulateGameList()
 		
-		Local ID:Int = MainWin.EditGameListField.GameList.FindItem( - 1 , MainWin.SteamCustomAddField.NameTextBox.GetValue() )
-		MainWin.EditGameListField.GameList.SetitemState(ID,wxLIST_STATE_SELECTED,wxLIST_MASK_TEXT | wxLIST_MASK_IMAGE  )
+		'Local ID:Int = MainWin.EditGameListField.GameList.FindItem( - 1 , MainWin.SteamCustomAddField.NameTextBox.GetValue() )
+		'MainWin.EditGameListField.GameList.SetitemState(ID,wxLIST_STATE_SELECTED,wxLIST_MASK_TEXT | wxLIST_MASK_IMAGE  )
 		
 		
 		'MainWin.show(1)
@@ -867,7 +872,7 @@ Type ImportMenu Extends wxFrame
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 
 		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
@@ -983,10 +988,10 @@ Type SteamMenu Extends wxFrame
 	Method OnInit()
 		ParentWin = MainWindow(GetParent() )
 
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 
 		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
@@ -1152,8 +1157,10 @@ Type PluginsWindow Extends wxFrame
 	Field ParentWin:MainWindow
 		
 	Method OnInit()
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
+		
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 				
 		ParentWin = MainWindow(GetParent())
 		Local File:String , File2:String
@@ -1298,7 +1305,7 @@ Type PluginsWindow Extends wxFrame
 					'Load internal configure
 					Select String(PluginTypeArray[a])
 						Case "powerplan"
-							Local PowerPlanPlugin:PowerPlanPluginWindow = PowerPlanPluginWindow(New PowerPlanPluginWindow.Create(PluginWin , wxID_ANY , "PowerPlan Settings" , , , 400 , 300))
+							Local PowerPlanPlugin:PowerPlanPluginWindow = PowerPlanPluginWindow(New PowerPlanPluginWindow.Create(PluginWin , wxID_ANY , "PowerPlan Settings" , , , 400 , 300) )
 							PowerPlanPlugin.UpdateData(APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue()+FolderSlash+"PM-CONFIG.xml")
 						Case "screenshots" , "video"
 							Local HotkeyPlugin:HotkeyPluginWindow = HotkeyPluginWindow(New HotkeyPluginWindow.Create(PluginWin , wxID_ANY , "PowerPlan Settings" , , , 400 , 300))
@@ -1353,8 +1360,11 @@ Type PluginsWindow Extends wxFrame
 End Type 
 '----------------------------------------------------------------------------------------------------------
 '-----------------------------------FG UPDATE WINDOW-------------------------------------------------------
-Type SettingsWindow Extends wxFrame 
+Type SettingsWindow Extends wxFrame
 	Field ParentWin:MainWindow
+	
+	
+	
 	Field SW_SteamPath:wxTextCtrl
 	Field SW_SteamID:wxTextCtrl
 	Field SW_CompressLev:wxTextCtrl
@@ -1378,16 +1388,16 @@ Type SettingsWindow Extends wxFrame
 	Field JoyStickInputField:JoyStickInputWindow
 	
 	Method OnInit()
-		ParentWin = MainWindow(GetParent())
+		ParentWin = MainWindow(GetParent() )
+		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
+		Local SettingsNotebook:wxNotebook = New wxNotebook.Create(Self, wxID_ANY)
 		
-		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(Self , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
-		
-		ScrollBox.SetScrollRate(20,20)
-		Local ScrollBoxvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+	
 		'------------------------------------------------------------------------------------
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
+		Panel1.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local P1Hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local BackButton:wxButton = New wxButton.Create(Panel1 , SW_BB , "Back")
 		Local OKButton:wxButton = New wxButton.Create(Panel1, SW_OB , "OK")
@@ -1397,14 +1407,25 @@ Type SettingsWindow Extends wxFrame
 		P1Hbox.Add(OKButton , 1 , wxEXPAND | wxALL , 10)
 		
 		Panel1.SetSizer(P1Hbox)
+
 		'------------------------------------------------------------------------------------		
+		Local Panel2:wxPanel = New wxPanel.Create(Self , wxID_ANY)
+		Panel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Local P2Hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
+		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, "Hover over text labels for more information on each item.", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY)
+		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
+		
+		Panel2.SetSizer(P2Hbox)
 
-
-		'------------------------------------------------------------------------------------	
-		Local SL1:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
-		Local SLT1 = New wxStaticText.Create(ScrollBox , wxID_ANY , "General Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
-		Local SL2:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
+		'--------------------------------GENERAL SETTINGS------------------------------------	
+		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(SettingsNotebook , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
+		Local ScrollBoxvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)		
+		ScrollBox.SetScrollRate(20, 20)
+		
+		'Local SL1:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
+		'Local SLT1 = New wxStaticText.Create(ScrollBox , wxID_ANY , "General Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
+		'Local SL2:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
 		Local ST3 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Date Format: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 		SW_DateFormat = New wxComboBox.Create(ScrollBox , SW_DF , "" , ["UK" , "US" , "EU"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
 		
@@ -1417,30 +1438,61 @@ Type SettingsWindow Extends wxFrame
 		OverrideHbox.Add(SW_OverrideBrowse , 2 , wxEXPAND | wxALL , 4)
 		OverridePanel.SetSizer(OverrideHbox)	
 		
-			
+		'ScrollBoxvbox.Add(SL1,  0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox.Add(SLT1,  0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox.Add(SL2 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(ST3 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(SW_DateFormat , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(ST13,  0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(OverridePanel , 0 , wxEXPAND | wxALL , 4)					
 		
-		Local SL3:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
-		Local SLT2 = New wxStaticText.Create(ScrollBox , wxID_ANY , "PhotonManager Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
-		Local SL4:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)		
-		Local ST2 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Artwork Compression Level: (100-Best, 1-Worst) " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		ScrollBox.SetSizer(ScrollBoxvbox)
+		
+		'--------------------------------ARTWORK SETTINGS------------------------------------	
+
+		Local ScrollBox2:wxScrolledWindow = New wxScrolledWindow.Create(SettingsNotebook , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
+		Local ScrollBoxvbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)		
+		ScrollBox2.SetScrollRate(20, 20)
+		
+		'Local SL3:wxStaticLine = New wxStaticLine.Create(ScrollBox2 , wxID_ANY)
+		'Local SLT2 = New wxStaticText.Create(ScrollBox2 , wxID_ANY , "PhotonManager Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
+		'Local SL4:wxStaticLine = New wxStaticLine.Create(ScrollBox2 , wxID_ANY)		
+		Local ST2 = New wxStaticText.Create(ScrollBox2 , wxID_ANY , "Artwork Compression Level: (100-Best, 1-Worst) " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 		
 		Local Optimizehbox1:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		SW_CompressLev = New wxTextCtrl.Create(ScrollBox , SW_CL , "" , - 1 , - 1 , - 1 , - 1 , 0 )
-		Local SW_OptimizeArt1 = New wxButton.Create(ScrollBox , SW_OA1 , "Optimize Artwork")
+		SW_CompressLev = New wxTextCtrl.Create(ScrollBox2 , SW_CL , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+		Local SW_OptimizeArt1 = New wxButton.Create(ScrollBox2 , SW_OA1 , "Optimize Artwork")
 		Optimizehbox1.Add(SW_CompressLev , 1 , wxEXPAND | wxALL , 4)
 		Optimizehbox1.Add(SW_OptimizeArt1 , 0 , wxEXPAND | wxALL , 4)
 		
+		'ScrollBoxvbox2.Add(SL3, 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox2.Add(SLT2, 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox2.Add(SL4 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox2.Add(ST2 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox2.AddSizer(Optimizehbox1, 0 , wxEXPAND | wxALL , 4)		
 		
-		Local SL10:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
-		Local SLT5 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Steam Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
-		Local SL11:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)		
+		ScrollBox2.SetSizer(ScrollBoxvbox2)
+		
+		
+		
+		
+		
+		'--------------------------------STEAM SETTINGS------------------------------------
+		
+		Local ScrollBox3:wxScrolledWindow = New wxScrolledWindow.Create(SettingsNotebook , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
+		Local ScrollBoxvbox3:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)		
+		ScrollBox3.SetScrollRate(20, 20)		
+		
+		'Local SL10:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
+		'Local SLT5 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Steam Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
+		'Local SL11:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)		
 		
 		?win32		
-		Local ST1 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Steam Path: (Folder containing steam.exe)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)		
+		Local ST1 = New wxStaticText.Create(ScrollBox3 , wxID_ANY , "Steam Path: (Folder containing steam.exe)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)		
 		?Not Win32
-		Local ST1 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Steam Path: (Folder containing steam executable, on Ubuntu thats /usr/bin/)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)		
+		Local ST1 = New wxStaticText.Create(ScrollBox3 , wxID_ANY , "Steam Path: (Folder containing steam executable, on Ubuntu thats /usr/bin/)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)		
 		?	
-		Local SteamPanel:wxPanel = New wxPanel.Create(ScrollBox , - 1)	
+		Local SteamPanel:wxPanel = New wxPanel.Create(ScrollBox3 , - 1)	
 		Local SteamHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)		
 		SW_SteamPath = New wxTextCtrl.Create(SteamPanel , SW_SP , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 		Local SW_SteamBrowse = New wxButton.Create(SteamPanel , SW_SB , "Browse")
@@ -1448,67 +1500,168 @@ Type SettingsWindow Extends wxFrame
 		SteamHbox.Add(SW_SteamBrowse , 2 , wxEXPAND | wxALL , 4)
 		SteamPanel.SetSizer(SteamHbox)		
 
-		Local ST11 = New wxStaticText.Create(ScrollBox , wxID_ANY , "SteamID: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_SteamID = New wxTextCtrl.Create(ScrollBox , SW_SID , "" , - 1 , - 1 , - 1 , - 1 , 0 )
-		Local SW_SteamIDGuide = New wxButton.Create(ScrollBox , SW_SIDG , "How to find SteamID Guide")
+		Local ST11 = New wxStaticText.Create(ScrollBox3 , wxID_ANY , "SteamID: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_SteamID = New wxTextCtrl.Create(ScrollBox3 , SW_SID , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+		Local SW_SteamIDGuide = New wxButton.Create(ScrollBox3 , SW_SIDG , "How to find SteamID Guide")
 
-		Local SL5:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
-		Local SLT3 = New wxStaticText.Create(ScrollBox , wxID_ANY , "PhotonFrontEnd Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
-		Local SL6:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
+
+
+		'ScrollBoxvbox.Add(SL10, 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox.Add(SLT5, 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox.Add(SL11 , 0 , wxEXPAND | wxALL , 4)	
+				
+		ScrollBoxvbox3.Add(ST1, 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox3.Add(SteamPanel , 0 , wxEXPAND | wxALL , 4)
+		
+		ScrollBoxvbox3.Add(ST11, 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox3.Add(SW_SteamID , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox3.Add(SW_SteamIDGuide , 0 , wxEXPAND | wxALL , 4)
+	
+
+		ScrollBox3.SetSizer(ScrollBoxvbox3)
+
+		'--------------------------------FRONTEND SETTINGS------------------------------------
+
+
+		Local ScrollBox4:wxScrolledWindow = New wxScrolledWindow.Create(SettingsNotebook , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
+		Local ScrollBoxvbox4:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)		
+		ScrollBox4.SetScrollRate(20, 20)
+
+
+		'Local SL5:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
+		'Local SLT3 = New wxStaticText.Create(ScrollBox , wxID_ANY , "PhotonFrontEnd Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
+		'Local SL6:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
 		
 		
 		
 		Local FrontEndControlsHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Local KeyboardInput:wxButton = New wxButton.Create(ScrollBox , SW_KI , "Keyboard Input")
-		Local JoystickInput:wxButton = New wxButton.Create(ScrollBox, SW_JI , "Joystick Input")
+		Local KeyboardInput:wxButton = New wxButton.Create(ScrollBox4 , SW_KI , "Keyboard Input")
+		Local JoystickInput:wxButton = New wxButton.Create(ScrollBox4, SW_JI , "Joystick Input")
 
 		FrontEndControlsHbox.Add(KeyboardInput , 1 , wxEXPAND | wxALL , 10)
 		FrontEndControlsHbox.Add(JoystickInput , 1 , wxEXPAND | wxALL , 10)
 
 			
-		Local ST4 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Graphics Resolution: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		Local ST4 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Graphics Resolution: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
 		
 		Local Optimizehbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		SW_Resolution = New wxComboBox.Create(ScrollBox , SW_R , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN )			
-		Local SW_OptimizeArt2 = New wxButton.Create(ScrollBox , SW_OA2 , "Optimize Artwork")
+		SW_Resolution = New wxComboBox.Create(ScrollBox4 , SW_R , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN )			
+		Local SW_OptimizeArt2 = New wxButton.Create(ScrollBox4 , SW_OA2 , "Optimize Artwork")
 		Optimizehbox2.Add(SW_Resolution , 1 , wxEXPAND | wxALL , 4)
 		Optimizehbox2.Add(SW_OptimizeArt2 , 0 , wxEXPAND | wxALL , 4)
 		
-		Local ST6 = New wxStaticText.Create(ScrollBox , wxID_ANY , "FullScreen: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_Mode = New wxComboBox.Create(ScrollBox , SW_M , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
+		Local ST6 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "FullScreen: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_Mode = New wxComboBox.Create(ScrollBox4 , SW_M , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
 		
-		Local ST16 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Anti-Aliasing: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_AntiAlias = New wxComboBox.Create(ScrollBox , SW_AA , "" , ["None","2X","4X","8X","16X"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
+		Local ST16 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Anti-Aliasing: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_AntiAlias = New wxComboBox.Create(ScrollBox4 , SW_AA , "" , ["None", "2X", "4X", "8X", "16X"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
 			
-		Local ST7 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Low Memory Mode: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_LowMem = New wxComboBox.Create(ScrollBox , SW_LM , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
-		Local ST9 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Low Processor Mode: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_LowProc = New wxComboBox.Create(ScrollBox , SW_LP , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
-		Local ST8 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Game Cache Number: (The number of games around the selected game to keep artwork in memory, larger will be smoother but use more memory) " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_GameCache = New wxTextCtrl.Create(ScrollBox , SW_GC , String(GAMECACHELIMIT) , - 1 , - 1 , - 1 , - 1 , 0 )
+		Local ST7 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Low Memory Mode: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_LowMem = New wxComboBox.Create(ScrollBox4 , SW_LM , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
+		Local ST9 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Low Processor Mode: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_LowProc = New wxComboBox.Create(ScrollBox4 , SW_LP , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		Local ST8 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Game Cache Number: (The number of games around the selected game to keep artwork in memory, larger will be smoother but use more memory) " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_GameCache = New wxTextCtrl.Create(ScrollBox4 , SW_GC , String(GAMECACHELIMIT) , - 1 , - 1 , - 1 , - 1 , 0 )
 		
-		Local ST10 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Show TouchScreen/JoyStick Keyboard: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_TouchKey = New wxComboBox.Create(ScrollBox , SW_TK , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		Local ST10 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Show TouchScreen/JoyStick Keyboard: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_TouchKey = New wxComboBox.Create(ScrollBox4 , SW_TK , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
 		
-		Local ST17 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Show Touchscreen Info Button: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_ShowTouchInfo = New wxComboBox.Create(ScrollBox , SW_STI , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		Local ST17 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Show Touchscreen Info Button: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_ShowTouchInfo = New wxComboBox.Create(ScrollBox4 , SW_STI , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
 		
-		Local ST18 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Show Touchscreen ScreenShot Button: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_ShowTouchScreen = New wxComboBox.Create(ScrollBox , SW_STS , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
-
-		Local SL7:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
-		Local SLT4 = New wxStaticText.Create(ScrollBox , wxID_ANY , "PhotonRunner Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
-		Local SL8:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
-		Local ST5 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Enable PhotonRunner: (Disabling will stop the program from running in the background during games and also disable post batch and unmount functions)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_Runner = New wxComboBox.Create(ScrollBox , SW_R , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
-		Local ST12 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Enable Cabinet Mode: (After Runner closed Explorer or Frontend will load back up)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_Cabinate = New wxComboBox.Create(ScrollBox , SW_C , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )						
-
-		Local ST15 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Photon Runner only closes when you click close button (All Games)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_ButtonCloseOnly = New wxComboBox.Create(ScrollBox , SW_BCO , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
+		Local ST18 = New wxStaticText.Create(ScrollBox4 , wxID_ANY , "Show Touchscreen ScreenShot Button: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_ShowTouchScreen = New wxComboBox.Create(ScrollBox4 , SW_STS , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		
 	
-		Local ST14 = New wxStaticText.Create(ScrollBox , wxID_ANY , "Enable Origin 30 second wait: (Waits 30 seconds when it detects Origin to allow game to load before PhotonRunner looks to see if game process is still running)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-		SW_OriginWait = New wxComboBox.Create(ScrollBox , SW_OW , "" , ["Yes","No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
+
+
+		'ScrollBoxvbox.Add(SL5, 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox.Add(SLT3,  0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox.Add(SL6 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.AddSizer(FrontEndControlsHbox, 0 , wxEXPAND | wxALL , 4)
+		
+		ScrollBoxvbox4.Add(ST4 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.AddSizer(Optimizehbox2 , 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox.Add(SW_Resolution , 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox4.Add(ST6 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_Mode , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(ST16 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_AntiAlias , 0 , wxEXPAND | wxALL , 4)		
+		
+		
+		ScrollBoxvbox4.Add(ST7 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_LowMem , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(ST9 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_LowProc , 0 , wxEXPAND | wxALL , 4)					
+		ScrollBoxvbox4.Add(ST8 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_GameCache , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(ST10 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_TouchKey , 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox4.Add(ST17 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_ShowTouchInfo , 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox4.Add(ST18 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_ShowTouchScreen , 0 , wxEXPAND | wxALL , 4)	
+
+
+		ScrollBox4.SetSizer(ScrollBoxvbox4)
+		
+		'--------------------------------RUNNER SETTINGS------------------------------------
+		
+		
+		Local ScrollBox5:wxScrolledWindow = New wxScrolledWindow.Create(SettingsNotebook , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
+		Local ScrollBoxvbox5:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)		
+		ScrollBox5.SetScrollRate(20, 20)
+
+		'Local SL7:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
+		'Local SLT4 = New wxStaticText.Create(ScrollBox , wxID_ANY , "PhotonRunner Settings" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	
+		'Local SL8:wxStaticLine = New wxStaticLine.Create(ScrollBox , wxID_ANY)
+		
+		Local ST5 = New wxStaticText.Create(ScrollBox5 , wxID_ANY , "Enable PhotonRunner: (Disabling will stop the program from running in the background during games and also disable post batch and unmount functions)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_Runner = New wxComboBox.Create(ScrollBox5 , SW_R , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		Local ST12 = New wxStaticText.Create(ScrollBox5 , wxID_ANY , "Enable Cabinet Mode: (After Runner closed Explorer or Frontend will load back up)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_Cabinate = New wxComboBox.Create(ScrollBox5 , SW_C , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )						
+
+		Local ST15 = New wxStaticText.Create(ScrollBox5 , wxID_ANY , "Photon Runner only closes when you click close button (All Games)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_ButtonCloseOnly = New wxComboBox.Create(ScrollBox5 , SW_BCO , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
+	
+		Local ST14 = New wxStaticText.Create(ScrollBox5 , wxID_ANY , "Enable Origin 30 second wait: (Waits 30 seconds when it detects Origin to allow game to load before PhotonRunner looks to see if game process is still running)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+		SW_OriginWait = New wxComboBox.Create(ScrollBox5 , SW_OW , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		
+		
+		'ScrollBoxvbox5.Add(SL7, 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox5.Add(SLT4, 0 , wxEXPAND | wxALL , 4)
+		'ScrollBoxvbox5.Add(SL8 , 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox5.Add(ST5 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox5.Add(SW_Runner , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox5.Add(ST12 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox5.Add(SW_Cabinate , 0 , wxEXPAND | wxALL , 4)		
+		
+		ScrollBoxvbox5.Add(ST15 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox5.Add(SW_ButtonCloseOnly , 0 , wxEXPAND | wxALL , 4)	
+		
+		ScrollBoxvbox5.Add(ST14 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox5.Add(SW_OriginWait , 0 , wxEXPAND | wxALL , 4)			
+		
+		ScrollBox5.SetSizer(ScrollBoxvbox5)
+		
+		
+		
+		'--------------------------------------------------------------------
+		ScrollBox.SetBackgroundColour(New wxColour.Create(240, 240, 240) )
+		ScrollBox2.SetBackgroundColour(New wxColour.Create(240, 240, 240) )
+		ScrollBox3.SetBackgroundColour(New wxColour.Create(240, 240, 240) )
+		ScrollBox4.SetBackgroundColour(New wxColour.Create(240, 240, 240) )
+		ScrollBox5.SetBackgroundColour(New wxColour.Create(240, 240, 240) )
+		
+		SettingsNotebook.AddPage(ScrollBox, "General", 1)
+		SettingsNotebook.AddPage(ScrollBox2, "Artwork", 0)
+		SettingsNotebook.AddPage(ScrollBox3, "Steam", 0)
+		SettingsNotebook.AddPage(ScrollBox4, "FrontEnd", 0)
+		SettingsNotebook.AddPage(ScrollBox5, "Runner", 0)
+		
+		
+		'--------------------------------------------------------------------
+		
 		
 				
 		Local wid:Int , hei:Int , dep:Int , hert:Int
@@ -1594,89 +1747,15 @@ Type SettingsWindow Extends wxFrame
 			Case 16
 				SW_AntiAlias.SetValue("16X")
 		End Select
-			
-				
-		ScrollBoxvbox.Add(SL1,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SLT1,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SL2 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST3 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_DateFormat , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST13,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(OverridePanel , 0 , wxEXPAND | wxALL , 4)		
-		
-		ScrollBoxvbox.AddSpacer(50)
-		
-		ScrollBoxvbox.Add(SL3,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SLT2,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SL4 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST2 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.AddSizer(Optimizehbox1, 0 , wxEXPAND | wxALL , 4)	
-		'ScrollBoxvbox.Add(SW_CompressLev , 0 , wxEXPAND | wxALL , 4)		
-		ScrollBoxvbox.AddSpacer(50)	
-	
-		ScrollBoxvbox.Add(SL10,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SLT5,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SL11 , 0 , wxEXPAND | wxALL , 4)	
-				
-		ScrollBoxvbox.Add(ST1,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SteamPanel , 0 , wxEXPAND | wxALL , 4)
-		
-		ScrollBoxvbox.Add(ST11,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_SteamID , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_SteamIDGuide , 0 , wxEXPAND | wxALL , 4)
-			
-		ScrollBoxvbox.AddSpacer(50)
-
-		ScrollBoxvbox.Add(SL5,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SLT3,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SL6 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.AddSizer(FrontEndControlsHbox, 0 , wxEXPAND | wxALL , 4)
-		
-		ScrollBoxvbox.Add(ST4 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.AddSizer(Optimizehbox2 , 0 , wxEXPAND | wxALL , 4)
-		'ScrollBoxvbox.Add(SW_Resolution , 0 , wxEXPAND | wxALL , 4)		
-		ScrollBoxvbox.Add(ST6 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_Mode , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST16 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_AntiAlias , 0 , wxEXPAND | wxALL , 4)		
-		
-		
-		ScrollBoxvbox.Add(ST7 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_LowMem , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST9 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_LowProc , 0 , wxEXPAND | wxALL , 4)					
-		ScrollBoxvbox.Add(ST8 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_GameCache , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST10 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_TouchKey , 0 , wxEXPAND | wxALL , 4)		
-		ScrollBoxvbox.Add(ST17 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_ShowTouchInfo , 0 , wxEXPAND | wxALL , 4)		
-		ScrollBoxvbox.Add(ST18 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_ShowTouchScreen , 0 , wxEXPAND | wxALL , 4)							
-						
-		ScrollBoxvbox.AddSpacer(50)
-				
-		ScrollBoxvbox.Add(SL7,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SLT4,  0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SL8 , 0 , wxEXPAND | wxALL , 4)		
-		ScrollBoxvbox.Add(ST5 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_Runner , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST12 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_Cabinate , 0 , wxEXPAND | wxALL , 4)		
-		
-		ScrollBoxvbox.Add(ST15 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_ButtonCloseOnly , 0 , wxEXPAND | wxALL , 4)	
-		
-		ScrollBoxvbox.Add(ST14 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(SW_OriginWait , 0 , wxEXPAND | wxALL , 4)	
-		
 					
-		ScrollBoxvbox.AddSpacer(50)
 		
-		ScrollBox.SetSizer(ScrollBoxvbox)
+		'--------------------------------------------------------------------
 		
-		vbox.Add(ScrollBox, 1, wxEXPAND, 0)
-		vbox.Add(Panel1,  0 , wxEXPAND ,0)		
+		
+		
+		vbox.Add(Panel2, 0 , wxEXPAND , 0)		
+		vbox.Add(SettingsNotebook, 8, wxEXPAND, 0)
+		vbox.Add(Panel1, 0 , wxEXPAND , 0)		
 		SetSizer(vbox)
 		Centre()		
 		Hide()
@@ -1945,7 +2024,7 @@ Type SettingsWindow Extends wxFrame
 		
 		SaveGlobalSettings()
 		
-		If OptimizeArt = True Then 
+		If OptimizeArt = True then
 			Self.OptimizeAllArt()
 		EndIf 
 		
@@ -1992,7 +2071,7 @@ Type SettingsMenu Extends wxFrame
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 
 		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpST:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Help", - 1, - 1, - 1, - 1, wxALIGN_CENTRE)
@@ -2376,7 +2455,7 @@ Type SteamIconWindow Extends wxFrame
 	
 	Function IconSelected(event:wxEvent)
 		Local SteamIconWin:SteamIconWindow = SteamIconWindow(event.parent)
-		Local EditGameWin:EditGameList = EditGameList(SteamIconWin.GetParent())
+		Local EditGameWin:EditGameList = EditGameList(SteamIconWin.GetParent() )
 		Local MessageBox:wxMessageDialog
 
 		If SteamIconWin.Selection = - 1 Then
@@ -2431,7 +2510,7 @@ Type ActivateMenu Extends wxFrame
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 			
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 
@@ -2703,18 +2782,10 @@ Function GetGameIcon(EXEPath:String , GameName:String)
 	EndIf		
 End Function
 
-Function LoadGlobalSettings()
-	'ReadSettings = ReadFile(SETTINGSFOLDER + "\GeneralSettings.txt")
-	'SteamFolder = ReadLine(ReadSettings)
-	'ArtworkCompression = Int(ReadLine(ReadSettings) )
-	'Country = ReadLine(ReadSettings)
-	'PerminantPGMOff = Int(ReadLine(ReadSettings))
-	'CloseFile(ReadSettings)
-	
-	
+Function LoadGlobalSettings()	
 	ReadSettings:SettingsType = New SettingsType
 	ReadSettings.ParseFile(SETTINGSFOLDER + "GeneralSettings.xml" , "GeneralSettings")
-	If ReadSettings.GetSetting("SteamFolder")<>"" Then
+	If ReadSettings.GetSetting("SteamFolder") <> "" then
 		SteamFolder = ReadSettings.GetSetting("SteamFolder")
 	EndIf
 	If ReadSettings.GetSetting("SteamID")<>"" Then
@@ -2736,7 +2807,7 @@ Function LoadGlobalSettings()
 		GraphicsH = Int(ReadSettings.GetSetting("GraphicsHeight"))
 	EndIf 		
 	If ReadSettings.GetSetting("GraphicsMode") <> "" Then	
-		GMode = Int(ReadSettings.GetSetting("GraphicsMode"))
+		GMode = Int(ReadSettings.GetSetting("GraphicsMode") )
 	EndIf	
 	If ReadSettings.GetSetting("SilentRunOff") <> "" Then	
 		SilentRunnerEnabled = Int(ReadSettings.GetSetting("SilentRunOff"))
@@ -2768,10 +2839,12 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("ShowInfoButton") <> "" Then		
 		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton") )
 	EndIf		
-	If ReadSettings.GetSetting("ShowScreenButton") <> "" Then		
-		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton"))
+	If ReadSettings.GetSetting("ShowScreenButton") <> "" then		
+		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton") )
 	EndIf			
-	
+	If ReadSettings.GetSetting("OnlineAddSource") <> "" then
+		OnlineAddSource = ReadSettings.GetSetting("OnlineAddSource")
+	EndIf
 	ReadSettings.CloseFile()
 End Function
 
@@ -2797,6 +2870,7 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("AntiAlias" , AntiAliasSetting)		
 	SaveSettings.SaveSetting("ShowInfoButton" , ShowInfoButton)	
 	SaveSettings.SaveSetting("ShowScreenButton" , ShowScreenButton)	
+	SaveSettings.SaveSetting("OnlineAddSource" , OnlineAddSource)	
 	
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()

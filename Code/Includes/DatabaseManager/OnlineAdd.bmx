@@ -7,7 +7,7 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		Local EXE:String
 		Local EXEList:TList
 		Local col2:wxListItem
-		Local AutoSearchLuaFile:String = "thegamesdb.net"
+		Local AutoSearchLuaFile:String = LuaHelper_GetDefaultGame()
 		Local GPlat:String = OnlineWin.OA_PlatCombo.GetValue()
 
 		LuaMutexLock()
@@ -17,7 +17,6 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		Local LuaFile:String = LUAFOLDER + "Game" + FolderSlash + AutoSearchLuaFile + ".lua"
 		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
 			LuaMutexUnlock()
-			LuaHelper_FunctionError(LuaVM, - 1, "Could Not Load Lua File")
 			Log1.Show(0)
 			OnlineWin.Show()
 			Return
@@ -160,13 +159,7 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 				
 			Forever
 			If SkipRepeat = 1 then Continue
-			
-			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
-			OnlineWin.SourceItemsList.SetStringItem(item , 2 , NextLuaName)			
-			OnlineWin.SourceItemsList.SetItemData(item, AutoSearchLuaFile + "||" + NextLuaData)
-			
-			PrintF(AutoSearchLuaFile + "||" + NextLuaData)
-			
+					
 			If GlobalPlatforms.GetPlatformByName(GPlat ).PlatType = "Folder" then
 				EXEList = GetEXEList(GPath , NextLuaName)
 				If CountList(EXEList) < 1 then
@@ -186,8 +179,15 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 				Log1.AddText("EXE: " + EXE)
 			EndIf
 			
+			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
+			OnlineWin.SourceItemsList.SetStringItem(item , 2 , NextLuaName)			
+			OnlineWin.SourceItemsList.SetItemData(item, AutoSearchLuaFile + "||" + NextLuaData)
+			OnlineWin.UnSavedChanges = True		
+			
+			PrintF(AutoSearchLuaFile + "||" + NextLuaData)			
+			
 			Log1.AddText("Found: " + NextLuaName)
-			Log1.AddText("")
+			Log1.AddText(" ")
 			
 			If Log1.LogClosed = True then Exit
 		Forever
@@ -219,6 +219,21 @@ Function Thread_SaveGames:Object(obj:Object)
 	Local ClientData:String
 	Local GPlatType:PlatformType = GlobalPlatforms.GetPlatformByName(GPlat)
 	Local col2:wxListItem , col3:wxListItem, col4:wxListItem
+	
+	Local TotalGames:Int = 0
+	Local SavedGames:Int = 0
+	
+	Repeat
+		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+		If item = - 1 then Exit
+		
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+			TotalGames = TotalGames + 1
+		EndIf
+	Forever
+	
+	item = - 1	
+	
 	Repeat	
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
 		If item = - 1 then Exit
@@ -276,17 +291,20 @@ Function Thread_SaveGames:Object(obj:Object)
 			
 			GameNode.OverideArtwork = 1
 			GameNode.DownloadGameArtWork()
-			'ListAddLast(LogWinList, "")
+
+			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")	
+			SavedGames = SavedGames + 1
 							
 		EndIf
 		If Log1.LogClosed = True then Exit
 	Forever
 	
-	'Below lines wipes list
-	OnlineWin.UnSavedChanges = False
-	OnlineWin.SourceUpdate()
+	If SavedGames = TotalGames then
+		OnlineWin.UnSavedChanges = False
+	EndIf
+	'OnlineWin.SourceUpdate()
 	
-	MessageBox = New wxMessageDialog.Create(Null , "Games added successfully" , "Info" , wxOK | wxICON_INFORMATION)
+	MessageBox = New wxMessageDialog.Create(Null , "Saved " + String(SavedGames) + "/" + String(TotalGames) + " Successfully" , "Info" , wxOK | wxICON_INFORMATION)
 	MessageBox.ShowModal()
 	MessageBox.Free()
 	
@@ -311,15 +329,14 @@ Type OnlineAdd Extends wxFrame
 		Self.UnSavedChanges = False
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
-			
 		
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel1.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
+		Panel1.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local P1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			Local OA_PlatText:wxStaticText = New wxStaticText.Create(Panel1 , wxID_ANY , "Platform: " , - 1 , - 1 , - 1 , - 1)
 			OA_PlatCombo = New wxComboBox.Create(Panel1, OA_PC , GlobalPlatforms.GetPlatformByID(24).Name , GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 			Local OA_SourceText:wxStaticText = New wxStaticText.Create(Panel1 , wxID_ANY , "Source: " , - 1 , - 1 , - 1 , - 1)
-			OA_SourcePath = New wxTextCtrl.Create(Panel1 , OA_SP , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+			OA_SourcePath = New wxTextCtrl.Create(Panel1 , OA_SP , OnlineAddSource , - 1 , - 1 , - 1 , - 1 , 0 )
 			Local OA_SourceBrowse:wxButton = New wxButton.Create(Panel1 , OA_SB , "Browse")
 		P1hbox.Add(OA_PlatText , 0 , wxEXPAND | wxALL , 8)
 		P1hbox.Add(OA_PlatCombo , 0 , wxEXPAND | wxALL , 8)
@@ -329,7 +346,7 @@ Type OnlineAdd Extends wxFrame
 		Panel1.SetSizer(P1hbox)
 		
 		Local Panel2:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel2.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Panel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue))
 		Local P2hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			Local OA_SourceUpdate:wxButton = New wxButton.Create(Panel2 , OA_SU , "Update List")
 		P2hbox.AddStretchSpacer(1)
@@ -343,7 +360,7 @@ Type OnlineAdd Extends wxFrame
 		
 		
 		Local Panel3:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel3.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Panel3.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue))
 		Local P3hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 			Local OA_AutoButton:wxButton = New wxButton.Create(Panel3 , OA_P3_AB , "Auto Scan")
 			Local OA_SetButton:wxButton = New wxButton.Create(Panel3 , OA_P3_SB , "Set Game")
@@ -360,7 +377,7 @@ Type OnlineAdd Extends wxFrame
 		Local sl2:wxStaticLine = New wxStaticLine.Create(Self , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
 		
 		Local BackButtonPanel:wxPanel = New wxPanel.Create(Self , - 1)
-		BackButtonPanel.SetBackgroundColour(New wxColour.Create(200,200,255))
+		BackButtonPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local BackButtonVbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)	
 		Local BackButton:wxButton = New wxButton.Create(BackButtonPanel , OA_EXIT , "Back")
 		BackButtonVbox.Add(BackButton , 4 , wxALIGN_LEFT | wxALL , 5)
@@ -392,6 +409,7 @@ Type OnlineAdd Extends wxFrame
 
 		ConnectAny(wxEVT_CLOSE , CloseApp)
 	End Method
+
 	
 	Function CloseApp(event:wxEvent)
 		Local MainWin:MainWindow = OnlineAdd(event.parent).ParentWin
@@ -427,12 +445,15 @@ Type OnlineAdd Extends wxFrame
 			SourceItemsList.SetStringItem(item , 3 , EXE)
 			SourceItemsList.SetItemData(item, Obj)
 			SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
+			SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
 		Else
 			SourceItemsList.SetStringItem(item , 0 , "True")
 			SourceItemsList.SetStringItem(item , 2 , Game)
 			SourceItemsList.SetItemData(item, Obj)
+			SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
 		EndIf
 		Self.UnSavedChanges = True
+				
 		PrintF("Game Added: " + Game)
 		PrintF("EXE: " + EXE)
 		PrintF("ClientData: " + String(Obj) )
@@ -594,6 +615,8 @@ Type OnlineAdd Extends wxFrame
 		
 		Else
 			OnlineWin.OA_SourcePath.ChangeValue(SelectedFile)
+			OnlineAddSource = SelectedFile
+			SaveGlobalSettings()
 		EndIf
 	End Function
 
@@ -648,13 +671,10 @@ Type ManualGESearch Extends wxFrame
 		Self.GameSelected = False
 		ParentWin = OnlineAdd(GetParent() )
 		Local hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-
-		
-		
 		
 		
 		Local LeftPanel:wxPanel = New wxPanel.Create(Self , - 1)
-		LeftPanel.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
+		LeftPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local LPvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		
@@ -665,7 +685,7 @@ Type ManualGESearch Extends wxFrame
 		Local LP_SText:wxStaticText = New wxStaticText.Create(LeftPanel , wxID_ANY , OA_LP_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
 		
 		LPPanel2:wxPanel = New wxPanel.Create(LeftPanel , - 1)
-		LPPanel2.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
+		LPPanel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local LPP2hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Exitbutton = New wxButton.Create(LPPanel2 , MS_EB , "Cancel")
 		LPP2hbox.Add(Exitbutton , 1 , wxEXPAND | wxALL , 10)
@@ -679,7 +699,7 @@ Type ManualGESearch Extends wxFrame
 		
 		
 		Local RightPanel:wxPanel = New wxPanel.Create(Self , - 1)
-		RightPanel.SetBackgroundColour(New wxColour.Create(200,200,255))
+		RightPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue))
 		Local RPvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		'PlatText = New wxStaticText.Create(RightPanel , wxID_ANY , "Path: PC" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)		
 		RP_SText = New wxStaticText.Create(RightPanel , wxID_ANY , OA_RP_Text , -1 , -1 , - 1 , - 1 , wxALIGN_CENTRE)
@@ -687,7 +707,7 @@ Type ManualGESearch Extends wxFrame
 		EXEList = New wxListBox.Create(RightPanel,MS_EL,Null,-1,-1,-1,-1,wxLB_SINGLE)
 		
 		RPPanel2:wxPanel = New wxPanel.Create(RightPanel , - 1)
-		RPPanel2.SetBackgroundColour(New wxColour.Create(200,200,255))
+		RPPanel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local RPP2hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Finishbutton = New wxButton.Create(RPPanel2 , MS_FB , "OK")
 		RPP2hbox.AddStretchSpacer(2)
@@ -799,6 +819,7 @@ Type ManualGESearch Extends wxFrame
 						item = ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection()
 						EXEitem = ManualGESearchWin.EXEList.GetSelection()
 						ManualGESearchWin.UnHideWindow.UpdateListWithGameData(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetString(item), ManualGESearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualGESearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ) , ManualGESearchWin.EXEList.GetString(EXEitem) )
+									
 						ManualGESearchWin.Exitfun(event)				
 					EndIf
 				EndIf
