@@ -174,6 +174,8 @@ Type DatabaseSearchPanelType Extends wxPanel
 		lua_pushbmaxobject( LuaVM, LuaList )
 		LuaMutexUnlock()
 		
+		Self.Disable()
+		
 		?Threaded
 		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 4, "SourceChanged", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
@@ -191,6 +193,8 @@ Type DatabaseSearchPanelType Extends wxPanel
 	End Method
 	
 	Method SourceChangedReturn()
+	
+		Self.Enable()
 	
 		LuaMutexLock()
 		
@@ -295,6 +299,8 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		LuaMutexUnlock()
 		
+		Self.Disable()
+		
 		?Threaded
 		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "Search", wxWindow(Self) )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
@@ -314,6 +320,9 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 	Method SearchReturn()
 		PlaySound SearchBeep
+		
+		Self.Enable()
+		
 		LuaMutexLock()
 		Local Error:Int
 		
@@ -396,6 +405,8 @@ Type DatabaseSearchPanelType Extends wxPanel
 		lua_pushbmaxobject( LuaVM, LuaList )
 		'Call Lua Function
 		
+		Self.Disable()
+		
 		LuaMutexUnlock()
 		
 		?Threaded
@@ -415,6 +426,8 @@ Type DatabaseSearchPanelType Extends wxPanel
 	End Method
 
 	Method FurtherSearchReturn()
+	
+		Self.Enable()
 		LuaMutexLock()
 	
 		Local Error:Int
