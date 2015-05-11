@@ -1,3 +1,199 @@
+Function Thread_AutoSearch_SOI:Object(Obj:Object)
+	Local OnlineWin:SteamOnlineImport2 = SteamOnlineImport2(Obj)
+	OnlineWin.Hide()
+	Log1.Show(1)
+	
+	Local item = - 1
+	Local GName:String , GPath:String , GNameConv:String
+	Local ErrorMessage:String
+	Local EXE:String
+	Local EXEList:Object[]
+	Local SubEXEList:TList
+	Local col2:wxListItem
+	Local AutoSearchLuaFile:String = LuaHelper_GetDefaultGame()
+	Local GPlatNum:Int
+
+	?Win32
+	GPlatNum = 24
+	?MacOS
+	GPlatNum = 12	
+	?Linux
+	GPlatNum = 40
+	?
+
+	LuaMutexLock()
+	
+	Local LuaList:LuaListType = New LuaListType.Create()
+
+	Local LuaFile:String = LUAFOLDER + "Game" + FolderSlash + AutoSearchLuaFile + ".lua"
+	If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+		LuaMutexUnlock()
+		LuaHelper_FunctionError(LuaVM, - 1, "Could Not Load Lua File")
+		Log1.Show(0)
+		OnlineWin.Show()
+		Return
+	EndIf
+
+	'Create Platform List
+	Local LuaPlatformList:LuaListType = New LuaListType.Create()
+	lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
+	lua_pushinteger( LuaVM , GPlatNum)
+	lua_pushbmaxobject( LuaVM, LuaPlatformList )
+	
+	Result = lua_pcall(LuaVM, 2, 4, 0)
+			
+	If (Result <> 0) then
+		ErrorMessage = luaL_checkstring(LuaVM, - 1)
+	
+		LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
+		
+		LuaMutexUnlock()
+		Log1.Show(0)
+		OnlineWin.Show()
+		Return
+	EndIf
+	
+	Error = luaL_checkint( LuaVM, 1 )
+	
+	If Error <> 0 then
+		ErrorMessage = luaL_checkstring(LuaVM , 2)
+		LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
+		LuaMutexUnlock()
+		Log1.Show(0)
+		OnlineWin.Show()
+		Return
+	EndIf
+	
+	Local PlatformName:String = luaL_checkstring(LuaVM , 3)
+	Local PlatformData:String = ""
+	Local Platform:LuaListItemType
+	
+	For Platform = EachIn LuaPlatformList.List
+		If Platform.ItemName = PlatformName then
+			PlatformData = Platform.ClientData
+			Exit
+		EndIf
+	Next
+	
+	If PlatformData = "" then
+		LuaHelper_FunctionError(LuaVM, - 1 , "Could not get a platform match")
+		LuaMutexUnlock()
+		Log1.Show(0)
+		OnlineWin.Show()
+		Return
+	EndIf
+	
+	LuaHelper_CleanStack(LuaVM)
+	
+	Local LuaSearchList:LuaListType
+	Local NextDepth:Int
+	Local NextLuaData:String
+	Local NextLuaName:String
+	Local SkipRepeat:Int
+	
+	'Repeat through list
+	Repeat	
+		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+		If item = - 1 then Exit
+		col2 = New wxListItem.Create()
+		col2.SetId(item)
+		col2.SetColumn(2)
+		col2.SetMask(wxLIST_MASK_TEXT)
+		OnlineWin.SourceItemsList.GetItem(col2)
+		GName = col2.GetText()
+		Log1.AddText("Searching: " + GName)
+		PrintF("Searching: " + GName + " item: " + item)
+			
+		NextDepth = 1
+		NextLuaData = ""
+		NextLuaName = ""
+		SkipRepeat = 0
+		
+		'Repeat through all search depths required choosing first returned item
+		
+		Repeat
+			LuaSearchList = New LuaListType.Create()
+				
+			'Get Lua Function
+			lua_getfield(LuaVM, LUA_GLOBALSINDEX, "SearchGame")
+			'Push PlatformNum and empty list
+			lua_pushbmaxobject( LuaVM , GName)
+			lua_pushbmaxobject( LuaVM , NextLuaData)
+			lua_pushbmaxobject( LuaVM , PlatformData)
+			lua_pushinteger( LuaVM , NextDepth)
+			lua_pushbmaxobject( LuaVM, LuaInternet )
+			lua_pushbmaxobject( LuaVM, LuaSearchList )
+			
+			Result = lua_pcall(LuaVM, 6, 4, 0)
+				
+			If (Result <> 0) then
+				ErrorMessage = luaL_checkstring(LuaVM, - 1)
+				LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
+				Log1.AddText("Nothing Found")
+				Log1.AddText("")	
+				PrintF("Lua Search pcall Error")
+				SkipRepeat = 1
+				Exit
+			EndIf
+			
+			Error = luaL_checkint( LuaVM, 1 )
+			
+			If Error <> 0 then
+				ErrorMessage = luaL_checkstring(LuaVM , 2)
+				LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
+				Log1.AddText("Nothing Found")
+				Log1.AddText("")	
+				PrintF("Lua Search Error")
+				SkipRepeat = 1
+				Exit 
+			EndIf
+			
+			
+			
+			NextDepth = luaL_checkint( LuaVM, 3 )
+			LuaHelper_CleanStack(LuaVM)
+			
+			If LuaSearchList.List.Count() > 0 then
+				NextLuaData = LuaListItemType(LuaSearchList.List.First() ).ClientData
+				NextLuaName = LuaListItemType(LuaSearchList.List.First() ).ItemName
+			Else
+				Log1.AddText("Nothing Found")
+				Log1.AddText("")	
+				PrintF("Nothing Returned")
+				SkipRepeat = 1
+				Exit
+			EndIf
+			
+			If NextDepth = 0 then
+				Exit 			
+			EndIf
+			
+		Forever
+		If SkipRepeat = 1 then Continue
+					
+		OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
+		OnlineWin.SourceItemsList.SetStringItem(item , 1 , NextLuaName)	
+		OnlineWin.SourceItemsList.SetItemData(item, AutoSearchLuaFile + "||" + NextLuaData)
+		OnlineWin.UnSavedChanges = True		
+		
+		PrintF(AutoSearchLuaFile + "||" + NextLuaData)
+		
+		Log1.AddText("Found: " + NextLuaName)
+		Log1.AddText(" ")
+		
+		If Log1.LogClosed = True then Exit
+	Forever
+	LuaMutexUnlock()
+	
+	OnlineWin.SourceItemsList.SetColumnWidth(1 , wxLIST_AUTOSIZE)	
+	
+	'Log1.Destroy()
+	Delay 2000	
+	
+	Log1.Show(0)
+	OnlineWin.Show()
+End Function
+
 Function Thread_SaveGames_SOI:Object(obj:Object)
 	PrintF("Saving Games - SteamOnlineImport2")
 	Local OnlineWin:SteamOnlineImport2 = SteamOnlineImport2(obj)
@@ -8,6 +204,20 @@ Function Thread_SaveGames_SOI:Object(obj:Object)
 	Local col1:wxListItem , col3:wxListItem
 	Local MessageBox:wxMessageDialog
 	Local ClientData:String
+	
+	Local TotalGames:Int = 0
+	Local SavedGames:Int = 0
+	
+	Repeat
+		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+		If item = - 1 then Exit
+		
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+			TotalGames = TotalGames + 1
+		EndIf
+	Forever
+	
+	item = - 1	
 	
 	Repeat	
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
@@ -66,12 +276,17 @@ Function Thread_SaveGames_SOI:Object(obj:Object)
 			GameNode.DownloadGameArtWork()
 			Log1.AddText("")
 			
-			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")					
+			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")		
+			SavedGames = SavedGames + 1
 		EndIf
 		If Log1.LogClosed = True Then Exit
 	Forever
-	OnlineWin.UnSavedChanges = False
-	MessageBox = New wxMessageDialog.Create(Null , "Completed" , "Info" , wxOK | wxICON_INFORMATION)
+	
+	If SavedGames = TotalGames then
+		OnlineWin.UnSavedChanges = False
+	EndIf
+	
+	MessageBox = New wxMessageDialog.Create(Null , "Saved " + String(SavedGames) + "/" + String(TotalGames) + " Successfully" , "Info" , wxOK | wxICON_INFORMATION)
 	MessageBox.ShowModal()
 	MessageBox.Free()
 
@@ -99,7 +314,7 @@ Type SteamOnlineImport2 Extends wxFrame
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel1.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Panel1.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue))
 		Local P1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
 		Local ExplainText:String = "This window will import installed games from Steam, a popular digital distribution platform. ~n" + ..
@@ -112,7 +327,7 @@ Type SteamOnlineImport2 Extends wxFrame
 		
 		SourceItemsList = New wxListCtrl.Create(Self , SOI2_SIL , - 1 , - 1 , - 1 , - 1 , wxLC_REPORT | wxLC_SINGLE_SEL )
 		Local Panel3:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel3.SetBackgroundColour(New wxColour.Create(200,200,255))
+		Panel3.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue))
 		Local P3hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local SOI2_AutoButton:wxButton = New wxButton.Create(Panel3 , SOI2_P3_AB , "Auto Scan")
 		Local SOI2_SetButton:wxButton = New wxButton.Create(Panel3 , SOI2_P3_SB , "Set Game")
@@ -129,7 +344,7 @@ Type SteamOnlineImport2 Extends wxFrame
 		Local sl2:wxStaticLine = New wxStaticLine.Create(Self , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
 		
 		Local BackButtonPanel:wxPanel = New wxPanel.Create(Self , - 1)
-		BackButtonPanel.SetBackgroundColour(New wxColour.Create(200,200,255))
+		BackButtonPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local BackButtonVbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)	
 		Local BackButton:wxButton = New wxButton.Create(BackButtonPanel , SOI2_EXIT , "Exit")
 		BackButtonVbox.Add(BackButton , 4 , wxALIGN_LEFT | wxALL , 5)
@@ -210,7 +425,9 @@ Type SteamOnlineImport2 Extends wxFrame
 				SourceItemsList.SetStringItem(index , 3 , SteamEXE)				
 				a = a + 1
 			Forever		
-			CloseDir(ReadSteamFolder)			
+			CloseDir(ReadSteamFolder)		
+			SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)				
+			SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)				
 		EndIf
 		
 	End Method
@@ -228,6 +445,17 @@ Type SteamOnlineImport2 Extends wxFrame
 	Function AutoSearch(event:wxEvent)
 		PrintF("AutoSearch - SteamOnlineImport2")
 		Local OnlineWin:SteamOnlineImport2 = SteamOnlineImport2(event.parent)
+		
+		
+		?Threaded
+		Local AutoSearchThread:TThread = CreateThread(Thread_AutoSearch_SOI, OnlineWin)
+		?Not Threaded
+		Thread_AutoSearch_SOI(OnlineWin)
+		?		
+		
+		
+		
+		Rem
 		OnlineWin.Hide()
 		'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Auto searching for games" , , , 300 , 400) )
 		Log1.Show(1)
@@ -276,7 +504,7 @@ Type SteamOnlineImport2 Extends wxFrame
 		
 		Log1.Show(0)
 		OnlineWin.Show()
-		
+		EndRem
 	End Function
 
 	Function SILKeyPress(event:wxEvent)
@@ -392,6 +620,8 @@ Type ManualSGSearch Extends wxFrame
 		Self.PlatformNum = 40
 		?
 		
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		
 		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Self, MS_DSP) )
 		Self.DatabaseSearchPanel.SetPlatformNum(Self.PlatformNum)
 		
@@ -464,9 +694,12 @@ Type ManualSGSearch Extends wxFrame
 		Local ManualSearchWin:ManualSGSearch = ManualSGSearch(event.parent)
 		Local item:Int = ManualSearchWin.DatabaseSearchPanel.SearchList.GetSelection()
 		
+		
+		
 		ManualSearchWin.SourceItemsList.SetStringItem(ManualSearchWin.ListItemNum , 1 , ManualSearchWin.DatabaseSearchPanel.SearchList.GetString(item) )
 		ManualSearchWin.SourceItemsList.SetStringItem(ManualSearchWin.ListItemNum , 0 , "True")
-		ManualSearchWin.SourceItemsList.SetItemData(ManualSearchWin.ListItemNum , ManualSearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualSearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ))
+		ManualSearchWin.SourceItemsList.SetItemData(ManualSearchWin.ListItemNum , ManualSearchWin.DatabaseSearchPanel.SearchSource.GetValue() + "||" + String(ManualSearchWin.DatabaseSearchPanel.SearchList.GetItemClientData(item) ) )
+		ManualSearchWin.SourceItemsList.SetColumnWidth(1 , wxLIST_AUTOSIZE)
 		ManualSearchWin.ParentWin.UnSavedChanges = True
 		ManualSearchWin.ParentWin.Show()
 		ManualSearchWin.Destroy()			

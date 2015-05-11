@@ -270,7 +270,7 @@ Function ShellExec(lpCmdLine$ , nCmdShow , nWait = False )
 End Function 
 ?
 
-Function PhotonSuiteRunProcess:Int(Command:String,Program:String)
+Function PhotonSuiteRunProcess:Int(Command:String, Program:String)
 	Local cmdOpts:String
 	If Left(Command,Len(Program))=Program Then 
 		PrintF(Program)

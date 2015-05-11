@@ -18,10 +18,11 @@ Type OfflineImport2 Extends wxFrame
 				
 		Self.UnSavedChanges = False
 		
+		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
-		Panel1.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
+		Panel1.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local P1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
 		Local ExplainText:String = "This window will import installed games from Games Explorer."
@@ -45,7 +46,7 @@ Type OfflineImport2 Extends wxFrame
 		Local sl2:wxStaticLine = New wxStaticLine.Create(Self , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
 		
 		Local BackButtonPanel:wxPanel = New wxPanel.Create(Self , - 1)
-		BackButtonPanel.SetBackgroundColour(New wxColour.Create(200, 200, 255) )
+		BackButtonPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local BackButtonHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)	
 		Local BackButton:wxButton = New wxButton.Create(BackButtonPanel , OI2_EXIT , "Exit")
 		Local SelectAllButton:wxButton = New wxButton.Create(BackButtonPanel , OI2_SEL , "Select All Games")

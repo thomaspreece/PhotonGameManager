@@ -28,9 +28,10 @@ Type EmulatorsList Extends wxFrame
 		TextCtrlList = CreateList()
 		StaticTextList = CreateList()
 		PanelList = CreateList()
+	
 		
 		Panel1 = New wxPanel.Create(Self , wxID_ANY)
-		Panel1.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
+		Panel1.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		P1Hbox = New wxBoxSizer.Create(wxHORIZONTAL)
 		BackButton:wxButton = New wxButton.Create(Panel1 , EL_BB , "Back")
 		TogglePlatforms = New wxButton.Create(Panel1 , EL_TP , "Hide Unused Platforms")
@@ -45,7 +46,7 @@ Type EmulatorsList Extends wxFrame
 		Panel1.SetSizer(P1Hbox)
 		
 		Panel2 = New wxPanel.Create(Self , wxID_ANY)
-		Panel2.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
+		Panel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		P2Hbox = New wxBoxSizer.Create(wxHORIZONTAL)
 		
 		Local ExplainText:String = "Here you can enter the default path to the emulator for various different platforms. ~n" + ..

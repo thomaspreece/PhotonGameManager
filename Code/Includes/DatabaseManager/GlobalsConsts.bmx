@@ -45,9 +45,16 @@ Global ShowInfoButton:Int = True
 Global RunnerButtonCloseOnly:Int = False 
 Global OriginWaitEnabled = True 
 Global AntiAliasSetting:Int = 0
-	
+Global OnlineAddSource:String = ""	
 
 Global EditGameName:String = ""
+
+
+Global PMRed:Int = 200
+Global PMGreen:Int = 255
+Global PMBlue:Int = 200
+
+
 
 Const GNTextH:Int = 0
 

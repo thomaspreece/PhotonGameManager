@@ -11,10 +11,11 @@ Type KeyboardInputWindow Extends wxFrame
 		FrontEndSettingFile = New SettingsType
 		FrontEndSettingFile.ParseFile(SETTINGSFOLDER+"FrontEnd.xml")
 	
-		ParentWin = SettingsWindow(GetParent())
+		ParentWin = SettingsWindow(GetParent() )
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )		
-		Self.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )	
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		
 		Self.Centre()
 		Self.Hide()
 		
@@ -304,7 +305,7 @@ Type JoyStickInputWindow Extends wxFrame
 		ParentWin = SettingsWindow(GetParent())
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )		
-		Self.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )	
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Self.Centre()
 		Self.Hide()
 		

@@ -104,6 +104,7 @@ Type EditGameList Extends wxFrame
 	
 	Method OnInit()
 	
+	
 		UpdateListTimer = New wxTimer.Create(Self,EGL_ULT)
 		Connect(EGL_ULT,wxEVT_TIMER, GameListUpdateTimer)
 		
@@ -116,7 +117,7 @@ Type EditGameList Extends wxFrame
 		BOLDFONT1.SetPointSize(9)
 		'BOLDFONT1.
 		BOLDFONT1.SetWeight(wxFONTWEIGHT_BOLD)		
-		Self.SetBackgroundColour(New wxColour.Create(200,200,255))		
+		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		
 		ParentWin = MainWindow(GetParent() )
 		Selection=-1
@@ -127,7 +128,7 @@ Type EditGameList Extends wxFrame
 		Local FilPlatPanel:wxPanel = New wxPanel.Create(Self , - 1)
 		Local FilPlatHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
-		Local SortText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Sort:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local SortText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Sort:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		SortCombo = New wxComboBox.Create(FilPlatPanel, EGL_SL , "Alphabetical - Ascending" , SORTS , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )
 		Local FilterText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Filter:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		FilterTextBox = New wxTextCtrl.Create(FilPlatPanel, EGL_FTB , "" , -1 , -1 , -1 , -1 , 0 )
@@ -148,7 +149,7 @@ Type EditGameList Extends wxFrame
 		Local GameHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 
 		Local SubGamePanel1:wxPanel = New wxPanel.Create(GamePanel , - 1)
-		SubGamePanel1.SetBackgroundColour(New wxColour.Create(170 , 170 , 255) )
+		SubGamePanel1.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local SubGamePanel1Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		GameList = New wxListCtrl.Create(SubGamePanel1 , EGL_GL , - 1 , - 1 , - 1 , - 1 ,  wxLC_REPORT | wxSUNKEN_BORDER )
 		SubGamePanel1Vbox.Add(GameList , 14 , wxEXPAND | wxALL , 2 )
@@ -183,7 +184,7 @@ Type EditGameList Extends wxFrame
 		
 		
 		SubGamePanel2 = New wxPanel.Create(GamePanel , - 1)
-		SubGamePanel2.SetBackgroundColour(New wxColour.Create(170 , 170 , 255) )		
+		SubGamePanel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )		
 		Local SubGamePanel2Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Rem
 		?MacOS
