@@ -128,6 +128,11 @@ Type LuaListType {expose disablenew}
 	End Method
 End Type
 
+Function LuaHelper_GetDefaultGame:String()
+	'Return default game lua file (without .lua extention)
+	Return "thegamesdb.net"
+End Function
+
 Function LuaHelper_FunctionError:Int(Lua:Byte Ptr, Error:Int, ErrorMessage:String)
 	Local MessageBox:wxMessageDialog
 	If ErrorMessage = "Operation was aborted by an application callback" then ErrorMessage = "Internet operation timeout"
@@ -198,17 +203,18 @@ Function LuaThread_pcall_Funct:Object(nobject:Object)
 	Local ErrorMessage:String
 	
 	LuaMutexLock()
-	If LuaThread_pcall.Window = Null then
+	'If LuaThread_pcall.Window = Null then
 	
-	Else
-		LuaThread_pcall.Window.Disable()
-	EndIf
+	'Else
+	'	LuaThread_pcall.Window.Disable()
+	'EndIf
 	Result = lua_pcall(LuaThread_pcall.Lua, LuaThread_pcall.Inputs, LuaThread_pcall.Outputs, 0)
-	If LuaThread_pcall.Window = Null then
+	'If LuaThread_pcall.Window = Null then
 	
-	Else
-		LuaThread_pcall.Window.Enable()
-	EndIf
+	'Else
+	
+	'	LuaThread_pcall.Window.Enable()
+	'EndIf
 	LuaMutexUnlock()
 	
 	If (Result <> 0) then
@@ -251,6 +257,9 @@ End Function
 Function LuaHelper_LoadString:Int(Lua:Byte Ptr, Source:String , File:String = Null)
 	'Takes LuaVM, Text Source and optional File path. If optional file path provided, Source is ignored and file is read into Source
 	
+	'Clean out Lua Stack First
+	LuaHelper_CleanStack(LuaVM)
+	
 	Local Result:Int
 	Local MessageBox:wxMessageDialog
 	
@@ -259,14 +268,14 @@ Function LuaHelper_LoadString:Int(Lua:Byte Ptr, Source:String , File:String = Nu
 		Source = ""
 		Local LuaSourceFile:TStream = ReadFile(File)
 		If LuaSourceFile = Null then
-			PrintF("Lua File Error: ~n" + "Could not open Lua file for reading")
-			MessageBox = New wxMessageDialog.Create(Null , "Lua File Error: ~n" + "Could not open Lua file for reading" , "Error" , wxOK | wxICON_EXCLAMATION)
+			PrintF("Lua File Error: ~n" + "Could not open Lua file for reading (" + File + ")")
+			MessageBox = New wxMessageDialog.Create(Null , "Lua File Error: ~n" + "Could not open Lua file for reading (" + File + ")" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()		
 			Return 1
 		EndIf
 		Repeat
-			Line = ReadLine(LuaSourceFile)
+			line = ReadLine(LuaSourceFile)
 			Source = Source + line + "~n~r"
 			If Eof(LuaSourceFile) then Exit 	
 		Forever
