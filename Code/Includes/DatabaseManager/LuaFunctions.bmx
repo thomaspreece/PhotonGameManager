@@ -1,3 +1,31 @@
+Function GetLuaList:TList(LuaCat:Int)
+	Local LuaList:TList = CreateList()
+	Local LuaFile:String
+	
+	Local ReadLuaFiles:Int
+	Select LuaCat
+		Case 1
+			ReadLuaFiles = ReadDir(LUAFOLDER + "Game")
+		Default
+			CustomRuntimeError("GetLuaList - Select Error")
+	End Select 	
+	
+	If ReadLuaFiles = Null then CustomRuntimeError("GetLuaList - ReadDir Error")
+	
+	Repeat
+		LuaFile = NextFile(ReadLuaFiles)
+		If LuaFile = "." Or LuaFile = ".." then Continue
+		If LuaFile = "" then Exit
+		If Right(LuaFile, 4) = ".lua" then ListAddLast(LuaList, Left(LuaFile, Len(LuaFile) - 4) )
+	Forever
+	CloseDir(ReadLuaFiles)
+	
+	SortList(LuaList)
+	
+	Return LuaList
+	
+End Function
+
 Type LuaInternetType {expose disablenew}
 	Field curl:TCurlEasy
 	Field LastError:String
@@ -7,13 +35,19 @@ Type LuaInternetType {expose disablenew}
 
 	Function progressCallback:Int(data:Object, dltotal:Double, dlnow:Double, ultotal:Double, ulnow:Double) {hidden}
 		Local LuaInternet:LuaInternetType = LuaInternetType(data)
+		If dlnow = 0 then
+			Log1.SubProgress.Pulse()
+		Else
+			Log1.SubProgress.SetValue( (100 * dlnow) / dltotal)
+		EndIf
+		
 		If LuaInternet.Currentdl - dlnow = 0 then
 			If MilliSecs() - LuaInternet.Time > LuaInternet.Timeout then
 				PrintF("Internet Timeout!")
 				Return 1
 			EndIf
 		Else
-			LuaInternet.Currentdl = dltotal
+			LuaInternet.Currentdl = dlnow
 			LuaInternet.Time = MilliSecs()
 		EndIf
 		
@@ -130,7 +164,18 @@ End Type
 
 Function LuaHelper_GetDefaultGame:String()
 	'Return default game lua file (without .lua extention)
-	Return "thegamesdb.net"
+	PrintF("Getting Default Game Lua")
+	If FileType(LUAFOLDER + "Game" + FolderSlash + PMDefaultGameLua + ".lua") = 1 then
+		Return PMDefaultGameLua
+	Else
+		Local LuaList:TList = GetLuaList(1)
+		If CountList(LuaList) > 0 then
+			PrintF(String(LuaList.First() ))
+			Return String(LuaList.First() )
+		Else
+			Return "oh"
+		EndIf
+	EndIf
 End Function
 
 Function LuaHelper_FunctionError:Int(Lua:Byte Ptr, Error:Int, ErrorMessage:String)

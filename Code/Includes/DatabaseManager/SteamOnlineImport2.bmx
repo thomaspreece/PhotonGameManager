@@ -12,6 +12,18 @@ Function Thread_AutoSearch_SOI:Object(Obj:Object)
 	Local col2:wxListItem
 	Local AutoSearchLuaFile:String = LuaHelper_GetDefaultGame()
 	Local GPlatNum:Int
+	
+	Local TotalGames:Int = 0
+	Local SavedGames:Int = 0
+	
+	Repeat
+		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
+		If item = - 1 then Exit
+		
+		TotalGames = TotalGames + 1
+	Forever
+	
+	item = - 1	
 
 	?Win32
 	GPlatNum = 24
@@ -180,6 +192,8 @@ Function Thread_AutoSearch_SOI:Object(Obj:Object)
 		
 		Log1.AddText("Found: " + NextLuaName)
 		Log1.AddText(" ")
+		SavedGames = SavedGames + 1
+		Log1.Progress.SetValue( (100 * SavedGames) / TotalGames)
 		
 		If Log1.LogClosed = True then Exit
 	Forever
@@ -278,6 +292,8 @@ Function Thread_SaveGames_SOI:Object(obj:Object)
 			
 			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")		
 			SavedGames = SavedGames + 1
+			
+			Log1.Progress.SetValue( (100 * SavedGames) / TotalGames)	
 		EndIf
 		If Log1.LogClosed = True Then Exit
 	Forever
@@ -306,6 +322,9 @@ Type SteamOnlineImport2 Extends wxFrame
 	Method OnInit()
 		ParentWin = MainWindow(GetParent() )
 
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
+
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 				
@@ -321,10 +340,7 @@ Type SteamOnlineImport2 Extends wxFrame
 		"If you do not know what Steam is, you don't need to use this wizard. ~n" + ..
 		"This is the ONLINE version of the wizard, you must be connected to the internet AND your steam profile must be public! (Otherwise the import will fail) ~n" + ..
 		"Powered By Steam (http://steampowered.com)"
-		
-		Local TextField = New wxStaticText.Create(Panel1 , wxID_ANY , ExplainText, -1 , -1 , -1 , -1 , wxALIGN_CENTER)
-		P1hbox.Add(TextField , 1 , wxEXPAND | wxALL , 8)
-		
+			
 		SourceItemsList = New wxListCtrl.Create(Self , SOI2_SIL , - 1 , - 1 , - 1 , - 1 , wxLC_REPORT | wxLC_SINGLE_SEL )
 		Local Panel3:wxPanel = New wxPanel.Create(Self , wxID_ANY)
 		Panel3.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue))
@@ -345,11 +361,22 @@ Type SteamOnlineImport2 Extends wxFrame
 		
 		Local BackButtonPanel:wxPanel = New wxPanel.Create(Self , - 1)
 		BackButtonPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
-		Local BackButtonVbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)	
-		Local BackButton:wxButton = New wxButton.Create(BackButtonPanel , SOI2_EXIT , "Exit")
-		BackButtonVbox.Add(BackButton , 4 , wxALIGN_LEFT | wxALL , 5)
+		Local BackButtonVbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)	
+		Local BackButton:wxButton = New wxButton.Create(BackButtonPanel , SOI2_EXIT , "Back")
+		BackButtonVbox.Add(BackButton , 1 , wxALIGN_LEFT | wxALL , 5)
+		BackButtonVbox.AddStretchSpacer(4)
 		BackButtonPanel.SetSizer(BackButtonVbox)
 
+
+		Local HelpPanel:wxPanel = New wxPanel.Create(Self)
+		HelpPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Local HelpPanelSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(HelpPanel, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
+		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
+		HelpPanelSizer.Add(HelpText, 1, wxEXPAND | wxALL, 10)
+		HelpPanel.SetSizer(HelpPanelSizer)
+		
+		vbox.Add(HelpPanel, 0 , wxEXPAND, 0)
 		vbox.Add(Panel1 , 0 , wxEXPAND , 0)
 		vbox.Add(SourceItemsList , 1 , wxEXPAND , 0)
 		vbox.Add(Panel3 , 0 , wxEXPAND , 0)
@@ -358,6 +385,9 @@ Type SteamOnlineImport2 Extends wxFrame
 		SetSizer(vbox)
 		Centre()		
 		Hide()
+		If PMMaximize = 1 then
+			Self.Maximize(1)
+		EndIf
 		
 		
 		Connect(SOI2_EXIT , wxEVT_COMMAND_BUTTON_CLICKED , ShowMainMenu)
@@ -621,6 +651,8 @@ Type ManualSGSearch Extends wxFrame
 		?
 		
 		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		
 		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Self, MS_DSP) )
 		Self.DatabaseSearchPanel.SetPlatformNum(Self.PlatformNum)

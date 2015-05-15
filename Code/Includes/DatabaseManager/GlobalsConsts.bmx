@@ -46,19 +46,33 @@ Global RunnerButtonCloseOnly:Int = False
 Global OriginWaitEnabled = True 
 Global AntiAliasSetting:Int = 0
 Global OnlineAddSource:String = ""	
+Global OnlineAddPlatform:String = ""
 
 Global EditGameName:String = ""
 
 
-Global PMRed:Int = 200
-Global PMGreen:Int = 255
-Global PMBlue:Int = 200
+Global PMRed:Int = 190
+Global PMGreen:Int = 190
+Global PMBlue:Int = 255
 
+Global PMRed2:Int = 220 '140
+Global PMGreen2:Int = 220 '140
+Global PMBlue2:Int = 255 '140
 
+Global PMRedF:Int = 0
+Global PMGreenF:Int = 0
+Global PMBlueF:Int = 0
+
+Global PMFont:wxFont = New wxFont.CreateFontWithAttributes(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL)
+
+Global PMMaximize:Int = 1
+
+Global PMDefaultGameLua:String = "thegamesdb.net"
+Global PMFetchAllArt:Int = 1
 
 Const GNTextH:Int = 0
 
-Const MW_AGB = 41 
+Const MW_AGB = 41
 Const MW_EGB = 42
 Const MW_EB = 43
 Const MW_UFG = 44
@@ -191,6 +205,9 @@ Const EGL_A_AddF = 272
 Const EGL_A_AddE = 273
 Const EGL_A_Del = 274
 Const EGL_ULT = 275
+Const EGL_OO = 276
+Const EGL_M1_I1 = 277
+Const EGL_M1_I2 = 278
 
 Const OA_PC = 300
 Const OA_SP = 301
@@ -248,6 +265,9 @@ Const SW_BCO = 522
 Const SW_AA = 523
 Const SW_STI = 524
 Const SW_STS = 525
+Const SW_MZ = 526
+Const SW_DGL = 527
+Const SW_DAA = 528
 
 Const PW_BB = 600
 Const PW_OB = 601

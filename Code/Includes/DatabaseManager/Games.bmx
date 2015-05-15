@@ -85,46 +85,48 @@ Type GameType Extends GameReadType
 		Return 1
 	End Method
 	
-	Method ExtractIcon(Override:Int)
-		?Win32	
-		Local GName:String = Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
-		Local temp:String , File:String
-			
-		Local EXE:String = StandardiseSlashes(StripCmdOpt(Self.RunEXE))
-		DeleteCreateFolder(TEMPFOLDER + "Icons")
-		DeleteCreateFolder(TEMPFOLDER + "Icons2")
-		Local ExtractIcon:TProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + EXE + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons"+FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
-		If ExtractIcon <> Null Then 
-			Repeat
-				Delay 10
-				If ProcessStatus(ExtractIcon)=0 Then Exit
-			Forever	
-		Else
-			PrintF("Failed to extract Icon")
-		EndIf 
-		ReadIcons = ReadDir(TEMPFOLDER + "Icons"+FolderSlash)
-		temp = ""
-		Repeat
-			File = NextFile(ReadIcons)
-			If File = "" Then Exit
-			If File="." Or File=".." Then Continue
-			If ExtractExt(File) = "ico" Then
-				temp = TEMPFOLDER + "Icons"+FolderSlash + File
-				Exit			
-			EndIf
-		Forever
-		CloseDir(ReadIcons)		
-		If temp = "" Then
-		Else
-			If FileType(GAMEDATAFOLDER + GName + FolderSlash +"Icon.ico") = 1 And Override = False Then
-				'Do Nothing
+	Method ExtractIcon()
+		If GlobalPlatforms.GetPlatformByID(Self.PlatformNum).PlatType = "Folder" then
+			?Win32	
+			Local GName:String = Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
+			Local temp:String , File:String
+				
+			Local EXE:String = StandardiseSlashes(StripCmdOpt(Self.RunEXE) )
+			DeleteCreateFolder(TEMPFOLDER + "Icons")
+			DeleteCreateFolder(TEMPFOLDER + "Icons2")
+			Local ExtractIcon:TProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + EXE + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons" + FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
+			If ExtractIcon <> Null then
+				Repeat
+					Delay 10
+					If ProcessStatus(ExtractIcon)=0 Then Exit
+				Forever	
 			Else
-				DeleteFile(GAMEDATAFOLDER + GName + FolderSlash +"Icon.ico")
-				CopyFile(temp , GAMEDATAFOLDER + GName + FolderSlash +"Icon.ico")
+				PrintF("Failed to extract Icon")
+			EndIf 
+			ReadIcons = ReadDir(TEMPFOLDER + "Icons"+FolderSlash)
+			temp = ""
+			Repeat
+				File = NextFile(ReadIcons)
+				If File = "" Then Exit
+				If File="." Or File=".." Then Continue
+				If ExtractExt(File) = "ico" Then
+					temp = TEMPFOLDER + "Icons"+FolderSlash + File
+					Exit			
+				EndIf
+			Forever
+			CloseDir(ReadIcons)		
+			If temp = "" Then
+			Else
+				If FileType(GAMEDATAFOLDER + GName + FolderSlash + "Icon.ico") = 1 And Self.OverideArtwork = False then
+					'Do Nothing
+				Else
+					DeleteFile(GAMEDATAFOLDER + GName + FolderSlash +"Icon.ico")
+					CopyFile(temp , GAMEDATAFOLDER + GName + FolderSlash +"Icon.ico")
+				EndIf
+							
 			EndIf
-						
+			?
 		EndIf
-		?
 	End Method
 	
 	
@@ -247,96 +249,8 @@ Type GameType Extends GameReadType
 	End Method
 	
 	
-	Rem
-	Method DownloadArtWorkThumbs(Log1:LogWindow , ArtType:Int)
-		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
-		Local MessageBox:wxMessageDialog
-		Local Downloadexe:TProcess
-		Local NumCorrect = 0
-		Local b:Int = 0
-		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "Thumbs" + String(ArtType) ) = 2 Then
-		
-			ReadThumbs = ReadDir(GAMEDATAFOLDER + GName + FolderSlash +"Thumbs" + String(ArtType) )
-			Repeat
-				file:String = NextFile(ReadThumbs)
-				If file="." Or file=".." Then Continue 
-				If file = "" then Exit
-				b = b + 1
-			Forever
-			
-			Select ArtType
-				Case 3
-					If CountList(Self.Fanart) = b Then
-						NumCorrect = 1
-					EndIf
-				Case 4
-					If CountList(Self.BannerArt) = b Then
-						NumCorrect = 1
-					EndIf					
-			End Select
-		
-			If NumCorrect = 1 Then
-		
-				MessageBox = New wxMessageDialog.Create(Null, "Would you like to refresh Artwork Thumbs?" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-				If MessageBox.ShowModal() = wxID_NO Then
-					Return
-				EndIf
-			EndIf
-		EndIf
-		DeleteCreateFolder(GAMEDATAFOLDER + GName + FolderSlash +"Thumbs"+String(ArtType))
-		Local a:Int = 0
-		Select ArtType
-			Case 3 'Fanart
-				For Thumb:String = EachIn Self.FanartThumbs
-		
-					Downloadexe = RunProcess(DOWNLOADERPROGRAM+" -Mode 2 -DownloadFile " + Chr(34) + Thumb + Chr(34) + " -DownloadPath " + Chr(34) + GAMEDATAFOLDER + GName + FolderSlash +"Thumbs"+String(ArtType) + Chr(34) + " -DownloadName " + Chr(34) + "Thumb" + String(a) + "." + Lower(ExtractExt(Thumb) ) + Chr(34))
-					Log1.AddText("Downloading Thumb "+a)
-					PrintF("Downloading "+Thumb)			
-					Repeat
-						If ProcessStatus(Downloadexe) = 0 Then						
-							Exit
-						EndIf	
-						If Downloadexe.pipe.ReadAvail()  Then
-							Log1.AddText(Downloadexe.pipe.ReadLine() )
-						EndIf 						
-						Delay 100
-						If Log1.LogClosed = True Then
-							ExitArt = True
-							Exit
-						EndIf
-					Forever	
-					a = a + 1	
-					If ExitArt = True Then Exit
-				Next
-			Case 4 'Banner
-				For Thumb:String = EachIn Self.BannerArt
-		
-					Downloadexe = RunProcess(DOWNLOADERPROGRAM+" -Mode 2 -DownloadFile " + Chr(34) + Thumb + Chr(34) + " -DownloadPath " + Chr(34) + GAMEDATAFOLDER + GName + FolderSlash +"Thumbs"+String(ArtType) + Chr(34) + " -DownloadName " + Chr(34) + "Thumb" + String(a) + "." + Lower(ExtractExt(Thumb) ) + Chr(34))
-					Log1.AddText("Downloading Thumb"+a)
-					PrintF("Downloading "+Thumb)			
-					Repeat
-						If ProcessStatus(Downloadexe) = 0 Then						
-							Exit
-						EndIf	
-						If Downloadexe.pipe.ReadAvail()  Then
-							Log1.AddText(Downloadexe.pipe.ReadLine())
-						EndIf 						
-						Delay 100
-						If Log1.LogClosed = True Then
-							ExitArt = True
-							Exit
-						EndIf						
-					Forever	
-					a = a + 1	
-					If ExitArt = True Then Exit
-				Next
-		End Select	
-		Delay 1000		
-		Return
-	End Method
-	EndRem
-	
 	Method DownloadGameArtWork()
+
 		Local Override:Int = Self.OverideArtwork
 		Self.OverideArtwork = 0
 		Local ArtworkListItem:DownloadArtworkListItemType
@@ -381,75 +295,101 @@ Type GameType Extends GameReadType
 			If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Banner.jpg") = 0 then
 				ListAddLast(DownloadArtworkList, ArtworkListItem)
 			EndIf
-		EndIf			
-											If Self.FrontBoxArt.Count() > 1 then
-			ItemNumber = 0
-			For URL = EachIn Self.FrontBoxArt
-				ItemNumber = ItemNumber + 1
-				'Already added first in list above so skip it
-				If ItemNumber = 1 then Continue
-				'Add other front covers to downloadlist
-				ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Front" + ItemNumber)
-				If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Front" + ItemNumber + ".jpg") = 0 then
-					ListAddLast(DownloadArtworkList, ArtworkListItem)
-				EndIf
-			Next
-		EndIf
-
-		If Self.BackBoxArt.Count() > 1 then
-			ItemNumber = 0
-			For URL = EachIn Self.BackBoxArt
-				ItemNumber = ItemNumber + 1
-				'Already added first in list above so skip it
-				If ItemNumber = 1 then Continue
-				'Add other back covers to downloadlist
-				ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Back" + ItemNumber)
-				If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Back" + ItemNumber + ".jpg") = 0 then
-					ListAddLast(DownloadArtworkList, ArtworkListItem)
-				EndIf
-			Next
-		EndIf
-		
-		If Self.Fanart.Count() > 1 then
-			ItemNumber = 0
-			For URL = EachIn Self.Fanart
-				ItemNumber = ItemNumber + 1
-				'Already added first in list above so skip it
-				If ItemNumber = 1 then Continue
-				'Add other fanarts to downloadlist
-				ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Screen" + ItemNumber)
-				If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Screen" + ItemNumber + ".jpg") = 0 then
-					ListAddLast(DownloadArtworkList, ArtworkListItem)
-				EndIf 
-			Next
-		EndIf		
-		
-		If Self.BannerArt.Count() > 1 then
-			ItemNumber = 0
-			For URL = EachIn Self.BannerArt
-				ItemNumber = ItemNumber + 1
-				'Already added first in list above so skip it
-				If ItemNumber = 1 then Continue
-				'Add other banners to downloadlist
-				ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Banner" + ItemNumber)
-				If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Banner" + ItemNumber + ".jpg") = 0 then
-					ListAddLast(DownloadArtworkList, ArtworkListItem)
-				EndIf
-			Next
-		EndIf		
-
-		If Self.ScreenShots.Count() > 0 then
-			ItemNumber = 0
-			For URL = EachIn Self.ScreenShots
-				ItemNumber = ItemNumber + 1
-				'Add other banners to downloadlist
-				ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Shot" + ItemNumber)
-				If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Shot" + ItemNumber + ".jpg") = 0 then
-					ListAddLast(DownloadArtworkList, ArtworkListItem)
-				EndIf
-			Next
 		EndIf	
 
+
+		If Self.ScreenShots.Count() > 1 then
+			URL = String(Self.ScreenShots.ValueAtIndex(0) )
+			ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Shot1")
+			If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Shot1.jpg") = 0 then
+				ListAddLast(DownloadArtworkList, ArtworkListItem)
+			EndIf
+			URL = String(Self.ScreenShots.ValueAtIndex(1) )
+			ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Shot2")
+			If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Shot2.jpg") = 0 then
+				ListAddLast(DownloadArtworkList, ArtworkListItem)
+			EndIf			
+		ElseIf Self.ScreenShots.Count() > 0 then
+			URL = String(Self.ScreenShots.ValueAtIndex(0) )
+			ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Shot1")
+			If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Shot1.jpg") = 0 then
+				ListAddLast(DownloadArtworkList, ArtworkListItem)
+			EndIf
+		EndIf		
+
+						If PMFetchAllArt = 1 then 	
+					If Self.FrontBoxArt.Count() > 1 then
+				ItemNumber = 0
+				For URL = EachIn Self.FrontBoxArt
+					ItemNumber = ItemNumber + 1
+					'Already added first in list above so skip it
+					If ItemNumber = 1 then Continue
+					'Add other front covers to downloadlist
+					ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Front" + ItemNumber)
+					If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Front" + ItemNumber + ".jpg") = 0 then
+						ListAddLast(DownloadArtworkList, ArtworkListItem)
+					EndIf
+				Next
+			EndIf
+
+			If Self.BackBoxArt.Count() > 1 then
+				ItemNumber = 0
+				For URL = EachIn Self.BackBoxArt
+					ItemNumber = ItemNumber + 1
+					'Already added first in list above so skip it
+					If ItemNumber = 1 then Continue
+					'Add other back covers to downloadlist
+					ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Back" + ItemNumber)
+					If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Back" + ItemNumber + ".jpg") = 0 then
+						ListAddLast(DownloadArtworkList, ArtworkListItem)
+					EndIf
+				Next
+			EndIf
+			
+			If Self.Fanart.Count() > 1 then
+				ItemNumber = 0
+				For URL = EachIn Self.Fanart
+					ItemNumber = ItemNumber + 1
+					'Already added first in list above so skip it
+					If ItemNumber = 1 then Continue
+					'Add other fanarts to downloadlist
+					ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Screen" + ItemNumber)
+					If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Screen" + ItemNumber + ".jpg") = 0 then
+						ListAddLast(DownloadArtworkList, ArtworkListItem)
+					EndIf 
+				Next
+			EndIf		
+			
+			If Self.BannerArt.Count() > 1 then
+				ItemNumber = 0
+				For URL = EachIn Self.BannerArt
+					ItemNumber = ItemNumber + 1
+					'Already added first in list above so skip it
+					If ItemNumber = 1 then Continue
+					'Add other banners to downloadlist
+					ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Banner" + ItemNumber)
+					If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Banner" + ItemNumber + ".jpg") = 0 then
+						ListAddLast(DownloadArtworkList, ArtworkListItem)
+					EndIf
+				Next
+			EndIf
+								
+				
+			If Self.ScreenShots.Count() > 2 then
+				ItemNumber = 0
+				For URL = EachIn Self.ScreenShots
+					ItemNumber = ItemNumber + 1
+					
+					If ItemNumber = 1 Or ItemNumber = 2 then Continue
+					'Add other banners to downloadlist
+					ArtworkListItem = New DownloadArtworkListItemType.Create(URL, "Shot" + ItemNumber)
+					If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Shot" + ItemNumber + ".jpg") = 0 then
+						ListAddLast(DownloadArtworkList, ArtworkListItem)
+					EndIf
+				Next
+			EndIf	
+
+		EndIf
 		
 		DeleteCreateFolder(TEMPFOLDER + "ArtWork")
 
@@ -472,12 +412,15 @@ Type GameType Extends GameReadType
 			
 			'perform Download		
 			Local TFile:TStream = WriteFile(TEMPFOLDER + "Artwork" + FolderSlash + ArtworkListItem.Filename)
+			Local Timeout:DownloadArtwork_Timeout = New DownloadArtwork_Timeout
+			Timeout.Currentdl = - 1
+			Timeout.Time = - 1
 			
 			ArtworkListItem.URL = Replace(ArtworkListItem.URL, " ", "%20")
 
 			curl.setOptString(CURLOPT_URL, ArtworkListItem.URL)
 			curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
-			curl.setProgressCallback(DownloadArtwork_ProgressCallback)
+			curl.setProgressCallback(DownloadArtwork_ProgressCallback, Object(Timeout) )
 			curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 			curl.setWriteStream(TFile)
 			
@@ -503,10 +446,17 @@ Type GameType Extends GameReadType
 		Forever		
 		
 		If Log1.LogClosed = False then
+			If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Icon.ico") = 0 then
+				Self.ExtractIcon()
+			EndIf
+		EndIf
+				
+		
+		If Log1.LogClosed = False then
 			Log1.AddText("Optimizing Artwork...")
 			Self.OptimizeArtwork()
 		EndIf
-		
+
 	End Method
 	
 	Method OptimizeArtwork()
@@ -679,7 +629,6 @@ Type GameType Extends GameReadType
 		CloseDir(ReadGames)		
 	End Method
 	
-
 	Method DownloadGameInfo()
 		Local ErrorMessage:String
 		Local MessageBox:wxMessageDialog
@@ -1169,6 +1118,22 @@ End Type
 
 
 Function DownloadArtwork_ProgressCallback:Int(data:Object, dltotal:Double, dlnow:Double, ultotal:Double, ulnow:Double) {hidden}
+	Local Timeout:DownloadArtwork_Timeout = DownloadArtwork_Timeout(data)
+	If dlnow = 0 then
+		Log1.SubProgress.Pulse()
+	Else
+		Log1.SubProgress.SetValue( (100 * dlnow) / dltotal)
+	EndIf
+	If Timeout.Currentdl - dlnow = 0 then
+		If MilliSecs() - Timeout.Time > Timeout.Timeout then
+			PrintF("Internet Timeout!")
+			Return 1
+		EndIf
+	Else
+		Timeout.Currentdl = dlnow
+		Timeout.Time = MilliSecs()
+	EndIf
+	
 	PrintF( dlnow + "/" + dltotal + " bytes")
 	?Not Threaded
 	DatabaseApp.Yield()
@@ -1179,3 +1144,9 @@ Function DownloadArtwork_ProgressCallback:Int(data:Object, dltotal:Double, dlnow
 	EndIf	
 	Return 0	
 End Function
+
+Type DownloadArtwork_Timeout
+	Field Currentdl:Double
+	Field Time:Int
+	Field Timeout:Int = 10000
+End Type

@@ -13,6 +13,9 @@ Type OfflineImport2 Extends wxFrame
 	Method OnInit()
 		ParentWin = MainWindow(GetParent())
 
+
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 				
@@ -26,10 +29,7 @@ Type OfflineImport2 Extends wxFrame
 		Local P1hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
 		Local ExplainText:String = "This window will import installed games from Games Explorer."
-		
-		Local TextField = New wxStaticText.Create(Panel1 , wxID_ANY , ExplainText, - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)
-		P1hbox.Add(TextField , 1 , wxEXPAND | wxALL , 8)
-		
+			
 		Panel1.SetSizer(P1hbox)
 		
 		
@@ -39,6 +39,7 @@ Type OfflineImport2 Extends wxFrame
 
 
 		ScrollBox = New wxScrolledWindow.Create(Self)
+		ScrollBox.SetBackgroundColour(New wxColour.Create(255, 255, 255) )
 		
 		Self.UpdateList()
 
@@ -48,7 +49,7 @@ Type OfflineImport2 Extends wxFrame
 		Local BackButtonPanel:wxPanel = New wxPanel.Create(Self , - 1)
 		BackButtonPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local BackButtonHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)	
-		Local BackButton:wxButton = New wxButton.Create(BackButtonPanel , OI2_EXIT , "Exit")
+		Local BackButton:wxButton = New wxButton.Create(BackButtonPanel , OI2_EXIT , "Back")
 		Local SelectAllButton:wxButton = New wxButton.Create(BackButtonPanel , OI2_SEL , "Select All Games")
 		Local DeselectAllButton:wxButton = New wxButton.Create(BackButtonPanel , OI2_DESEL , "Deselect All Games")
 		Local SaveButton:wxButton = New wxButton.Create(BackButtonPanel , OI2_SAVE , "Save Games")
@@ -60,6 +61,16 @@ Type OfflineImport2 Extends wxFrame
 		BackButtonHbox.Add(SaveButton , 1 , wxEXPAND | wxALL , 5)
 		BackButtonPanel.SetSizer(BackButtonHbox)
 
+
+		Local HelpPanel:wxPanel = New wxPanel.Create(Self)
+		HelpPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Local HelpPanelSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(HelpPanel, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
+		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
+		HelpPanelSizer.Add(HelpText, 1, wxEXPAND | wxALL, 10)
+		HelpPanel.SetSizer(HelpPanelSizer)
+		
+		vbox.Add(HelpPanel, 0 , wxEXPAND, 0)
 		vbox.Add(Panel1 , 0 , wxEXPAND , 0)
 		'vbox.Add(Panel3 , 0 , wxEXPAND , 0)
 		'vbox.Add(SourceItemsList , 1 , wxEXPAND , 0)
@@ -71,6 +82,9 @@ Type OfflineImport2 Extends wxFrame
 		SetSizer(vbox)
 		Centre()		
 		Hide()
+		If PMMaximize = 1 then
+			Self.Maximize(1)
+		EndIf
 		
 		
 	
@@ -173,6 +187,7 @@ Type OfflineImport2 Extends wxFrame
 		
 		Local gridbox:wxFlexGridSizer
 		
+		
 		Local tempCheckBox:wxCheckBox		
 		Local tempGameName:wxComboBox
 		Local tempEXEName:wxComboBox		
@@ -204,7 +219,6 @@ Type OfflineImport2 Extends wxFrame
 		
 		Delay 300
 		
-		'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Searching Online For Games" , , , 300 , 400) )
 		Log1.Show(1)
 		Log1.AddText("Searching Online For Games")
 		ReadGDFFolder = ReadDir(TEMPFOLDER + "GDF")
@@ -214,22 +228,14 @@ Type OfflineImport2 Extends wxFrame
 		Local GameName:String
 		Local Platform:String
 		
-		'tempPanel1 = New wxPanel.Create(ScrollBox , - 1)
-		'tempPanel2 = New wxPanel.Create(ScrollBox , - 1)
-		'tempPanel3 = New wxPanel.Create(ScrollBox , - 1)
-		'tempPanel4 = New wxPanel.Create(ScrollBox , - 1)
-		
-		'tempVbox1 = New wxBoxSizer.Create(wxVERTICAL)
-		'tempVbox2 = New wxBoxSizer.Create(wxVERTICAL)
-		'tempVbox3 = New wxBoxSizer.Create(wxVERTICAL)
-		'tempVbox4 = New wxBoxSizer.Create(wxVERTICAL)
 		
 		tempPanel = New wxPanel.Create(ScrollBox , - 1)
-		gridbox = New wxFlexGridSizer.CreateRC(0, 3, 10, 10)		
+		gridbox = New wxFlexGridSizer.CreateRC(0, 3, 10, 10)		gridbox.SetFlexibleDirection(wxHORIZONTAL)
+		gridbox.AddGrowableCol(2, 1)
 
 		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Import?", - 1, - 1, - 1, - 1, wxALIGN_CENTER)
 		'tempStaticText.SetFont(BOLDFONT1)
-		gridbox.Add(tempStaticText , 1 , wxEXPAND | wxTOP, 20)
+		gridbox.Add(tempStaticText , 1 , wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 20)
 		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Game Explorer Name", - 1, - 1, - 1, - 1, wxALIGN_CENTER)
 		'tempStaticText.SetFont(BOLDFONT1)
 		gridbox.Add(tempStaticText , 1 , wxEXPAND | wxTOP , 20)				
