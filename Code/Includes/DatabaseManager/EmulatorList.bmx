@@ -1,6 +1,6 @@
 Type EmulatorsList Extends wxFrame
 	Field ParentWin:MainWindow
-	Field PanelList:TList
+	Field ButtonList:TList
 	Field TextCtrlList:TList
 	Field StaticTextList:TList
 	Field TogglePlatforms:wxButton
@@ -11,7 +11,7 @@ Type EmulatorsList Extends wxFrame
 		ParentWin = MainWindow(GetParent() )
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		'Local vbox2:wxBoxSizer
-		Local hbox:wxBoxSizer , P1Hbox:wxBoxSizer, P2Hbox:wxBoxSizer
+		Local hbox:wxBoxSizer , P1Hbox:wxBoxSizer, P2Hbox:wxBoxSizer, gridbox:wxFlexGridSizer
 		Local temppanel:wxPanel , Panel1:wxPanel, Panel2:wxPanel
 		Local tempstatictext:wxStaticText
 		Local temptextctrl:wxTextCtrl
@@ -20,14 +20,17 @@ Type EmulatorsList Extends wxFrame
 		Local b:Int = 10
 		Local Plat:String , Path:String
 
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
 		'Self.SetBackgroundColour(New wxColour.Create(200 , 200 , 255) )
 		
 		TextCtrlList = CreateList()
 		StaticTextList = CreateList()
-		PanelList = CreateList()
+		ButtonList = CreateList()
 	
 		
 		Panel1 = New wxPanel.Create(Self , wxID_ANY)
@@ -54,79 +57,53 @@ Type EmulatorsList Extends wxFrame
 		"If you are unsure what should be in the box, you should search the internet for '{emulator name} command line options' ~n" + ..
 		"Click OK to save"
 				
-		tempstatictext = New wxStaticText.Create(Panel2 , wxID_ANY , ExplainText)
-	
-		P2Hbox.Add(tempstatictext , 1 , wxEXPAND | wxALL , 10)
+		'tempstatictext = New wxStaticText.Create(Panel2 , wxID_ANY , ExplainText)
+		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
+		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
+		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
 
 		Panel2.SetSizer(P2Hbox)
 				
 		ScrollBox = New wxScrolledWindow.Create(Self)
+		ScrollBox.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		vbox2 = New wxBoxSizer.Create(wxVERTICAL)
 
-		
+
+		temppanel = New wxPanel.Create(ScrollBox, wxID_ANY)
+		gridbox = New wxFlexGridSizer.Create(3)
+		gridbox.SetFlexibleDirection(wxHORIZONTAL)
+		gridbox.AddGrowableCol(1, 1)
+				
 		For Platform:PlatformType = EachIn GlobalPlatforms.PlatformList
 			If Platform.PlatType = "Folder" then Continue
-			temppanel = New wxPanel.Create(ScrollBox,wxID_ANY)
-			hbox = New wxBoxSizer.Create(wxHORIZONTAL)
 			
-			tempstatictext = New wxStaticText.Create(temppanel,wxID_ANY , Platform.Name)
+			hbox = New wxBoxSizer.Create(wxHORIZONTAL)
+			'temppanel = New wxPanel.Create(ScrollBox, wxID_ANY)
+			tempstatictext = New wxStaticText.Create(temppanel, wxID_ANY , Platform.Name)
 			temptextctrl = New wxTextCtrl.Create(temppanel , wxID_ANY , Platform.Emulator)
 			tempbutton = New wxButton.Create(temppanel , 100 + b , "Browse")
 			Connect(100 + b , wxEVT_COMMAND_BUTTON_CLICKED , BrowseClickFun)
 			
 			ListAddLast(StaticTextList , tempstatictext)
 			ListAddLast(TextCtrlList , temptextctrl)
-			ListAddLast(PanelList, temppanel)
+			ListAddLast(ButtonList, tempbutton)
 			
-			hbox.Add(tempstatictext , 1 , wxEXPAND | wxALL , 0)
-			hbox.Add(temptextctrl , 2 , wxEXPAND | wxALL , 0)
-			hbox.Add(tempbutton,  0 , wxEXPAND | wxALL, 0)
+			gridbox.Add(tempstatictext , 0 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM , 10)
+			gridbox.Add(temptextctrl , 1 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM , 10)
+			gridbox.Add(tempbutton, 0 , wxEXPAND | wxALL, 10)
 			
-			temppanel.SetSizer(hbox)
+			'hbox.Add(tempstatictext , 0 , wxEXPAND | wxALL , 0)
+			'hbox.Add(temptextctrl , 1 , wxEXPAND | wxALL , 0)
+			'hbox.Add(tempbutton, 0 , wxEXPAND | wxALL, 0)
+			
+			'temppanel.SetSizer(hbox)
 			b = b + 1
 			
-			vbox2.Add(temppanel , 0 , wxEXPAND | wxALL , 20)
+			'vbox2.Add(temppanel , 0 , wxEXPAND | wxALL , 20)
 		Next
 		
-		Rem
-		ReadPlatforms = ReadFile(SETTINGSFOLDER + "Platforms.txt")
-		Repeat
-			a = ReadLine(ReadPlatforms)
-			For c = 1 To Len(a)+1
-				If Mid(a , c , 1) = ">" Then
-					Plat = Left(a , c - 1 )
-					If c = Len(a) Then
-						Path=""
-					Else
-						Path = Right(a , Len(a) - c )
-					EndIf
-				EndIf
-			Next
-			temppanel = New wxPanel.Create(ScrollBox,wxID_ANY)
-			hbox = New wxBoxSizer.Create(wxHORIZONTAL)
-			
-			tempstatictext = New wxStaticText.Create(temppanel,wxID_ANY , Plat)
-			temptextctrl = New wxTextCtrl.Create(temppanel , wxID_ANY , Path)
-			tempbutton = New wxButton.Create(temppanel , 100 + b , "Browse")
-			Connect(100 + b , wxEVT_COMMAND_BUTTON_CLICKED , BrowseClickFun)
-			
-			ListAddLast(StaticTextList , tempstatictext)
-			ListAddLast(TextCtrlList , temptextctrl)
-			ListAddLast(PanelList, temppanel)
-			
-			hbox.Add(tempstatictext , 1 , wxEXPAND | wxALL , 0)
-			hbox.Add(temptextctrl , 2 , wxEXPAND | wxALL , 0)
-			hbox.Add(tempbutton,  0 , wxEXPAND | wxALL, 0)
-			
-			temppanel.SetSizer(hbox)
-			b = b + 1
-			
-			vbox2.Add(temppanel , 0 , wxEXPAND | wxALL , 20)
-			If Eof(ReadPlatforms) Then Exit
-		Forever
-		CloseFile(ReadPlatforms)
-		EndRem
-		
+		temppanel.SetSizer(gridbox)
+		vbox2.Add(temppanel, 0, wxEXPAND, 0)
 		
 		vbox2.RecalcSizes()
 		ScrollBox.SetSizer(vbox2)
@@ -137,15 +114,18 @@ Type EmulatorsList Extends wxFrame
 		Local sl1:wxStaticLine = New wxStaticLine.Create(Self , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
 		Local sl2:wxStaticLine = New wxStaticLine.Create(Self, wxID_ANY, -1, -1, -1,-1,wxLI_HORIZONTAL)		
 		
-		vbox.Add(Panel2 , 3 , wxEXPAND , 0)
-		vbox.Add(sl1 , 0,  wxEXPAND  , 0)
-		vbox.Add(ScrollBox , 10 , wxEXPAND  ,0)
+		vbox.Add(Panel2 , 4 , wxEXPAND , 0)
+		vbox.Add(sl1 , 0, wxEXPAND , 0)
+		vbox.Add(ScrollBox , 20 , wxEXPAND , 0)
 		vbox.Add(sl2 , 0,  wxEXPAND  , 0)
-		vbox.Add(Panel1, 1 , wxEXPAND  , 0)
+		vbox.Add(Panel1, 2 , wxEXPAND , 0)
 		SetSizer(vbox)
 		
 		'Self.HideNonUsedPlatforms()
 		
+		If PMMaximize = 1 then
+			Self.Maximize(1)
+		EndIf 
 		Centre()		
 		Hide()
 		Connect(EL_BB , wxEVT_COMMAND_BUTTON_CLICKED , ShowMainMenu)
@@ -171,40 +151,45 @@ Type EmulatorsList Extends wxFrame
 		If TogglePlatforms.GetLabel() = "Hide Unused Platforms" Then
 			TogglePlatforms.SetLabel("Show All Platforms")
 			Self.HideNonUsedPlatforms()
-			Self.Refresh()
-			vbox2.RecalcSizes()
-			ScrollBox.SetSizer(vbox2)
-			ScrollBox.SetScrollRate(10 , 10)
-			ScrollBox.Update()			
-		ElseIf TogglePlatforms.GetLabel() = "Show All Platforms" Then
+			'Self.Refresh()
+			'vbox2.RecalcSizes()
+			'ScrollBox.SetSizer(vbox2)
+			'ScrollBox.SetScrollRate(10 , 10)
+			'ScrollBox.Update()			
+		ElseIf TogglePlatforms.GetLabel() = "Show All Platforms" then
 			TogglePlatforms.SetLabel("Hide Unused Platforms")
 			Self.ShowAllPlatforms()
-			Self.Refresh()
-			vbox2.RecalcSizes()
-			ScrollBox.SetSizer(vbox2)
-			ScrollBox.SetScrollRate(10 , 10)
-			ScrollBox.Update()			
+			'Self.Refresh()
+			'vbox2.RecalcSizes()
+			'ScrollBox.SetSizer(vbox2)
+			'ScrollBox.SetScrollRate(10 , 10)
+			'ScrollBox.Update()			
 		EndIf
 	End Method
 
 	Method ShowAllPlatforms()
 		Local StaticTextListArray:wxStaticText[]
-		Local PanelListArray:wxPanel[] 
-				
-		StaticTextListArray = wxStaticText[](ListToArray(StaticTextList))
-		PanelListArray = wxPanel[](ListToArray(PanelList) )
+		Local TextCtrlListArray:wxTextCtrl[]
+		Local ButtonListArray:wxButton[]
 		
-		For a = 0 To Len(StaticTextListArray)-1
-			PanelListArray[a].Show()
+		ButtonListArray = wxButton[](ListToArray(ButtonList) )		
+		StaticTextListArray = wxStaticText[](ListToArray(StaticTextList))
+		TextCtrlListArray = wxTextCtrl[](ListToArray(TextCtrlList) )
+		
+		For a = 0 To Len(StaticTextListArray) - 1
+			TextCtrlListArray[a].Show()
+			ButtonListArray[a].Show()
 		Next
 	End Method
 
 	Method HideNonUsedPlatforms()
 		Local StaticTextListArray:wxStaticText[]
-		Local PanelListArray:wxPanel[] 
-				
-		StaticTextListArray = wxStaticText[](ListToArray(StaticTextList))
-		PanelListArray = wxPanel[](ListToArray(PanelList) )
+		Local TextCtrlListArray:wxTextCtrl[]
+		Local ButtonListArray:wxButton[]
+		
+		StaticTextListArray = wxStaticText[](ListToArray(StaticTextList) )
+		TextCtrlListArray = wxTextCtrl[](ListToArray(TextCtrlList) )
+		ButtonListArray = wxButton[](ListToArray(ButtonList) )
 		
 		Local UsedPlatformList:TList = CreateList()
 		
@@ -229,9 +214,11 @@ Type EmulatorsList Extends wxFrame
 		
 		For a = 0 To Len(StaticTextListArray)-1
 			If UsedPlatformList.Contains(StaticTextListArray[a].GetLabel() ) = True Then
-				PanelListArray[a].Show()
+				TextCtrlListArray[a].Show()
+				ButtonListArray[a].Show()
 			Else
-				PanelListArray[a].Hide()
+				TextCtrlListArray[a].Hide()
+				ButtonListArray[a].Hide()
 			EndIf
 			
 		Next		
@@ -247,39 +234,6 @@ Type EmulatorsList Extends wxFrame
 		EndRem
 	End Method
 
-Rem
-	Function UsedPlatform(Text:String)
-		Local GameNode:GameType
-
-		
-		ReadGamesDir = ReadDir(GAMEDATAFOLDER)
-		Repeat
-			Dir:String = NextFile(ReadGamesDir)
-			If Dir = "" Then Exit
-			If Dir="." Or Dir=".." Then Continue
-			
-			GameNode = New GameType
-			If GameNode.GetGame(Dir) = - 1 Then
-			
-			Else
-				If GameNode.Plat = Text Then Return True
-			EndIf
-				
-			'Rem
-			If FileType(GAMEDATAFOLDER + Dir + "\Info.txt")=1 Then
-				ReadGameFile = ReadFile(GAMEDATAFOLDER + Dir + "\Info.txt")
-				For a = 1 To 11
-					ReadLine(ReadGameFile)
-				Next
-				If ReadLine(ReadGameFile) = Text Then Return True
-				CloseFile(ReadGameFile)
-			EndIf
-			'EndRem
-		Forever
-		'CloseDir(ReadGamesDir)
-		Return False
-	End Function
-EndRem
 
 	Function BrowseClickFun(event:wxEvent)
 		Local EmuWin:EmulatorsList = EmulatorsList(event.parent)

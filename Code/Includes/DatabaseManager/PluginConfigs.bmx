@@ -4,6 +4,9 @@ Type HotkeyPluginWindow Extends wxFrame
 	
 	Method OnInit()
 		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
+		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)	
 		Local ST1 = New wxStaticText.Create(Self , wxID_ANY , "Enter hotkey number for this plugin. ~nUse the button to bring up a list of valid hotkey values (Use binary values)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)			
 		Local KeyCodeButton:wxButton = New wxButton.Create(Self , HKPW_KCB , "Open Keycode List")
@@ -71,6 +74,8 @@ Type PowerPlanPluginWindow Extends wxFrame
 		PowPlans = Self.GetPowerPlans()
 		
 		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local ST1 = New wxStaticText.Create(Self , wxID_ANY , "Game Start PowerPlan" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)	

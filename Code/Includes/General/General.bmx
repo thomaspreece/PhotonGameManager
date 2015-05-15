@@ -3,46 +3,6 @@ Include "SanitiseFunctions.bmx"
 Include "StartupChecks.bmx"
 Include "DBUpdates.bmx"
 
-Function GetLuaList:TList(LuaCat:Int)
-	Local LuaList:TList = CreateList()
-	Local LuaFile:String
-	
-	Local ReadLuaFiles:Int
-	Select LuaCat
-		Case 1
-			ReadLuaFiles = ReadDir(LUAFOLDER + "Game")
-		Default
-			CustomRuntimeError("GetLuaList - Select Error")
-	End Select 	
-	
-	If ReadLuaFiles = Null then CustomRuntimeError("GetLuaList - ReadDir Error")
-	
-	Repeat
-		LuaFile = NextFile(ReadLuaFiles)
-		If LuaFile = "." Or LuaFile = ".." then Continue
-		If LuaFile = "" then Exit
-		If Right(LuaFile, 4) = ".lua" then ListAddLast(LuaList, Left(LuaFile, Len(LuaFile) - 4) )
-	Forever
-	CloseDir(ReadLuaFiles)
-	
-	SortList(LuaList)
-	
-	Return LuaList
-	
-	Rem
-	Local ReturnStringList:String[CountList(LuaList)]
-	Local a:Int = 0
-	Local LuaItem:String
-	
-	For LuaItem = EachIn LuaList
-		ReturnStringList[a] = LuaItem
-		a = a + 1
-	Next
-		
-	Return ReturnStringList
-	EndRem
-End Function
-
 Function ExtractSubVersion(Text:String , Part:Int)
 	Local SubVersions:Int[] = [0,0,0,0]
 	Local b:Int = 0
@@ -274,7 +234,7 @@ Function PhotonSuiteRunProcess:Int(Command:String, Program:String)
 	Local cmdOpts:String
 	If Left(Command,Len(Program))=Program Then 
 		PrintF(Program)
-		cmdOpts=Right(Command,Len(Command)-Len(Program))
+		cmdOpts = Right(Command, Len(Command) - Len(Program) )
 		PrintF("cmdOpts: "+cmdOpts)
 		ShellExec(Chr(34)+Program+Chr(34)+cmdOpts,1)
 		Return 1
@@ -479,7 +439,7 @@ Function CreateFolder(Folder:String)
 			Exit
 		EndIf
 	Next	
-	PrintF("CreateDir Loop "+a)
+	PrintF("CreateDir Loop " + a)
 	If FileType(Folder) = 0 Then
 		CustomRuntimeError("Error 11: Cannot Create Folder "+Folder) 'MARK: Error 11
 	EndIf
@@ -563,6 +523,35 @@ Type GameReadType {expose}
 		Return Text
 		
 	End Function
+
+	Method GetEXEPart:String(Part:Int)
+		If Left(Self.RunEXE, 1) = Chr(34) then
+			For a = 2 To Len(Self.RunEXE)
+				If Mid(Self.RunEXE , a , 1) = Chr(34) then
+					If Part = 1 then
+						'EXE
+						Return Left(Self.RunEXE , a)
+					Else
+						'Commandline
+						Return Right(Self.RunEXE , Len(Self.RunEXE) - (a + 1) )
+					EndIf
+				EndIf
+			Next				
+		Else
+			For a = 1 To Len(Self.RunEXE)
+				If Mid(Self.RunEXE , a , 1) = " " then
+					If Part = 1 then
+						'EXE
+						Return Left(Self.RunEXE , a - 1)
+					Else
+						'Commandline
+						Return Right(Self.RunEXE , Len(Self.RunEXE) - a )
+					EndIf
+				EndIf
+			Next							
+		EndIf 
+	
+	End Method
 
 	Function GameDescFilter:String(Text:String)
 		'Strips out all characters that cannot be displayed in GameManager suite programs	
@@ -794,10 +783,12 @@ Type GameReadType {expose}
 							End Select
 						Next
 					EndIf		
-				
 				Case "ID"
-					Self.LuaFile = "thegamesdb.net.lua"
-					Self.LuaIDData = Int(node.GetText() )
+					If node.GetText() = "0" then
+					Else
+						Self.LuaFile = "thegamesdb.net.lua"
+						Self.LuaIDData = Int(node.GetText() )
+					EndIf
 				Case "Rating"
 					Self.Rating = Int(node.getText())
 			End Select
@@ -1189,7 +1180,7 @@ Type MounterReadType
 		Mounterdoc.free()
 		
 	End Method 
-End Type 
+End Type
 
 Type SettingsType
 	Field File:String
@@ -1250,7 +1241,7 @@ Type SettingsType
 
 		Else
 			Self.DType = TDType
-		EndIf 
+		EndIf
 				
 		If FileType(Self.File) <> 1 Then
 			Self.SettingsList = Null

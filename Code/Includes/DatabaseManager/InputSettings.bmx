@@ -1,27 +1,30 @@
 Type KeyboardInputWindow Extends wxFrame
 	Field ParentWin:SettingsWindow
 	Field InputBoxes:wxTextCtrl[14]
-	Field ActiveField:Int 
-	Field ActiveValue:String 
+	Field ActiveField:Int
+	Field ActiveValue:String
 	Field KeyCountdown:wxTimer
 	Field FrontEndSettingFile:SettingsType
 	
 	Method OnInit()
 	
 		FrontEndSettingFile = New SettingsType
-		FrontEndSettingFile.ParseFile(SETTINGSFOLDER+"FrontEnd.xml")
+		FrontEndSettingFile.ParseFile(SETTINGSFOLDER + "FrontEnd.xml")
 	
 		ParentWin = SettingsWindow(GetParent() )
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )		
 		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		
 		Self.Centre()
 		Self.Hide()
 		
-		Self.ActiveField = -1
+		Self.ActiveField = - 1
+		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxVSCROLL)
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
+		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		Local BottomButtonSizer:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local BackButton:wxButton = New wxButton.Create(Self , KIW_BB , "Back")
@@ -35,19 +38,22 @@ Type KeyboardInputWindow Extends wxFrame
 		
 		For a=0 To 13
 			InputSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-			StaticText = New wxStaticText.Create(Self , wxID_ANY , KeyboardInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-			InputBoxes[a] = New wxTextCtrl.Create(Self , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
-			Button = KeyboardInputButton(New KeyboardInputButton.Create(Self, Int(KIW_B+a) , "Change"))
+			StaticText = New wxStaticText.Create(ScrollBox , wxID_ANY , KeyboardInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+			InputBoxes[a] = New wxTextCtrl.Create(ScrollBox , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+			Button = KeyboardInputButton(New KeyboardInputButton.Create(ScrollBox, Int(KIW_B + a) , "Change") )
 			InputSizer.Add(StaticText, 2 , wxEXPAND | wxALL , 4)
 			InputSizer.Add(InputBoxes[a], 2 , wxEXPAND | wxALL , 4)
 			InputSizer.Add(Button, 1 , wxEXPAND | wxALL , 4)
-			vbox.AddSizer(InputSizer, 0 , wxEXPAND | wxALL , 4)
+			vbox2.AddSizer(InputSizer, 0 , wxEXPAND | wxALL , 4)
 			Connect(Int(KIW_B+a) , wxEVT_COMMAND_BUTTON_CLICKED , SetKey, String(a))
 		Next
 		
+		ScrollBox.SetSizer(vbox2)
+		ScrollBox.SetScrollRate(20, 20)
+		
 		Local temp:Int 
 			
-		If FrontEndSettingFile.GetSetting("KEYBOARD_BIGCOVER") <> "" Then
+		If FrontEndSettingFile.GetSetting("KEYBOARD_BIGCOVER") <> "" then
 			temp = Int(FrontEndSettingFile.GetSetting("KEYBOARD_BIGCOVER"))
 			InputBoxes[0].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
 		Else
@@ -149,7 +155,8 @@ Type KeyboardInputWindow Extends wxFrame
 			
 		Connect(KIW_T , wxEVT_TIMER , KeyTimeout)	
 		
-		vbox.AddSizer(BottomButtonSizer, 1 , wxEXPAND | wxALL , 4)
+		vbox.Add(ScrollBox, 1, wxEXPAND, 0)
+		vbox.AddSizer(BottomButtonSizer, 0 , wxEXPAND | wxALL , 4)
 
 		Connect(KIW_BB , wxEVT_COMMAND_BUTTON_CLICKED , ShowSettingsWindows)
 		Connect(KIW_OB , wxEVT_COMMAND_BUTTON_CLICKED , SaveInputFun)
@@ -254,7 +261,8 @@ Type KeyboardInputButton Extends wxButton
 	Field ParentWin:KeyboardInputWindow
 	
 	Method OnInit()
-		ParentWin = KeyboardInputWindow(GetParent())
+		ParentWin = KeyboardInputWindow( wxScrolledWindow(GetParent() ).GetParent() )
+		
 		Super.OnInit()
 		ConnectAny(wxEVT_KEY_DOWN, OnKeyDown)
 	End Method
@@ -262,7 +270,7 @@ Type KeyboardInputButton Extends wxButton
 	Function OnKeyDown(event:wxEvent)
 		Local KeyboardInputWin:KeyboardInputWindow = KeyboardInputWindow(KeyboardInputButton(event.parent).ParentWin)
 		Local evt:wxKeyEvent = wxKeyEvent(event)
-		If KeyboardInputWin.ActiveField = -1 Then 
+		If KeyboardInputWin.ActiveField = - 1 then
 		
 		Else
 			KeyboardInputWin.InputBoxes[KeyboardInputWin.ActiveField].ChangeValue(MapWxKeyCodeToBlitz(evt.GetKeyCode())+" ("+getKeyCodeChar(MapWxKeyCodeToBlitz(evt.GetKeyCode()))+")")
@@ -279,7 +287,7 @@ Type KeyboardInputButton Extends wxButton
 			KeyboardInputWin.ActiveValue = ""
 			KeyboardInputWin.ActiveField = -1
 			event.StopPropagation()
-		EndIf 
+		EndIf
 		
 	End Function
 End Type
@@ -288,16 +296,19 @@ End Type
 
 
 
-Type JoyStickInputWindow Extends wxFrame 
+Type JoyStickInputWindow Extends wxFrame
 	Field ParentWin:SettingsWindow
 	Field InputBoxes:wxTextCtrl[10]
 	Field ActiveField:Int 
-	Field ActiveValue:String 
+	Field ActiveValue:String
 	Field JoyCountdown:wxTimer
 	Field JoyKeyTimer:wxTimer
 	Field FrontEndSettingFile:SettingsType
+	Field JoyNumber:Int
 	
 	Method OnInit()
+	
+		JoyNumber = JoyCount()
 	
 		FrontEndSettingFile = New SettingsType
 		FrontEndSettingFile.ParseFile(SETTINGSFOLDER+"FrontEnd.xml")
@@ -306,12 +317,16 @@ Type JoyStickInputWindow Extends wxFrame
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )		
 		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
+		
 		Self.Centre()
 		Self.Hide()
 		
-		Self.ActiveField = -1
+		Self.ActiveField = - 1
+		Local ScrollBox:wxScrolledWindow = New wxScrolledWindow.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxHSCROLL)
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
+		Local vbox2:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		Local BottomButtonSizer:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local BackButton:wxButton = New wxButton.Create(Self , KIW_BB , "Back")
@@ -325,16 +340,17 @@ Type JoyStickInputWindow Extends wxFrame
 		
 		For a=0 To 9
 			InputSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-			StaticText = New wxStaticText.Create(Self , wxID_ANY , JoyStickInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
-			InputBoxes[a] = New wxTextCtrl.Create(Self , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
-			Button = New wxButton.Create(Self, Int(KIW_B+a) , "Change")
+			StaticText = New wxStaticText.Create(ScrollBox , wxID_ANY , JoyStickInputText[a] , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	
+			InputBoxes[a] = New wxTextCtrl.Create(ScrollBox , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+			Button = New wxButton.Create(ScrollBox, Int(KIW_B + a) , "Change")
 			InputSizer.Add(StaticText, 2 , wxEXPAND | wxALL , 4)
 			InputSizer.Add(InputBoxes[a], 2 , wxEXPAND | wxALL , 4)
 			InputSizer.Add(Button, 1 , wxEXPAND | wxALL , 4)
-			vbox.AddSizer(InputSizer, 0 , wxEXPAND | wxALL , 4)
+			vbox2.AddSizer(InputSizer, 0 , wxEXPAND | wxALL , 4)
 			Connect(Int(KIW_B+a) , wxEVT_COMMAND_BUTTON_CLICKED , SetKey, String(a))
 		Next
-		
+		ScrollBox.SetSizer(vbox2)
+		ScrollBox.SetScrollRate(20,20)
 		Local temp:Int 
 			
 		If FrontEndSettingFile.GetSetting("JOY_BIGCOVER") <> "" Then
@@ -414,7 +430,8 @@ Type JoyStickInputWindow Extends wxFrame
 		Connect(KIW_T , wxEVT_TIMER , JoyTimeout)	
 		Connect(KIW_JKT , wxEVT_TIMER , GetJoyKey)	
 		
-		vbox.AddSizer(BottomButtonSizer, 1 , wxEXPAND | wxALL , 4)
+		vbox.Add(ScrollBox, 1, wxEXPAND, 0)
+		vbox.AddSizer(BottomButtonSizer, 0 , wxEXPAND | wxALL , 4)
 
 		Connect(KIW_BB , wxEVT_COMMAND_BUTTON_CLICKED , ShowSettingsWindows)
 		Connect(KIW_OB , wxEVT_COMMAND_BUTTON_CLICKED , SaveInputFun)
@@ -428,7 +445,7 @@ Type JoyStickInputWindow Extends wxFrame
 
 		If Int(JoyStickInputWin.InputBoxes[0].GetValue())<>0
 			JoyStickInputWin.FrontEndSettingFile.SaveSetting("JOY_BIGCOVER" , Int(JoyStickInputWin.InputBoxes[0].GetValue()))
-		EndIf 
+		EndIf
 		If Int(JoyStickInputWin.InputBoxes[1].GetValue())<>0		
 			JoyStickInputWin.FrontEndSettingFile.SaveSetting("JOY_FLIPCOVER" , Int(JoyStickInputWin.InputBoxes[1].GetValue()))
 		EndIf 
@@ -484,32 +501,33 @@ Type JoyStickInputWindow Extends wxFrame
 	
 	Function GetJoyKey(event:wxEvent)
 		Local JoyStickInputWin:JoyStickInputWindow = JoyStickInputWindow(event.parent)
-		b = JoyCount()
-		For a = 1 To 20
-			If JoyHit(a) Then 
-				JoyStickInputWin.InputBoxes[JoyStickInputWin.ActiveField].ChangeValue(a)
-				'Delete Duplicate Values
-				For b=0 To 6
-					If b=JoyStickInputWin.ActiveField Then 
-					
-					Else
-						If Int(JoyStickInputWin.InputBoxes[b].GetValue())=a Then 
-							JoyStickInputWin.InputBoxes[b].ChangeValue("")
-						EndIf 
-					EndIf
-				Next				
-				JoyStickInputWin.ActiveValue = ""
-				JoyStickInputWin.ActiveField = -1
-				JoyStickInputWin.JoyKeyTimer.Stop()
-				Return 			
-			EndIf 
-		Next
 		
-	End Function 
+		If JoyStickInputWin.JoyNumber > 0 then
+			For a = 1 To 20
+				If JoyHit(a) then
+					JoyStickInputWin.InputBoxes[JoyStickInputWin.ActiveField].ChangeValue(a)
+					'Delete Duplicate Values
+					For b = 0 To 6
+						If b=JoyStickInputWin.ActiveField Then 
+						
+						Else
+							If Int(JoyStickInputWin.InputBoxes[b].GetValue())=a Then 
+								JoyStickInputWin.InputBoxes[b].ChangeValue("")
+							EndIf 
+						EndIf
+					Next				
+					JoyStickInputWin.ActiveValue = ""
+					JoyStickInputWin.ActiveField = -1
+					JoyStickInputWin.JoyKeyTimer.Stop()
+					Return 			
+				EndIf 
+			Next
+		EndIf
+	End Function
 	
 	Function JoyTimeout(event:wxEvent)
 		Local JoyStickInputWin:JoyStickInputWindow = JoyStickInputWindow(event.parent)
-		If JoyStickInputWin.ActiveField = -1 Then 
+		If JoyStickInputWin.ActiveField = - 1 then
 			JoyStickInputWin.JoyCountdown.Stop()
 		Else
 			JoyStickInputWin.JoyCountdown.Stop()
@@ -522,6 +540,9 @@ Type JoyStickInputWindow Extends wxFrame
 
 	Function ShowSettingsWindows(event:wxEvent)
 		Local SettingsWin:SettingsWindow = JoyStickInputWindow(event.parent).ParentWin
+		SettingsWin.JoyStickInputField.JoyCountdown.Stop()
+		SettingsWin.JoyStickInputField.JoyKeyTimer.Stop()
+		
 		SettingsWin.Show()
 		SettingsWin.JoyStickInputField.Destroy()
 		SettingsWin.JoyStickInputField = Null 

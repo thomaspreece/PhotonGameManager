@@ -11,7 +11,7 @@ Type EditGameList Extends wxFrame
 	Field GameNotebook:wxChoicebook
 	Field ExecutableNotebook:wxChoicebook 
 	?Not MacOS
-	EndRem 
+	EndRem
 	Field ExecutableNotebook:wxNotebook
 	Field GameNotebook:wxNotebook
 	'?
@@ -21,7 +21,7 @@ Type EditGameList Extends wxFrame
 	Field DelButton:wxButton
 	Field CancelButton:wxButton
 	Field SaveButton:wxButton
-	Field UpdateButton:wxButton
+	Field OtherButton:wxButton
 	Field OptimizeButton:wxButton
 	Field ParentWin:MainWindow
 	Field GamesTList:TList
@@ -104,6 +104,8 @@ Type EditGameList Extends wxFrame
 	
 	Method OnInit()
 	
+		Self.SetFont(PMFont)
+		Self.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 	
 		UpdateListTimer = New wxTimer.Create(Self,EGL_ULT)
 		Connect(EGL_ULT,wxEVT_TIMER, GameListUpdateTimer)
@@ -159,12 +161,12 @@ Type EditGameList Extends wxFrame
 		Local SubGameButton1Hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		AddButton = New wxButton.Create(SubGameButtonPanel1 , EGL_ADD , "Add")
 		DelButton = New wxButton.Create(SubGameButtonPanel1 , EGL_DEL , "Delete")	
-		UpdateButton = New wxButton.Create(SubGameButtonPanel1 , EGL_UPD , "Online Update")
+		OtherButton = New wxButton.Create(SubGameButtonPanel1 , EGL_OO , "Other Options")
 	
 		
 		SubGameButton1Hbox.Add(AddButton , 10 , wxEXPAND | wxALL , 4 )
 		SubGameButton1Hbox.Add(DelButton , 10 , wxEXPAND | wxALL , 4 )
-		SubGameButton1Hbox.Add(UpdateButton , 12 , wxEXPAND | wxALL , 4 )			
+		SubGameButton1Hbox.Add(OtherButton , 12 , wxEXPAND | wxALL , 4 )			
 
 		SubGameButtonPanel1.SetSizer(SubGameButton1Hbox)		
 		SubGamePanel1Vbox.Add(SubGameButtonPanel1 , 1 , wxEXPAND , 0 )
@@ -739,29 +741,24 @@ Type EditGameList Extends wxFrame
 		
 		'----------------------------------------------------------------------------------			
 		GameNotebook.AddPage(GameDetailsPanel , "Details" )
-		GameDetailsPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )
+		GameDetailsPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		GameNotebook.AddPage(GameArtPanel , "Artwork" )
-		GameArtPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )
-		
+		GameArtPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		
 		'Function hello()
 		
-		GameNotebook.AddPage(ExecutablePanel,"Executables")
+		GameNotebook.AddPage(ExecutablePanel, "Executables")
 		
 		ExecutableNotebook.AddPage(GameEXEPanel , "Run Executable Path" )
-		GameEXEPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
+		GameEXEPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )		
 		ExecutableNotebook.AddPage(GameExtraEXEPanel , "Other Executables" )
-		GameExtraEXEPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )
+		GameExtraEXEPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		ExecutableNotebook.AddPage(BatchFilesPanel , "Batch Files" )
-		BatchFilesPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
-		
-		
-		
-		
+		BatchFilesPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )		
 		GameNotebook.AddPage(AutoMountPanel , "AutoMount" )
-		AutoMountPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )		
+		AutoMountPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )		
 		GameNotebook.AddPage(AdvancedPanel , "Runner Options" )
-		AdvancedPanel.SetBackgroundColour(New wxColour.Create(240 , 240 , 240) )	
+		AdvancedPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )	
 						
 		SubGamePanel2Vbox.Add(GameNotebook , 14 , wxEXPAND | wxALL , 2 )
 		
@@ -800,9 +797,12 @@ Type EditGameList Extends wxFrame
 		MainVbox.Add(FilPlatPanel , 0 , wxEXPAND , 0)
 		MainVbox.Add(GamePanel , 30 , wxEXPAND , 0)
 		'MainVbox.Add(GameButtonPanel, 0.5 , wxEXPAND , 0)
-		MainVbox.Add(BackButtonPanel,  2 , wxEXPAND , 0)		
+		MainVbox.Add(BackButtonPanel, 0 , wxEXPAND , 0)		
 		Self.SetSizer(MainVbox)
-		Self.Centre()		
+		Self.Centre()	
+		If PMMaximize = 1 then
+			Self.Maximize(1)
+		EndIf
 		Self.Hide()
 		'wxframe
 		
@@ -815,7 +815,9 @@ Type EditGameList Extends wxFrame
 		Connect(EGL_ADD , wxEVT_COMMAND_BUTTON_CLICKED , ShowAGM)
 		Connect(EGL_GL , wxEVT_COMMAND_LIST_ITEM_SELECTED , UpdateSelection)
 		Connect(EGL_DEL , wxEVT_COMMAND_BUTTON_CLICKED , DeleteSelection)
-		Connect(EGL_UPD , wxEVT_COMMAND_BUTTON_CLICKED , UpdateGame)
+		Connect(EGL_OO , wxEVT_COMMAND_BUTTON_CLICKED , OtherOptionsMenu)
+		Connect(EGL_M1_I1 , wxEVT_COMMAND_MENU_SELECTED , UpdateGame)
+		Connect(EGL_M1_I2 , wxEVT_COMMAND_MENU_SELECTED , UpdateAllGames)
 		
 		'Connect(EGL_OPT , wxEVT_COMMAND_BUTTON_CLICKED , OptimizeAllArt)		
 		
@@ -909,6 +911,14 @@ Type EditGameList Extends wxFrame
 		'ConnectAny(wxEVT_COMMAND_RIGHT_CLICK  , TestFun)
 		ConnectAny(wxEVT_CLOSE , CloseApp)
 	End Method
+
+	Function OtherOptionsMenu(event:wxEvent)
+		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		Local Menu1:wxMenu = New wxMenu.Create("Other Options Menu")
+		Menu1.Append(EGL_M1_I1 , "Update Selection")
+		Menu1.Append(EGL_M1_I2 , "Update All")
+		EditGameWin.PopupMenu(Menu1)
+	End Function
 
 Rem
 	Function OptimizeAllArt(event:wxEvent)
@@ -1349,7 +1359,7 @@ EndRem
 		Local GRate:String, GCert:String, GPlatform:String, GEmuOverride:String , GCoop:String , GPlayers:String, GPlatformNum:Int
 		EGW.SubGamePanel2.Enable()
 		
-		If EGW.DataChanged = 1 Then
+		If EGW.DataChanged = 1 then
 			PrintF("Clear Changes?")
 			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes, are you sure you wish to clear them?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 			If MessageBox.ShowModal() = wxID_NO Then
@@ -1532,7 +1542,7 @@ EndRem
 
 								
 			
-			If GlobalPlatforms.GetPlatformByID(GPlatformNum).PlatType = "Folder" Then 
+			If GlobalPlatforms.GetPlatformByID(GPlatformNum).PlatType = "Folder" then
 				EGW.ExecutableNotebook.SetPageText(0,"Run Executable Path")
 				EGW.EP_EO_DT.SetLabel("")
 				EGW.EP_TP2_ST.SetLabel("")
@@ -1553,7 +1563,7 @@ EndRem
 				'	EndIf
 				'Next		
 				
-				If Left(GameNode.RunEXE,1)=Chr(34) Then
+				If Left(GameNode.RunEXE, 1) = Chr(34) then
 					For a = 2 To Len(GameNode.RunEXE)
 						If Mid(GameNode.RunEXE , a , 1) = Chr(34) Then
 							EXE = Left(GameNode.RunEXE , a)
@@ -2027,7 +2037,7 @@ EndRem
 		If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).PlatType = "Folder" Then
 		
 		Else
-			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).Emulator Or EditGameWin.EP_EO.GetValue()="" Then
+			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator Or EditGameWin.EP_EO.GetValue() = "" then
 				EditGameWin.EP_EO_DT.SetLabel("(Default Emulator)")
 			Else
 				EditGameWin.EP_EO_DT.SetLabel("")
@@ -2040,37 +2050,48 @@ EndRem
 		Local MessageBox:wxMessageDialog
 		Local MessageBox2:wxMessageDialog
 		Local EditGameWin:EditGameList = EditGameList(event.parent)
-		Local item:Int = -1
+		Local item:Int = - 1
+		Local GameNamesArray:Object[] = ListToArray(EditGameWin.GameRealPathList)
+		Local DeleteMessage:String = "Are you sure you wish to delete: "
+		Local GameNode:GameType
+		Local GameName:String
+		Local DeleteList:TList = CreateList()
 		
 		Repeat
 			item = EditGameWin.GameList.GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED)
-			If item = -1 Then Exit 
+			If item = - 1 then Exit
+			DeleteMessage = DeleteMessage + "~n" + String(GameNamesArray[item])
+			ListAddLast(DeleteList, String(item) )
+		Forever
 		
-			PrintF("GameList Returned: "+item)
-			Local GameNamesArray:Object[]
-			Local GameNode:GameType = New GameType
-			GameNamesArray = ListToArray(EditGameWin.GameRealPathList)
-			GameName:String = String(GameNamesArray[item])
-			GameNode.GetGame(GameName)	
-			MessageBox = New wxMessageDialog.Create(Null, "Are you sure you wish to delete: "+GameNode.Name , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-			If MessageBox.ShowModal() = wxID_YES Then
+		item = - 1
+		PrintF(DeleteMessage)
+		MessageBox = New wxMessageDialog.Create(Null, DeleteMessage , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
+		If MessageBox.ShowModal() = wxID_YES then
+			Local DeleteCount = 0
+			For itemString:String = EachIn DeleteList
+				item = Int(itemString)
+				GameName = String(GameNamesArray[item])
+				PrintF(GameName)
+				GameNode = New GameType
+				GameNode.GetGame(GameName)	
 				GameNode.DeleteGame()
 				GameNode = Null
-				If ShowUselessNotifys=True Then
-					MessageBox2  = New wxMessageDialog.Create(Null, "Game deleted successfully", "Info", wxOK)
-					MessageBox2.ShowModal()
-					MessageBox2.Free()
-				EndIf
-				'EditGameWin.PopulateGameList()
-				EditGameWin.GameList.DeleteItem(item)
+					
+				EditGameWin.GameList.DeleteItem(item - DeleteCount)
 				EditGameWin.SubGamePanel2.Disable()
-				EditGameWin.GameRealPathList.Remove(EditGameWin.GameRealPathList.ValueAtIndex(item))
-			Else
-				PrintF("Delete Canceled")	
-			EndIf
-			MessageBox.Free()	
-		Forever				
-
+				EditGameWin.GameRealPathList.Remove(GameName )
+				
+				DeleteCount = DeleteCount + 1	
+			Next 	
+			'EditGameWin.PopulateGameList()
+			MessageBox2 = New wxMessageDialog.Create(Null, "Game deleted successfully", "Info", wxOK)
+			MessageBox2.ShowModal()
+			MessageBox2.Free()
+		Else
+			PrintF("Delete Canceled")	
+		EndIf
+		MessageBox.Free()
 	End Function
 
 	Function ShowAGM(event:wxEvent)
@@ -2598,10 +2619,10 @@ EndRem
 		EXEPath = Replace(EXEPath,Chr(34),"")
 		DeleteCreateFolder(TEMPFOLDER + "Icons")
 		DeleteCreateFolder(TEMPFOLDER + "Icons2")
-		Local ExtractIcon:TProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + StandardiseSlashes(EXEPath) + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons"+FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
+		Local ExtractIcon:TProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + StandardiseSlashes(EXEPath) + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons" + FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
 		Repeat
 			Delay 10
-			If ProcessStatus(ExtractIcon)=0 Then Exit
+			If ProcessStatus(ExtractIcon) = 0 then Exit
 		Forever	
 		
 		ReadIcons = ReadDir(TEMPFOLDER + "Icons"+FolderSlash)
@@ -2840,6 +2861,41 @@ EndRem
 		EndIf
 	End Function
 
+	Function UpdateAllGames(event:wxEvent)
+		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		Local item:Int = - 1
+		Local GameNamesArray:Object[] = ListToArray(EditGameWin.GameRealPathList)
+		Local UpdateList:TList = CreateList()
+		Local MessageBox:wxMessageDialog
+		
+		Repeat
+			item = EditGameWin.GameList.GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_DONTCARE)
+			If item = - 1 then Exit
+			ListAddLast(UpdateList, String(GameNamesArray[item]) )
+		Forever		
+		
+		If CheckInternet() = 0 then
+			PrintF("Not Connected to Internet")
+			MessageBox = New wxMessageDialog.Create(Null, "You are not connected to the internet.", "Error", wxOK | wxICON_ERROR)
+			MessageBox.ShowModal()
+			MessageBox.Free()	
+			Return 					
+		EndIf
+		
+		
+		EditGameWin.Hide()
+		?Threaded
+		Local UpdateAllGamesThread:TThread = CreateThread(Thread_UpdateAllGames, UpdateList)
+		While UpdateAllGamesThread.Running()
+			DatabaseApp.Yield()
+			Delay 100
+		Wend
+		?Not Threaded
+		Thread_UpdateAllGames(UpdateList)
+		?
+		EditGameWin.Show()
+	End Function
+
 	Function OnQuit(event:wxEvent)
 		' true is to force the frame to close
 		wxWindow(event.parent).Close(True)
@@ -3020,7 +3076,7 @@ Type ImagePanel Extends wxPanel
 				Menu1.Append(IP_M1_I3 , "View")
 				Menu1.Append(IP_M1_I1 , "Browse computer")
 				Menu1.Append(IP_M1_I2 , "Delete")
-				EditGameWin.PopupMenu(Menu1)
+				EditGameWin.PopupMenu(MENU1)
 			Case 2
 				Menu2:wxMenu = New wxMenu.Create("Back Art Menu")
 				Menu2.Append(IP_M2_I3 , "View")				
@@ -3375,6 +3431,65 @@ Function Thread_UpdateGame:Object(Game:Object)
 	GameNode.DownloadGameInfo()
 	GameNode.DownloadGameArtWork()
 	Log1.AddText("Finished")
+	Log1.Show(0)
+
+End Function
+
+Function Thread_UpdateAllGames:Object(GameL:Object)
+	Local GameList:TList = TList(GameL)
+	Local GameNode:GameType = New GameType
+	Local GameName:String
+	Local OverideArtwork:Int = 0
+	Local MessageBox:wxMessageDialog
+	
+	
+	Log1.Show(1)
+	
+	MessageBox = New wxMessageDialog.Create(Null, "Would you like to overwrite old files?" + Chr(10) + " Yes - redownloads all game artwork" + Chr(10) + " No - download new artwork only" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
+	If MessageBox.ShowModal() = wxID_YES then
+		PrintF("Overwrite True")
+		OverideArtwork = 1
+	Else
+		PrintF("Overwrite False")
+		OverideArtwork = 0
+	EndIf
+	MessageBox.Free()
+	
+	
+	
+	Local GameTotal:Int = GameList.Count()
+	Local GameNumber:Int = 0
+	
+	For GameN:Object = EachIn GameList
+		GameName:String = String(GameN)
+		PrintF("Update Game: " + GameName)
+		Log1.AddText("Updating:" + GameName )
+		If GameNode.GetGame(GameName) = - 1 then
+			PrintF("Invalid GetGame")	
+		Else
+			If GameNode.LuaFile = Null Or GameNode.LuaFile = "" Or GameNode.LuaIDData = Null Or GameNode.LuaIDData = "" then
+				PrintF("Invalid Lua Data")							
+			Else
+				If OverideArtwork = 1 then
+					GameNode.OverideArtwork = 1
+				Else
+					GameNode.OverideArtwork = 0
+				EndIf
+				Log1.AddText("Downloading Game Info ID:" + GameNode.LuaIDData )
+				GameNode.DownloadGameInfo()
+				GameNode.DownloadGameArtWork()
+				Log1.AddText("Finished")
+			EndIf
+		EndIf
+		GameNumber = GameNumber + 1
+		Log1.Progress.SetValue( (100 * GameNumber) / GameTotal )
+		If Log1.LogClosed = True then Exit
+	Next
+	
+	MessageBox = New wxMessageDialog.Create(Null , "Games Successfully Updated" , "Info" , wxOK)
+	MessageBox.ShowModal()
+	MessageBox.Free()	
+
 	Log1.Show(0)
 
 End Function

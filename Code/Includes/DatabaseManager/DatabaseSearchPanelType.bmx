@@ -44,14 +44,9 @@ Type DatabaseSearchPanelType Extends wxPanel
 		For SourceTListItem = EachIn SourceTList
 			SearchSource.Append(SourceTListItem)
 		Next
-		If ListContains(SourceTList, "thegamesdb.net") then
-			SearchSource.SetStringSelection("thegamesdb.net")
-		Else
-			If CountList(SourceTList) > 0 then
-				SearchSource.SetSelection(1)
-			EndIf
-		EndIf
 		
+		SearchSource.SetStringSelection(LuaHelper_GetDefaultGame())
+			
 		
 		Local Shbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local SearchTextText:wxStaticText = New wxStaticText.Create(Self , wxID_ANY , "Search: ")
