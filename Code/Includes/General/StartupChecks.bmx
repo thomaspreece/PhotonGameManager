@@ -2,32 +2,41 @@
 Function FolderCheck()
 	If FileType(StripSlash(LOGFOLDER) ) = 0 then
 		CreateDir(StripSlash(LOGFOLDER), 1 )
-		'PrintF("Creating Log Folder: "+LOGFOLDER)
+		PrintF("Creating Log Folder: " + LOGFOLDER)
 	EndIf		
-	If FileType(StripSlash(SETTINGSFOLDER) ) = 0 Then
+	If FileType(StripSlash(SETTINGSFOLDER) ) = 0 then
 		CreateDir(StripSlash(SETTINGSFOLDER),1 )
-		'PrintF("Creating Settings Folder: "+SETTINGSFOLDER)
+		PrintF("Creating Settings Folder: " + SETTINGSFOLDER)
 	EndIf
 	If FileType(StripSlash(GAMEDATAFOLDER) ) = 0 Then
 		CreateDir(StripSlash(GAMEDATAFOLDER),1 )
-		'PrintF("Creating Games Folder: "+GAMEDATAFOLDER)
+		PrintF("Creating Games Folder: " + GAMEDATAFOLDER)
 	EndIf
 	If FileType(StripSlash(TEMPFOLDER) ) = 0 Then
 		CreateDir(StripSlash(TEMPFOLDER),1 )
-		'PrintF("Creating Temp Folder: "+TEMPFOLDER)
+		PrintF("Creating Temp Folder: " + TEMPFOLDER)
 	EndIf
 	If FileType(StripSlash(RESFOLDER) ) = 0 Then
 		CreateDir(StripSlash(RESFOLDER),1 )
-		'PrintF("Creating Res Folder: "+RESFOLDER)
+		PrintF("Creating Res Folder: " + RESFOLDER)
 	EndIf	
-	If FileType(StripSlash(APPFOLDER) ) = 0 Then
+	If FileType(StripSlash(APPFOLDER) ) = 0 then
 		CreateDir(StripSlash(APPFOLDER),1 )
-		'PrintF("Creating App Folder: "+APPFOLDER)
+		PrintF("Creating App Folder: " + APPFOLDER)
 	EndIf	
-	If FileType(StripSlash(MOUNTERFOLDER) ) = 0 Then
+	If FileType(StripSlash(MOUNTERFOLDER) ) = 0 then
 		CreateDir(StripSlash(MOUNTERFOLDER),1 )
-		'PrintF("Creating Mounter Folder: "+MOUNTERFOLDER)
+		PrintF("Creating Mounter Folder: " + MOUNTERFOLDER)
 	EndIf		
+	If FileType(StripSlash(LUAFOLDER) ) = 0 then
+		CreateDir(StripSlash(LUAFOLDER),1 )
+		PrintF("Creating Mounter Folder: " + LUAFOLDER)
+	EndIf		
+	If FileType(StripSlash(LUAFOLDER + FolderSlash + "Game") ) = 0 then
+		CreateDir(StripSlash(LUAFOLDER + FolderSlash + "Game"), 1 )
+		PrintF("Creating Mounter Folder: " + LUAFOLDER + FolderSlash + "Game")
+	EndIf		
+	
 End Function
 
 Function GamesCheck()
