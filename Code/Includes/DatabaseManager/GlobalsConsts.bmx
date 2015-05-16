@@ -268,6 +268,7 @@ Const SW_STS = 525
 Const SW_MZ = 526
 Const SW_DGL = 527
 Const SW_DAA = 528
+Const SW_DL = 529
 
 Const PW_BB = 600
 Const PW_OB = 601

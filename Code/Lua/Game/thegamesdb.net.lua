@@ -49,6 +49,22 @@ end
 --			3. The next depth to provide SearchGame or 0 for finished selecting
 --			4. The List
 function SearchGame(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
+
+--       items = {    {1004, "foo"},    {1234, "bar"},    {3188, "baz"},    {7007, "quux"}}
+--		 function compare(a,b)
+-- 		 	return a[1] < b[1]
+--		 end
+
+--		 table.sort(items, compare)   -- Sorts the second pair so by foo,bar,baz,quux
+--		 items = {  }
+--		items[0] = {id=1004, name="oh dear", rank="foo"}
+--		items[1] = {id=1204, name="oh dear 2", rank="doo"}
+-- 
+-- Add to end of table
+-- table.insert(t, 123)
+-- t[#t+1] = 456
+-- #t gets highest index of table t
+
 	ListDepth = tonumber(ListDepth)
 	if ListDepth==1 then 
 		ReturnedFile = Internet:GET("http://thegamesdb.net/api/GetGamesList.php?name="..SearchText.."&platform="..Platform,"SearchGame.xml")

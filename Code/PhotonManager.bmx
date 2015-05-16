@@ -2,8 +2,10 @@
 'TODO: Finish URLEncode function
 'TODO: Update Artwork BrowseOnline Function
 'TODO: add clear cache to Settings
-'TODO: First Run setup wizard
 'TODO: Hover over online game choice and show artwork thumb
+'TODO: Finish thegamesdb.net platform Function
+'TODO: Check for old platform input and update it
+'TODO: Platform Window for adding/restoring/deleting platforms
 
 'SUPER IMPORTANT
 
@@ -30,11 +32,7 @@
 'All subfiles checked, no pending fixes found
 'BUG: My Programs Crash when Using CreateProcess on Windows to load them from another program, No Idea Why... FIXED: with WinExec used for my programs ONLY
 'TODO: Detect/ Load Country (in General/GlobalConsts) (for Global Country:String = "UK")
-'FIX: When Log window is closed by user it causes all sorts of errors. Mainly arwork not downloaded, steam not correctly found.
 'Ex: Open Databasemanager, run steam wiz, close when searching, input steam manual, run steam wizard
-'SETTING: RGB for interface
-'FIX: Load in platforms from online database
-'FIX: Platform overide if ManualPlatforms.txt detected
 'FIX: Icon png/jpg - Need FreeImage... Appears to fail badly(freeimage that is)
 'FIX: All Wizards in separate processes
 'FIX: UpdateGame needs to load as separate process
@@ -80,15 +78,17 @@ Import wx.wxMouseEvent
 Import wx.wxHyperlinkCtrl
 Import wx.wxgauge
 Import wx.wxcolourpickerctrl
+Import wx.wxradiobox
 
 Import BaH.libcurlssl
 Import Bah.libxml
 Import Bah.Volumes
 Import bah.regex
 
-Import BRL.JPGLoader
-Import BRL.PNGLoader
-'Import BAH.FreeImage
+Import BAH.FreeImage
+'Import BRL.JPGLoader
+'Import BRL.PNGLoader
+
 Import BRL.Threads
 
 Import BRL.StandardIO
@@ -96,9 +96,9 @@ Import BRL.LinkedList
 Import BRL.FileSystem
 Import BRL.Retro
 Import BRL.PolledInput
-Import BRL.OpenALAudio 
+Import BRL.OpenALAudio
 Import BRL.DirectSoundAudio
-Import BRL.FreeAudioAudio 
+Import BRL.FreeAudioAudio
 Import BRL.WAVLoader
 Import BRL.OGGLoader
 Import Pub.FreeProcess
@@ -138,7 +138,7 @@ If FileType("SaveLocationOverride.txt") = 1 then
 	EndIf
 Else
 	If FileType(GetUserDocumentsDir() + FolderSlash + "GameManagerV4") <> 2 then
-		CreateFolder(GetUserDocumentsDir()+FolderSlash+"GameManagerV4")
+		CreateFolder(GetUserDocumentsDir() + FolderSlash + "GameManagerV4")
 	EndIf 
 	TempFolderPath = GetUserDocumentsDir() + FolderSlash + "GameManagerV4" + FolderSlash
 EndIf
@@ -245,7 +245,7 @@ InitLuGI(LuaVM)
 luaL_openlibs(LuaVM)
 
 
-Local RunWizard:Int = -1
+Local RunWizard:Int = - 1
 
 Local PastArgument:String 
 For Argument$ = EachIn AppArgs$
@@ -294,19 +294,26 @@ End
 
 Type DatabaseManager Extends wxApp
 	Field Menu:MainWindow
-	'Field Menu2:DatabaseSearchPanelType
+	Field Wizard:FirstRunWizard
 	
 	Method OnInit:Int()
 		wxImage.AddHandler( New wxICOHandler)		
 		wxImage.AddHandler( New wxPNGHandler)		
-		wxImage.AddHandler( New wxJPEGHandler)
-		'wxImage.AddHandler( New wxJPEGHandler)			
+		wxImage.AddHandler( New wxJPEGHandler)	
 		
 		New PMFactory
+		 
+		If FileType(SETTINGSFOLDER + "GeneralSettings.xml") = 1 then
 		
-		'Local Menu2 = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400) )
-   
+		Else
+			Local Wizard:FirstRunWizard = FirstRunWizard(New FirstRunWizard.Create(Null, wxID_ANY, "First Run Wizard", Null, - 1, - 1, wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE | wxMAXIMIZE_BOX ) )
+			Wizard.Setup()
+			Wizard.RunWizard(Wizard.Page1)
+			Wizard.Destroy()
+		EndIf
+		
 		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400) )
+		
 		Return True
 
 	End Method
@@ -314,6 +321,162 @@ Type DatabaseManager Extends wxApp
 End Type
 
 lua_close(LuaVM)
+
+
+Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
+	
+	
+	
+	Field DateCombo:wxComboBox
+	Field InputRadio:wxRadioBox
+	Field ResolutionCombo:wxComboBox
+	
+	
+	
+	Method Setup()
+		PrintF("Begin Startup Wizard")
+		Page1:wxWizardPageSimple = wxWizardPageSimple(New wxWizardPageSimple.CreateSimple(Self, Null, Null) )
+		Local Page2:wxWizardPageSimple = wxWizardPageSimple(New wxWizardPageSimple.CreateSimple(Self, Null, Null) )
+		Local Page3:wxWizardPageSimple = wxWizardPageSimple(New wxWizardPageSimple.CreateSimple(Self, Null, Null) )
+		Local Page4:wxWizardPageSimple = wxWizardPageSimple(New wxWizardPageSimple.CreateSimple(Self, Null, Null) )
+		Local Page5:wxWizardPageSimple = wxWizardPageSimple(New wxWizardPageSimple.CreateSimple(Self, Null, Null) )
+		
+		Page1.SetNext(Page2)
+		Page2.SetPrev(Page1)
+		Page2.SetNext(Page3)
+		Page3.SetPrev(Page2)
+		Page3.SetNext(Page4)
+		Page4.SetPrev(Page3)
+		Page4.SetNext(Page5)
+		Page5.SetPrev(Page4)
+		
+		'------------------------------------PAGE 1------------------------------------
+		Local TextField = New wxStaticText.Create(Page1 , wxID_ANY , "Welcome to Photon V4~nAs this is the first time you have run Photon we need to ask you some questions to get you setup.~nClick Next to continue", - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)
+		Local P1vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		P1vbox.AddStretchSpacer(1)
+		P1vbox.Add(TextField , 1 , wxEXPAND | wxALL , 10)
+		P1vbox.AddStretchSpacer(1)		
+		Page1.SetSizer(P1vbox)
+		'------------------------------------PAGE 2------------------------------------
+		Local TextField2 = New wxStaticText.Create(Page2 , wxID_ANY , "Photon has been coded entirely by myself in my spare time and has become a passion as well as a hobby so I hope you enjoy the fruits of my labour. If you have any problems, find any bugs or have any feedback please don't hesitate to contact me on my website: photongamemanager.com, without the publics feedback the product wouldn't be what it is today so I do really appreciate folks taking the time to write to me. ~n~nAnyway enough of my talking, click Next to continue and enjoy :)", - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local P2vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+		P2vbox.AddStretchSpacer(1)
+		P2vbox.Add(TextField2 , 6 , wxEXPAND | wxALL , 10)
+		P2vbox.AddStretchSpacer(1)		
+					
+		Page2.SetSizer(P2vbox)		
+		
+		
+		'------------------------------------PAGE 3------------------------------------
+		Local P3vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local TextField3:wxStaticText = New wxStaticText.Create(Page3 , wxID_ANY , "Photon Frontend can be controlled by many different inputs. Selecting the input below disables uneeded on screen controls for other inputs. (Can be changed later in settings menu)", - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)
+		Local SL3:wxStaticLine = New wxStaticLine.Create(Page3, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)
+		InputRadio = New wxRadioBox.Create(Page3, wxID_ANY, "Input", - 1, - 1, - 1, - 1, ["Keyboard Only", "Keyboard/Mouse", "Touchscreen", "Joystick/Controller", "All of the above"], 0, wxRA_VERTICAL)
+		'Local InputText:wxTextCtrl = New wxTextCtrl.Create(Page3, wxID_ANY, "", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY)
+		
+		P3vbox.Add(TextField3 , 1 , wxEXPAND | wxALL , 10)
+		P3vbox.Add(SL3 , 0 , wxEXPAND | wxALL , 10)
+		P3vbox.Add(InputRadio , 1 , wxEXPAND | wxALL , 10)
+		'P3vbox.Add(InputText , 1 , wxEXPAND | wxALL , 10)
+		
+		Page3.SetSizer(P3vbox)
+		
+		'------------------------------------PAGE 4------------------------------------
+		Local P4vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local TextField4:wxStaticText = New wxStaticText.Create(Page4 , wxID_ANY , "Please select the resolution for the Frontend program. If you are not going to be using Frontend, select the resolution of your desktop as it is also used to optimize artwork. (Can be changed later in settings menu)", - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)
+		Local SL4:wxStaticLine = New wxStaticLine.Create(Page4, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)
+		Local TextField4_2:wxStaticText = New wxStaticText.Create(Page4 , wxID_ANY , "Frontend Resolution:", - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		ResolutionCombo = New wxComboBox.Create(Page4, wxID_ANY, "", Null, - 1, - 1, - 1, - 1, wxCB_DROPDOWN | wxCB_READONLY)
+		
+		Local wid:Int , hei:Int , dep:Int , hert:Int
+		For a = 0 To CountGraphicsModes() - 1
+		
+			GetGraphicsMode(a , wid , hei , dep , hert)
+			If dep => 32 And wid => 640 And hei >= 480 Then
+				If ResolutionCombo.FindString(wid + "x" + hei) = - 1 then
+					ResolutionCombo.Append(wid + "x" + hei)
+				EndIf
+			EndIf
+		Next
+		
+		ResolutionCombo.SetSelection(ResolutionCombo.GetCount() - 1)
+		
+		P4vbox.Add(TextField4 , 1 , wxEXPAND | wxALL , 10)
+		P4vbox.Add(SL4 , 0 , wxEXPAND | wxALL , 10)
+		P4vbox.Add(TextField4_2 , 0 , wxEXPAND | wxTOP | wxLEFT | wxRIGHT | wxBOTTOM , 10)
+		P4vbox.Add(ResolutionCombo , 0 , wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT , 10)
+		P4vbox.AddStretchSpacer(1)
+		
+		Page4.SetSizer(P4vbox)
+		'------------------------------------PAGE 5------------------------------------
+		Local P5vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local TextField5:wxStaticText = New wxStaticText.Create(Page5 , wxID_ANY , "Generic Settings (Can be changed later in settings menu)", - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)
+		Local SL5:wxStaticLine = New wxStaticLine.Create(Page5, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)
+	
+		Local TextField5_2:wxStaticText = New wxStaticText.Create(Page5 , wxID_ANY , "Date Format:", - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		DateCombo = New wxComboBox.Create(Page5, wxID_ANY, "UK", ["UK", "US", "EU"] , - 1, - 1, - 1, - 1, wxCB_DROPDOWN | wxCB_READONLY)
+
+	
+		P5vbox.Add(TextField5 , 0 , wxEXPAND | wxALL , 10)
+		P5vbox.Add(SL5 , 0 , wxEXPAND | wxALL , 10)	
+		P5vbox.Add(TextField5_2 , 0 , wxEXPAND | wxTOP | wxLEFT | wxRIGHT | wxBOTTOM, 10)	
+		P5vbox.Add(DateCombo , 0 , wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT , 10)	
+		
+		Page5.SetSizer(P5vbox)
+		
+		ConnectAny(wxEVT_WIZARD_CANCEL, WizardCancel)
+		ConnectAny(wxEVT_WIZARD_FINISHED, WizardFinished)
+	End Method
+
+	Function WizardCancel(event:wxEvent)
+		PrintF("Cancel")
+		SaveGlobalSettings()
+	End Function
+	
+	Function WizardFinished(event:wxEvent)
+		Local Wizard:FirstRunWizard = FirstRunWizard(event.parent)
+		PrintF("Finished")
+		
+		Country = Wizard.DateCombo.GetValue()
+		
+		For a = 1 To Len(Wizard.ResolutionCombo.GetValue() )
+			If Mid(Wizard.ResolutionCombo.GetValue() , a , 1) = "x" then
+				GraphicsW = Int(Left(Wizard.ResolutionCombo.GetValue() , a - 1) )
+				GraphicsH = Int(Right(Wizard.ResolutionCombo.GetValue() , Len(Wizard.ResolutionCombo.GetValue() ) - a) )
+				Exit
+			EndIf
+		Next
+		
+		Select Wizard.InputRadio.GetStringSelection()
+			Case "Keyboard Only"
+				TouchKeyboardEnabled = 0
+				ShowInfoButton = 0
+				ShowScreenButton = 0
+			Case "Keyboard/Mouse"
+				TouchKeyboardEnabled = 0
+				ShowInfoButton = 1
+				ShowScreenButton = 1		
+			Case "Touchscreen"
+				TouchKeyboardEnabled = 1
+				ShowInfoButton = 1
+				ShowScreenButton = 1		
+			Case "Joystick/Controller"
+				TouchKeyboardEnabled = 1
+				ShowInfoButton = 0
+				ShowScreenButton = 0			
+			Case "All of the above"
+				TouchKeyboardEnabled = 1
+				ShowInfoButton = 1
+				ShowScreenButton = 1			
+			Default
+				CustomRuntimeError("Wizard Error: Invalid Input String")
+		End Select
+		SaveGlobalSettings()
+	End Function
+
+End Type
+
 
 '----------------------------------------------------------------------------------------------------------
 '-------------------------------------MAIN WINDOW----------------------------------------------------------
@@ -1417,7 +1580,7 @@ Type SettingsWindow Extends wxFrame
 	Field SW_OverridePath:wxTextCtrl 
 	Field SW_ButtonCloseOnly:wxComboBox
 	Field SW_OriginWait:wxComboBox
-	Field SW_AntiAlias:wxComboBox 
+	Field SW_AntiAlias:wxComboBox
 	Field SW_ShowTouchScreen:wxComboBox
 	Field SW_ShowTouchInfo:wxComboBox
 	Field SW_ColourPicker1:wxColourPickerCtrl
@@ -1425,6 +1588,7 @@ Type SettingsWindow Extends wxFrame
 	Field SW_Maximize:wxComboBox
 	Field SW_DefaultGameLua:wxComboBox
 	Field SW_DownloadAllArtwork:wxComboBox
+	Field SW_DebugLog:wxComboBox
 	
 	Field KeyboardInputField:KeyboardInputWindow
 	Field JoyStickInputField:JoyStickInputWindow
@@ -1438,6 +1602,7 @@ Type SettingsWindow Extends wxFrame
 		Local DefaultHelp:String = "Hover over text labels for more information on each item."
 		Local E1:String = "Date format"
 		Local E2:String = "Override save path"
+		Local E3:String = "Debug Log"
 		
 		Local E51:String = "Artwork Compression level"
 		Local E52:String = "Optimize Artwork"
@@ -1466,6 +1631,7 @@ Type SettingsWindow Extends wxFrame
 		Local E252:String = "Maximize"
 		Local E253:String = "Default Game Search"
 		Local E254:String = "Fetch all art"
+		
 		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
@@ -1522,13 +1688,22 @@ Type SettingsWindow Extends wxFrame
 		OverrideHbox.Add(SW_OverrideBrowse , 2 , wxEXPAND | wxALL , 4)
 		OverridePanel.SetSizer(OverrideHbox)	
 		
+		
+		Local ST24:wxStaticText = New wxStaticHelpText.Create(ScrollBox , wxID_ANY , "Debug Log: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		wxStaticHelpText(ST24).SetFields( E3, DefaultHelp, HelpText)
+		
+		SW_DebugLog = New wxComboHelpBox.Create(ScrollBox , SW_DL , "" , ["Yes" , "No" ] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
+		wxComboHelpBox(SW_DateFormat).SetFields( E1, DefaultHelp, HelpText)
+		
 		'ScrollBoxvbox.Add(SL1,  0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox.Add(SLT1,  0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox.Add(SL2 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(ST3 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(SW_DateFormat , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox.Add(ST13,  0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(ST13, 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox.Add(OverridePanel , 0 , wxEXPAND | wxALL , 4)					
+		ScrollBoxvbox.Add(ST24, 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox.Add(SW_DebugLog , 0 , wxEXPAND | wxALL , 4)	
 		
 		ScrollBox.SetSizer(ScrollBoxvbox)
 		
@@ -1859,7 +2034,7 @@ Type SettingsWindow Extends wxFrame
 			EndIf
 		Next
 		
-		SW_Resolution.SetValue(GraphicsW+"x"+GraphicsH)
+		SW_Resolution.SetValue(GraphicsW + "x" + GraphicsH)
 		If SilentRunnerEnabled Then 
 			SW_Runner.SetValue("Yes")
 		Else
@@ -1871,7 +2046,7 @@ Type SettingsWindow Extends wxFrame
 			SW_Cabinate.SetValue("No")
 		EndIf	
 		
-		If LowMemory = True Then 
+		If LowMemory = True then
 			SW_LowMem.SetValue("Yes")
 		Else
 			SW_LowMem.SetValue("No")
@@ -1942,6 +2117,12 @@ Type SettingsWindow Extends wxFrame
 			SW_DownloadAllArtwork.SetValue("Yes")
 		Else
 			SW_DownloadAllArtwork.SetValue("No")
+		EndIf
+		
+		If DebugLogEnabled then
+			SW_DebugLog.SetValue("Yes")
+		Else
+			SW_DebugLog.SetValue("No")
 		EndIf
 		
 		'--------------------------------------------------------------------
@@ -2097,7 +2278,7 @@ Type SettingsWindow Extends wxFrame
 			If item = "" Then Exit
 			If item="." Or item=".." Then Continue
 			GameNode:GameType = New GameType
-			If GameNode.GetGame(item) = - 1 Then
+			If GameNode.GetGame(item) = - 1 then
 			
 			Else
 				Log1.AddText("Optimizing Artwork for: "+GameNode.Name)
@@ -2222,6 +2403,12 @@ Type SettingsWindow Extends wxFrame
 			PMFetchAllArt = 1
 		Else
 			PMFetchAllArt = 0
+		EndIf
+		
+		If SW_DebugLog.GetValue() = "Yes" then
+			DebugLogEnabled = 1
+		Else
+			DebugLogEnabled = 0
 		EndIf
 		
 		PMDefaultGameLua = SW_DefaultGameLua.GetValue()
@@ -3344,7 +3531,7 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("LowMem") <> "" Then		
 		LowMemory = Int(ReadSettings.GetSetting("LowMem"))
 	EndIf 
-	If ReadSettings.GetSetting("LowProc") <> "" Then		
+	If ReadSettings.GetSetting("LowProc") <> "" then		
 		LowProcessor = Int(ReadSettings.GetSetting("LowProc"))
 	EndIf	
 	If ReadSettings.GetSetting("TouchKey") <> "" Then		
@@ -3359,6 +3546,9 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("ShowScreenButton") <> "" then		
 		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton") )
 	EndIf			
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
+		DebugLogEnabled = Int(ReadSettings.GetSetting("DebugLogEnabled") )
+	EndIf				
 	ReadSettings.CloseFile()
 End Function
 
@@ -3384,7 +3574,8 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("AntiAlias" , AntiAliasSetting)		
 	SaveSettings.SaveSetting("ShowInfoButton" , ShowInfoButton)	
 	SaveSettings.SaveSetting("ShowScreenButton" , ShowScreenButton)	
-		
+	SaveSettings.SaveSetting("DebugLogEnabled" , DebugLogEnabled)		
+	
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()
 	
@@ -3410,6 +3601,12 @@ Function RestartProgram()
 
 End Function
 EndRem
+		
+'Replacement function for FreeImage
+Function SavePixmapJPeg(Pixmap:TPixmap , SaveLocation:String , SaveQuality:Int = 85)		
+	Local FreeImage:TFreeImage = TFreeImage.CreateFromPixmap(Pixmap)
+	FreeImage.save(SaveLocation, FIF_JPEG, SaveQuality)
+End Function
 		
 Include "Includes\DatabaseManager\GameExplorerExtract.bmx"
 Include "Includes\DatabaseManager\SteamExtract.bmx"
