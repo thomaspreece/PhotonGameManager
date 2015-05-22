@@ -685,7 +685,9 @@ Type ManualSGSearch Extends wxFrame
 	Method SetValues(SourceList:wxListCtrl,SText:String,Num:Int)
 		SourceItemsList = SourceList
 		Self.DatabaseSearchPanel.InitialSearch = SText
+		Self.DatabaseSearchPanel.SetPlatformNum(Self.PlatformNum)
 		ListItemNum = Num
+		DatabaseSearchPanel.SourceChanged()
 	End Method
 
 	Function Exitfun(event:wxEvent)

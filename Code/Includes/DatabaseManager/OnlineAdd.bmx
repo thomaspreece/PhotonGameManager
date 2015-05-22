@@ -724,9 +724,7 @@ Type ManualGESearch Extends wxFrame
 		Local LPvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		
-		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(LeftPanel, MS_DSP) )
-		
-		
+		Self.DatabaseSearchPanel = DatabaseSearchPanelType(New DatabaseSearchPanelType.Create(LeftPanel, MS_DSP) )	
 		
 		Local LP_SText:wxStaticText = New wxStaticText.Create(LeftPanel , wxID_ANY , OA_LP_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
 		
@@ -819,7 +817,9 @@ Type ManualGESearch Extends wxFrame
 			Self.RP_SText.SetLabel("")
 			Self.EXEList.Hide()
 		EndIf
+		
 		DatabaseSearchPanel.InitialSearch = StripExt(StripDir(Self.GameFilePath) )
+		DatabaseSearchPanel.SourceChanged()
 	End Method
 
 	Function OkClickedFun(event:wxEvent)
