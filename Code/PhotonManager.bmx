@@ -1,10 +1,8 @@
-'TODO: Finish URLEncode function
 'TODO: Update Artwork BrowseOnline Function
 'TODO: add clear cache to Settings
 'TODO: Hover over online game choice and show artwork thumb / More info button: downloads lua and displays the info
 'TODO: Check for old platform input and update it
 'TODO: Platform Window for adding/restoring/deleting platforms
-'TODO: Fix Lua PANICS when wrong data type is returned from lua code
 'TODO: Add option to turn off games explorer extract adding all other executables to game
 'TODO: Add in version information into configuration files to allow for easy updates
 
