@@ -51,13 +51,13 @@ Global OnlineAddPlatform:String = ""
 Global EditGameName:String = ""
 
 
-Global PMRed:Int = 190
-Global PMGreen:Int = 190
-Global PMBlue:Int = 255
+Global PMRed:Int = 185'190
+Global PMGreen:Int = 210'190
+Global PMBlue:Int = 255'255
 
-Global PMRed2:Int = 220 '140
-Global PMGreen2:Int = 220 '140
-Global PMBlue2:Int = 255 '140
+Global PMRed2:Int = 215
+Global PMGreen2:Int = 230
+Global PMBlue2:Int = 255
 
 Global PMRedF:Int = 0
 Global PMGreenF:Int = 0
@@ -68,7 +68,7 @@ Global PMFont:wxFont = New wxFont.CreateFontWithAttributes(11, wxFONTFAMILY_DEFA
 Global PMMaximize:Int = 1
 
 Global PMDefaultGameLua:String = "thegamesdb.net"
-Global PMFetchAllArt:Int = 1
+Global PMFetchAllArt:Int = 0
 
 Const GNTextH:Int = 0
 
