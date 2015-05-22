@@ -1,11 +1,15 @@
-'TODO: Add Sorting to thegamesdb.net lua script
 'TODO: Finish URLEncode function
 'TODO: Update Artwork BrowseOnline Function
 'TODO: add clear cache to Settings
-'TODO: Hover over online game choice and show artwork thumb
-'TODO: Finish thegamesdb.net platform Function
+'TODO: Hover over online game choice and show artwork thumb / More info button: downloads lua and displays the info
 'TODO: Check for old platform input and update it
 'TODO: Platform Window for adding/restoring/deleting platforms
+'TODO: Fix Lua PANICS when wrong data type is returned from lua code
+'TODO: Add option to turn off games explorer extract adding all other executables to game
+'TODO: Add in version information into configuration files to allow for easy updates
+
+
+'TODO: Fix platform list not sorting alphabetically: (puts capitals before lower case)
 
 'SUPER IMPORTANT
 
@@ -63,7 +67,7 @@ Import wx.wxNotebook
 Import wx.wxTextCtrl
 Import wx.wxMessageDialog
 Import wx.wxFileDialog
-Import wx.wxDirDialog 
+Import wx.wxDirDialog
 'Import wx.wxStaticBitmap
 Import wx.wxBitmap
 Import wx.wxTimer
@@ -312,7 +316,7 @@ Type DatabaseManager Extends wxApp
 			Wizard.Destroy()
 		EndIf
 		
-		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400) )
+		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400, wxDEFAULT_FRAME_STYLE ) )
 		
 		Return True
 
@@ -696,7 +700,7 @@ Type MainWindow Extends wxFrame
 	Function ShowEditGameList(event:wxEvent)
 		Local MainWin:MainWindow = MainWindow(event.parent)
 		PrintF("----------------------------Show Edit Game List----------------------------")
-		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 900, 650))	
+		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 900, 650, wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL) )	
 		MainWin.EditGameListField.PopulateGameList()		
 		MainWin.EditGameListField.Show(True)
 		MainWin.Hide()
@@ -1606,6 +1610,7 @@ Type SettingsWindow Extends wxFrame
 		
 		Local E51:String = "Artwork Compression level"
 		Local E52:String = "Optimize Artwork"
+		Local E53:String = "Fetch all artwork from online sources~nSetting this option to true will cause Photon to fetch all available artwork from the online source instead of just the artwork Photon requires. The extra artwork may be used in future versions of Photon but has no use at present.~n~n<b>Recommended Setting: No</b>"
 		
 		Local E101:String = "Steam Path"
 		Local E102:String = "Steam ID"
@@ -1630,7 +1635,7 @@ Type SettingsWindow Extends wxFrame
 		Local E251:String = "Colour Picker"
 		Local E252:String = "Maximize"
 		Local E253:String = "Default Game Search"
-		Local E254:String = "Fetch all art"
+		
 		
 		
 		Local vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
@@ -1693,7 +1698,7 @@ Type SettingsWindow Extends wxFrame
 		wxStaticHelpText(ST24).SetFields( E3, DefaultHelp, HelpText)
 		
 		SW_DebugLog = New wxComboHelpBox.Create(ScrollBox , SW_DL , "" , ["Yes" , "No" ] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )
-		wxComboHelpBox(SW_DateFormat).SetFields( E1, DefaultHelp, HelpText)
+		wxComboHelpBox(SW_DebugLog).SetFields( E3, DefaultHelp, HelpText)
 		
 		'ScrollBoxvbox.Add(SL1,  0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox.Add(SLT1,  0 , wxEXPAND | wxALL , 4)
@@ -1724,11 +1729,19 @@ Type SettingsWindow Extends wxFrame
 		Optimizehbox1.Add(SW_CompressLev , 1 , wxEXPAND | wxALL , 4)
 		Optimizehbox1.Add(SW_OptimizeArt1 , 0 , wxEXPAND | wxALL , 4)
 		
+		
+		Local ST23:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox2 , wxID_ANY , "Download all Artwork: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
+		wxStaticHelpText(ST23).SetFields( E53, DefaultHelp, HelpText)
+		
+		SW_DownloadAllArtwork = New wxComboHelpBox.Create(ScrollBox2 , SW_DAA , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		wxComboHelpBox(SW_DownloadAllArtwork).SetFields( E53, DefaultHelp, HelpText)
+		
 		'ScrollBoxvbox2.Add(SL3, 0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox2.Add(SLT2, 0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox2.Add(SL4 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox2.Add(ST2 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox2.AddSizer(Optimizehbox1, 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox2.AddSizer(Optimizehbox1, 0 , wxEXPAND | wxALL , 4)						ScrollBoxvbox2.Add(ST23 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox2.Add(SW_DownloadAllArtwork , 0 , wxEXPAND | wxALL , 4)	
 		
 		ScrollBox2.SetSizer(ScrollBoxvbox2)
 		
@@ -1965,11 +1978,7 @@ Type SettingsWindow Extends wxFrame
 		SW_DefaultGameLua = New wxComboHelpBox.Create(ScrollBox6 , SW_DGL , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		wxComboHelpBox(SW_DefaultGameLua).SetFields( E253, DefaultHelp, HelpText)
 
-		Local ST23:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox6 , wxID_ANY , "Download all Artwork: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
-		wxStaticHelpText(ST23).SetFields( E254, DefaultHelp, HelpText)
 		
-		SW_DownloadAllArtwork = New wxComboHelpBox.Create(ScrollBox6 , SW_DAA , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
-		wxComboHelpBox(SW_DownloadAllArtwork).SetFields( E254, DefaultHelp, HelpText)
 		
 		Local DefaultGameLuaTList:TList = GetLuaList(1)
 		Local DefaultGameLuaTListItem:String
@@ -1981,9 +1990,7 @@ Type SettingsWindow Extends wxFrame
 		ScrollBoxvbox6.Add(ST21 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox6.Add(SW_Maximize , 0 , wxEXPAND | wxALL , 4)		
 		ScrollBoxvbox6.Add(ST22 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox6.Add(SW_DefaultGameLua , 0 , wxEXPAND | wxALL , 4)			
-		ScrollBoxvbox6.Add(ST23 , 0 , wxEXPAND | wxALL , 4)
-		ScrollBoxvbox6.Add(SW_DownloadAllArtwork , 0 , wxEXPAND | wxALL , 4)		
+		ScrollBoxvbox6.Add(SW_DefaultGameLua , 0 , wxEXPAND | wxALL , 4)				
 		ScrollBoxvbox6.Add(ST19 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox6.Add(SW_ColourPicker1 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox6.Add(ST20 , 0 , wxEXPAND | wxALL , 4)
@@ -3605,6 +3612,8 @@ EndRem
 'Replacement function for FreeImage
 Function SavePixmapJPeg(Pixmap:TPixmap , SaveLocation:String , SaveQuality:Int = 85)		
 	Local FreeImage:TFreeImage = TFreeImage.CreateFromPixmap(Pixmap)
+	'FreeImage crashes without conversion to 24bits
+	FreeImage = FreeImage.convertTo24Bits()
 	FreeImage.save(SaveLocation, FIF_JPEG, SaveQuality)
 End Function
 		

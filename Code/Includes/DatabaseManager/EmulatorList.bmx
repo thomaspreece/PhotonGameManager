@@ -118,7 +118,7 @@ Type EmulatorsList Extends wxFrame
 		vbox.Add(sl1 , 0, wxEXPAND , 0)
 		vbox.Add(ScrollBox , 20 , wxEXPAND , 0)
 		vbox.Add(sl2 , 0,  wxEXPAND  , 0)
-		vbox.Add(Panel1, 2 , wxEXPAND , 0)
+		vbox.Add(Panel1, 0 , wxEXPAND , 0)
 		SetSizer(vbox)
 		
 		'Self.HideNonUsedPlatforms()
