@@ -207,6 +207,11 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		'Get selected platform
 		Local SelectedPlatform:String = luaL_checkstring(LuaVM , 3)
+		If lua_isbmaxobject(LuaVM, 4) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
+			LuaMutexUnlock()
+			Return		
+		EndIf
 		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		Local SinglePlatform:LuaListItemType
 		
@@ -337,6 +342,11 @@ Type DatabaseSearchPanelType Extends wxPanel
 		EndIf
 				
 		Self.ListDepth = luaL_checkint( LuaVM , 3)
+		If lua_isbmaxobject(LuaVM, 4) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
+			LuaMutexUnlock()
+			Return		
+		EndIf		
 		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		
 		LuaHelper_CleanStack(LuaVM)
