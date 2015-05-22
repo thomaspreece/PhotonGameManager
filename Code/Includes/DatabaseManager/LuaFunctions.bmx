@@ -60,6 +60,10 @@ Type LuaInternetType {expose disablenew}
 		Return Self
 	End Method
 	
+	Method Encode:String(value:String)
+		Return WebEncode(value)
+	End Method
+	
 	Method Destroy()
 		curl.cleanup()
 	End Method

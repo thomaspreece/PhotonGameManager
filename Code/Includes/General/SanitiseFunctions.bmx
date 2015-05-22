@@ -1,5 +1,11 @@
 Function URLEncode:String(value:String)
+	'Encodes URLs
+	value = Replace(value, " ", "%20")
+	Return value
+End Function
 
+Function WebEncode:String(value:String)
+	'Encodes all characters for sending over the internet. (Do not use for encoding URLs)
 	Local EncodeUnreserved:Int = False
 	Local UsePlusForSpace:Int = True
 	Local ReservedChars:String = "!*'();:@&=+$,/?%#[]~r~n"  'added space, newline and carriage returns
