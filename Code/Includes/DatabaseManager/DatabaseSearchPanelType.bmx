@@ -190,15 +190,23 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Self.Enable()
 	
 		LuaMutexLock()
-		
+		Local ErrorString:String
 		Self.SourceText.SetLabel("")
 		Local Error:Int
 		
 		'Get Return status
-		Error = luaL_checkint( LuaVM, 1 )
+		If lua_isnumber(LuaVM, 1) = False then
+			Error = 198
+		Else		
+			Error = luaL_checkint( LuaVM, 1 )
+		EndIf
 		
 		If Error <> 0 then
-			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				ErrorString = "Lua code did not return int @1 or/and string @2"
+			Else
+				ErrorString = luaL_checkstring(LuaVM , 2)
+			EndIf 
 			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
 			LuaMutexUnlock()
 			Return
@@ -206,7 +214,17 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		
 		'Get selected platform
+		If lua_isstring(LuaVM, 3) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
+			LuaMutexUnlock()
+			Return		
+		EndIf
 		Local SelectedPlatform:String = luaL_checkstring(LuaVM , 3)
+		If lua_isbmaxobject(LuaVM, 4) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
+			LuaMutexUnlock()
+			Return		
+		EndIf
 		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		Local SinglePlatform:LuaListItemType
 		
@@ -320,6 +338,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 	Method SearchReturn()
 		PlaySound SearchBeep
+		Local ErrorString:String
 		
 		Self.Enable()
 		
@@ -327,16 +346,35 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Local Error:Int
 		
 		'Get Return status
-		Error = luaL_checkint( LuaVM, 1 )
+		If lua_isnumber(LuaVM, 1) = False then
+			Error = 198
+		Else		
+			Error = luaL_checkint( LuaVM, 1 )
+		EndIf
 		
 		If Error <> 0 then
-			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				ErrorString = "Lua code did not return int @1 or/and string @2"
+			Else
+				ErrorString = luaL_checkstring(LuaVM , 2)
+			EndIf 
 			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
 			LuaMutexUnlock()
 			Return
 		EndIf
-				
+		
+					
+		If lua_isstring(LuaVM, 3) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
+			LuaMutexUnlock()
+			Return		
+		EndIf
 		Self.ListDepth = luaL_checkint( LuaVM , 3)
+		If lua_isbmaxobject(LuaVM, 4) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
+			LuaMutexUnlock()
+			Return		
+		EndIf		
 		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		
 		LuaHelper_CleanStack(LuaVM)
