@@ -1,68 +1,41 @@
-Function URLEncode:String(Text:String)
-	Text = Replace(Text, " ", "%20")
-	Return Text
+Function URLEncode:String(value:String)
+
+	Local EncodeUnreserved:Int = False
+	Local UsePlusForSpace:Int = True
+	Local ReservedChars:String = "!*'();:@&=+$,/?%#[]~r~n"  'added space, newline and carriage returns
+	Local rc:Int
+	Local urc:Int
+	Local s:Int
+	Local result:String
+
+	For s = 0 To value.length - 1
+		If ReservedChars.Find(value[s..s + 1]) > -1 Then
+			result:+ "%"+ IntToHexString(Asc(value[s..s + 1]))
+			Continue
+		ElseIf value[s..s+1] = " " Then
+			If UsePlusForSpace Then result:+"+" Else result:+"%20"
+			Continue
+		ElseIf EncodeUnreserved Then
+				result:+ "%" + IntToHexString(Asc(value[s..s + 1]))
+			Continue
+		EndIf
+		result:+ value[s..s + 1]
+	Next
+
+	Return result
 End Function
 
-Function GameSearchSanitizer$(Name$)
-	Rem
-	Function:	Removes Illegal Characters from SearchName and returns result
-	Input:	Name - SearchName to be Sanitized
-	Return:	The Sanitized SearchName
-	SubCalls:	None
-	EndRem
-	Repeat
-	For a=1 To Len(Name)
-		If Mid(Name,a,1)=Chr(226) Then
-			Name=Left(Name,a-1)+"-"+Right(Name,Len(Name)-a-2)
-			Exit			
-		EndIf	
-		If Mid(Name,a,1)="&" Then
-			Name = Left(Name , a - 1) + "and" + Right(Name , Len(Name) - a)
-			Exit
-		EndIf
-		If Mid(Name , a , 1) = " " Then
-			Name = Left(Name , a - 1) + "%20" + Right(Name , Len(Name) - a)
-			Exit			
+Function IntToHexString:String(val:Int, chars:Int = 2)
+	Local Result:String = Hex(val)
+	Return result[result.length-chars..]
+End Function
+
+
+Function StandardiseSlashes:String(Text:String)
+	For a = 1 To Len(Text)
+		If Mid(Text , a , 1) = "/" Or Mid(Text , a , 1) = "\" then
+			Text = Left(Text, a - 1) + FolderSlash + Right(Text, Len(Text) - a)
 		EndIf
 	Next
-	If a=>Len(Name) Then 
-		Return Name
-	EndIf
-	Forever
-End Function
-
-Function SanitiseForInternet:String(Text:String)
-	Local RepeatLoop:Int
-	Local CharCode:String
-	Repeat
-		RepeatLoop = False
-		For a = 1 To Len(Text)
-			
-			Select Mid(Text , a , 1)
-				Case " " , "&" , "." , "," , "!" , "$" , "'"
-					Select Mid(Text , a , 1)
-						Case " "
-							CharCode = "%20"
-						Case "&"
-							CharCode = "%26"
-						Case ","
-							CharCode = "%2C"
-						Case "!"
-							CharCode = "%21"	
-						Case "."
-							CharCode = "%2E"	
-						Case "$"
-							CharCode = "%24"
-						Case "'"
-							CharCode = "%27"
-											
-					End Select
-					Text = Left(Text , a - 1) + CharCode + Right(Text , Len(Text) - a)
-					RepeatLoop = True
-					Exit									
-			End Select
-		Next
-		If RepeatLoop = False Then Exit
-	Forever
 	Return Text
 End Function

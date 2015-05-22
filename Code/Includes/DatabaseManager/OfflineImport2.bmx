@@ -283,7 +283,7 @@ Type OfflineImport2 Extends wxFrame
 						EndIf
 					Next
 					
-					tempEXEName.Append(tempString )
+					tempEXEName.Append(tempString )			
 					b = a + 2
 				EndIf
 			Next	
@@ -364,7 +364,7 @@ Type OfflineImport2 Extends wxFrame
 				'PrintF("Game Dir: "+GameDir)	
 				'CloseFile(ReadGDFFile)
 				EXE = EXENameArray[a].GetValue()
-				PrintF("EXE: "+EXE)
+				PrintF("EXE: " + EXE)
 				
 				GameNode:GameType = New GameType
 				GameNode.NewGame()
