@@ -269,8 +269,11 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 			
 			GName = col1.GetText()
 			Local GameNode:GameType = New GameType
-			
-			GameNode.RunEXE = col3.GetText()
+			If Left(col3.GetText(), 1) = Chr(34) then
+				GameNode.RunEXE = col3.GetText()
+			Else
+				GameNode.RunEXE = Chr(34) + col3.GetText() + Chr(34)
+			EndIf
 			
 			?Win32
 			GameNode.Plat = "PC"
@@ -297,8 +300,16 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 			GameNode.OEXEsName = CreateList()
 			
 			For EXEName = EachIn SubEXEList
+				?Win32
+				If Lower(col3.GetText() ) = Lower(EXEName.EXE) then Continue
+				?Not Win32
 				If col3.GetText() = EXEName.Name then Continue
-				ListAddLast(GameNode.OEXEs , EXEName.EXE )
+				?
+				If Left(EXEName.EXE, 1) = Chr(34) then
+					ListAddLast(GameNode.OEXEs , EXEName.EXE )
+				Else
+					ListAddLast(GameNode.OEXEs , Chr(34)+EXEName.EXE+Chr(34) )
+				EndIf
 				ListAddLast(GameNode.OEXEsName , EXEName.Name )				
 			Next
 			
@@ -497,7 +508,8 @@ Type OnlineImport2 Extends wxFrame
 						tempName = Right(tempString , Len(tempString) - c )
 						Exit
 					EndIf
-				Next			
+				Next	
+										
 				ListAddLast(SubEXEList, New EXENameType.Create(tempEXE, tempName) )
 				
 				CloseFile(ReadGDFFile)
@@ -697,12 +709,14 @@ Type ManualSearch Extends wxFrame
 	Method SetValues(SourceList:wxListCtrl, SText:String, Num:Int, EXEList:TList)
 		SourceItemsList = SourceList
 		Self.DatabaseSearchPanel.InitialSearch = SText
+		Self.DatabaseSearchPanel.SetPlatformNum(Self.PlatformNum)
 		ListItemNum = Num
 		Local EXEName:EXENameType
 		For EXEName = EachIn EXEList
 			EXEListCombo.Append(EXEName.EXE + " (" + EXEName.Name + ")", Object(EXEName.EXE) )		
 		Next
 		EXEListCombo.SetSelection(0)
+		DatabaseSearchPanel.SourceChanged()
 	End Method
 
 

@@ -84,8 +84,6 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		'SourceText.SetLabel("")
 		
-		Self.SourceChanged()
-		
 		vbox.RecalcSizes()
 		
 		'Local event:wxCommandEvent = New wxCommandEvent.NewEvent(wxEVT_COMMAND_TEXT_UPDATED, SearchSource.GetId() )
@@ -269,7 +267,14 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Self.SearchList.Clear()
 		
 		Local SearchTerm:String = Self.SearchText.GetValue()
-		Local PlatformData:String = String(Self.SearchPlatform.GetItemClientData(Self.SearchPlatform.GetSelection() ) )
+		
+		Local PlatformData:String
+		If Self.SearchPlatform.GetSelection() = wxNOT_FOUND then
+			LuaMutexUnlock()
+			Return			
+		Else
+			PlatformData = String(Self.SearchPlatform.GetItemClientData(Self.SearchPlatform.GetSelection() ) )
+		EndIf
 		
 		Local LuaList:LuaListType = New LuaListType.Create()
 		
@@ -459,8 +464,15 @@ Type DatabaseSearchPanelType Extends wxPanel
 	End Function
 
 	Function SearchFun(event:wxEvent)
+		Local MessageBox:wxMessageDialog
 		DatabaseSearchPanel:DatabaseSearchPanelType = DatabaseSearchPanelType(event.parent)
-		DatabaseSearchPanel.Search()	
+		If DatabaseSearchPanel.SearchPlatform.GetSelection() = wxNOT_FOUND then
+			MessageBox = New wxMessageDialog.Create(Null , "Please select a platform" , "Error" , wxOK | wxICON_EXCLAMATION)
+			MessageBox.ShowModal()
+			MessageBox.Free()
+		Else
+			DatabaseSearchPanel.Search()	
+		EndIf
 	End Function
 
 End Type
