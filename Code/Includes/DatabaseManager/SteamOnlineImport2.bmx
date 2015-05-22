@@ -483,58 +483,6 @@ Type SteamOnlineImport2 Extends wxFrame
 		Thread_AutoSearch_SOI(OnlineWin)
 		?		
 		
-		
-		
-		Rem
-		OnlineWin.Hide()
-		'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Auto searching for games" , , , 300 , 400) )
-		Log1.Show(1)
-		Local item = - 1
-		Local GName:String , GNameConv:String
-		Local ReadGameSearch:TStream
-		Local GameName:String , ID:String 
-		Local col2:wxListItem
-		Repeat	
-			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 Then Exit
-			col2 = New wxListItem.Create()
-			col2.SetId(item)
-			col2.SetColumn(2)
-			col2.SetMask(wxLIST_MASK_TEXT)
-			OnlineWin.SourceItemsList.GetItem(col2)
-			GName = col2.GetText()
-			Log1.AddText("Searching: " + GName)
-			PrintF("Searching: " + GName + " item: " + item)
-			
-			GNameConv = SanitiseForInternet(GName)
-			
-			WriteGameList(GNameConv , "PC")
-			DatabaseApp.Yield()
-			SortGameList(GName)
-			ReadGameSearch=ReadFile(TEMPFOLDER +"SearchGameList.txt")
-			
-			ID = ReadLine(ReadGameSearch)
-			GameName = GameReadType.GameNameFilter(ReadLine(ReadGameSearch) )
-			If GameName = "" Or GameName = " " Then
-				CloseFile(ReadGameSearch)
-				Continue 
-			EndIf
-			
-			Log1.AddText("Found: " + GameName)
-			PrintF("Found: " + GameName + " item: " + ID)
-			OnlineWin.SourceItemsList.SetStringItem(item , 1 , ID + "::" + GameName + "::" + "PC")
-			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
-			CloseFile(ReadGameSearch)
-			If Log1.LogClosed = True Then Exit
-			DatabaseApp.Yield()
-		Forever
-		OnlineWin.SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
-		OnlineWin.SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
-		OnlineWin.UnSavedChanges = True 
-		
-		Log1.Show(0)
-		OnlineWin.Show()
-		EndRem
 	End Function
 
 	Function SILKeyPress(event:wxEvent)

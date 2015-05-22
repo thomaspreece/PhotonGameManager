@@ -436,7 +436,7 @@ Type GameType Extends GameReadType
 			Else
 				'perform convert to correct type, move
 				Pixmap = LoadPixmap(TEMPFOLDER + "ArtWork" + FolderSlash + ArtworkListItem.Filename)
-				SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + ArtworkListItem.Filename + ".jpg" , 100 )				
+				SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + ArtworkListItem.Filename + ".jpg" , 100 )
 			EndIf			
 
 			If Log1.LogClosed = True then
@@ -609,7 +609,7 @@ Type GameType Extends GameReadType
 					Else
 						'Take banners to be smallest of 78% width of screen or 20% height of screen
 						If PixmapW > 0.78*GraphicsW Or PixmapH > 0.2*GraphicsH Then
-							NewWid = Min(0.78*GraphicsW , (Float(PixmapW) / PixmapH) * 0.2 * GraphicsH)
+							NewWid = Min(0.78 * GraphicsW , (Float(PixmapW) / PixmapH) * 0.2 * GraphicsH)
 							OptPixmap = ResizePixmap(Pixmap , NewWid , (Float(PixmapH) / PixmapW) * NewWid)
 						Else
 							OptPixmap = Pixmap
@@ -669,10 +669,18 @@ Type GameType Extends GameReadType
 			Return 0
 		EndIf
 		
-		Error = luaL_checkint( LuaVM, 1 )
+		If lua_isnumber(LuaVM, 1) = False then
+			Error = 198
+		Else
+			Error = luaL_checkint( LuaVM, 1 )
+		EndIf
 		
 		If Error <> 0 then
-			ErrorMessage = luaL_checkstring(LuaVM , 2)
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				ErrorMessage = "Lua code did not return int @1 or/and string @2"
+			Else
+				ErrorMessage = luaL_checkstring(LuaVM , 2)
+			EndIf
 			LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
 			LuaMutexUnlock()
 			Return 0
@@ -683,174 +691,6 @@ Type GameType Extends GameReadType
 			
 		Return Self.SaveGame()	
 	End Method
-	
-	Rem
-	Method DownloadGameInfo()
-		Local GameDB:String = "http://thegamesdb.net"
-		Local tempCurrentSearchLine:String
-		If Int(Self.ID) = 0 Then
-			CustomRuntimeError("Error: 35 DownloadGameInfo, ID is 0") 'MARK: Error 35
-		EndIf
-		
-		Self.IntialiseFanartLists()	
-		
-		Select GameDB
-			Case "http://thegamesdb.net"
-				PrintF("thegamesdb.net")
-				'Location = StripSlash(Location)
-				
-				GetGameInfo(Self.ID)	
-				PrintF("Got Game Info, Parsing...")		
-		
-				
-				Local Gamedoc:TxmlDoc
-				Local RootNode:TxmlNode , GenreNode:TxmlNode , node:TxmlNode , node2:TxmlNode , node3:TxmlNode , Mainnode:TxmlNode
-				Local OEXE:String
-				
-				Gamedoc = TxmlDoc.parseFile(TEMPFOLDER+"GameInfo.txt")
-			
-				If Gamedoc = Null Then
-					CustomRuntimeError( "Error 50: XML Document not parsed successfully, DownloadGameInfo(). "+ GName) 'MARK: Error 50
-				End If
-				
-				RootNode = Gamedoc.getRootElement()
-				
-				If RootNode = Null Then
-					Gamedoc.free()
-					CustomRuntimeError( "Error 51: Empty document, DownloadGameInfo(). "+ GName) 'MARK: Error 51
-				End If		
-		
-				If RootNode.getName() <> "Data" Then
-					Gamedoc.free()
-					CustomRuntimeError( "Error 52: Document of the wrong type, root node <> Game, DownloadGameInfo(). "+ GName) 'MARK: Error 52
-				End If
-				
-				Local ChildrenList:TList = RootNode.getChildren()
-				If ChildrenList = Null Or ChildrenList.IsEmpty() Then
-					Gamedoc.free()
-					CustomRuntimeError( "Error 53: Document error, no data contained within, DownloadGameInfo(). "+ GName) 'MARK: Error 53			
-				EndIf
-				Local BaseURL:String
-				Local TrailerURL:String
-				For Mainnode = EachIn ChildrenList
-					Select Mainnode.getName()
-						Case "baseImgUrl"
-							BaseURL = Mainnode.getText()
-						Case "Game"
-							Local GameList:TList = Mainnode.getChildren()
-							If GameList = Null Or GameList.IsEmpty() Then
-								
-							Else
-								Self.Genres = CreateList()
-								For node = EachIn GameList
-									Select node.getName()
-										Case "Youtube"
-											TrailerURL = node.getText()
-										Case "GameTitle"
-											Self.Name = node.getText()
-										Case "Overview"
-											Self.Desc = node.getText()
-										Case "Platform"
-											Self.Plat = node.GetText()
-											If GlobalPlatforms.GetPlatformByName(Self.Plat).ID > 0 Then
-												Self.PlatformNum = GlobalPlatforms.GetPlatformByName(Self.Plat).ID
-											EndIf
-										Case "ReleaseDate"
-											Self.ReleaseDate = GetDateFromLocalFormat(node.getText(),"US")
-										Case "ESRB"
-											Self.Cert = node.getText()
-										Case "Developer"
-											Self.Dev = node.getText()
-										Case "Publisher"
-											Self.Pub = node.getText()
-										Case "Genres"
-											'GenreNode = node
-											Local GenreList:TList = node.getChildren()
-											If GenreList = Null Or GenreList.IsEmpty() Then
-											Else
-												For node2 = EachIn GenreList
-													If node2.getName() = "genre" Then
-														ListAddLast(Self.Genres , node2.getText())
-													EndIf
-												Next
-											EndIf
-										Case "Co-op"
-											Self.Coop = node.getText()
-										Case "Players"
-											Self.Players = node.getText()
-										Case "Images"
-											Local ArtList:TList = node.getChildren()
-											If ArtList = Null Or ArtList.IsEmpty() Then
-											
-											Else
-												For node2 = EachIn ArtList
-													Select node2.getName()
-														Case "fanart"																									
-															Local FanArtList:TList = node2.getChildren()
-															If FanArtList = Null Or FanArtList.IsEmpty() Then
-															
-															Else
-																For node3 = EachIn FanArtList
-																	Select node3.getName()
-																		Case "original"
-																			ListAddLast(Self.Fanart , BaseURL+node3.getText())
-																		Case "thumb"
-																			ListAddLast(Self.FanartThumbs , BaseURL+node3.getText())
-																	End Select
-																Next
-															EndIf
-														Case "boxart"
-															Select node2.getAttribute("side")
-																Case "back"
-																	ListAddLast(Self.BackBoxArt , BaseURL+node2.getText())
-																Case "front"
-																	ListAddLast(Self.FrontBoxArt , BaseURL+node2.getText())
-															End Select
-														Case "banner"
-															ListAddLast(Self.BannerArt , BaseURL+node2.getText())
-														Case "screenshot"
-															Local ScreenList:TList = node2.getChildren()
-															If ScreenList = Null Or ScreenList.IsEmpty() Then
-															
-															Else
-																For node3 = EachIn ScreenList
-																	Select node3.getName()
-																		Case "original"
-																			ListAddLast(Self.ScreenShots , BaseURL+node3.getText())
-																		Case "thumb"
-																			ListAddLast(Self.ScreenShotThumbs , BaseURL+node3.getText())
-																	End Select
-																Next
-															EndIf								
-													End Select
-												Next
-											EndIf				
-										Case "id"
-											Self.ID = Int(node.getText())
-										Case "Rating"
-											Self.Rating = Int(node.getText())
-									End Select
-								Next
-							EndIf
-					End Select
-				Next	
-				If IsntNull(TrailerURL) Then
-					For a = 1 To Len(TrailerURL)
-						If Mid(TrailerURL , a , 1) = "=" Then
-							Self.Trailer = Right(TrailerURL , Len(TrailerURL) - a)
-							Exit
-						EndIf
-					Next
-				EndIf
-
-				Gamedoc.free()
-
-			Default
-				CustomRuntimeError("Error 20: Invalid GameDB") 'MARK: Error 20
-		End Select
-		Return Self.SaveGame()
-	End Method
-	EndRem
 	
 	Method OutputInfo()
 		Local GName:String

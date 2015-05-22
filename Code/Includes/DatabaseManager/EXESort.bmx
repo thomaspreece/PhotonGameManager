@@ -11,6 +11,23 @@ Function GetEXEList:TList(Path:String , Name:String)
 End Function
 
 
+Function ContainedWithin(Str$, Term$)
+	Rem
+	Function:	Searches for a term within a string and returns true/false
+	Input:	Str - The String to search within
+			Term - The Term to search for
+	Return:	True - Term contained within Str
+			False - Term not contained within Str
+	SubCalls:	None
+	EndRem
+	For a=1 To Len(Str)-Len(Term)+1
+		If Lower(Mid(Str,a,Len(Term)))=Lower(Term) Then
+			Return True
+		EndIf
+	Next
+	Return False
+End Function
+
 Function RankEXEs:TList(EXEList:TList , TermList:TList)
 	RankedEXEListWC:TList = CreateList()
 	RankedEXEList:TList = CreateList()

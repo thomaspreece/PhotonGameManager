@@ -362,7 +362,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 			LuaMutexUnlock()
 			Return
 		EndIf
-	
+		
 					
 		If lua_isstring(LuaVM, 3) = False then
 			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
