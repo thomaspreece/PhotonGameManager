@@ -499,7 +499,7 @@ Type PlatformReader
 			EndIf 
 		Next
 		
-		For b=1 To 10
+		For b = 1 To 10
 			SaveStatus = Platdoc.saveFormatFile(SETTINGSFOLDER +"Platforms.xml" , False)
 			PrintF("SaveXML Try: "+b+" Status: "+SaveStatus)
 			If SaveStatus <> - 1 Then Exit
@@ -520,7 +520,7 @@ End Type
 Type PlatformType
 	Field ID:Int
 	Field Name:String
-	Field PlatType:String 
+	Field PlatType:String
 	Field Emulator:String
 	
 	Function Init:PlatformType(PID:Int,PName:String,PPlatType:String,PEmulator:String)

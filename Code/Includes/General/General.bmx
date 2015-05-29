@@ -346,58 +346,76 @@ Function GetEmulator:String(Plat:String)
 	EndIf
 End Function 
 
-Function PlatformListChecks()
-	PrintF("Checking Platform List")
-	Local Line:String
+Function SetupPlatforms()
+	GlobalPlatforms = New PlatformReader
+	If FileType(SETTINGSFOLDER + "Platforms.xml") = 1 then
+		GlobalPlatforms.ReadInPlatforms()	
+	Else
+		GlobalPlatforms.PopulateDefaultPlatforms()
+		GlobalPlatforms.ReadInPlatforms()
+	EndIf
+End Function
+
+Function OldPlatformListChecks()
+	If GlobalPlatforms = Null then
+		CustomRuntimeError("OldPlatformListChecks: GlobalPlatforms Null")
+	EndIf
+	PrintF("Checking for Old Platform Lists")
+	Local Line:String, EmuPath:String
+	Local ReadPlatform:TStream
 	Local MovePlat = False
+	Local a:Int, b:Int	
+	Local Platform:PlatformType
+	
 	If FileType("Platforms.txt") = 1 then
 		MovePlat = True
-		PrintF("Upgrading Orginal Platforms.txt")
+		PrintF("Upgrading Original Platforms.txt")
 	EndIf
 	If FileType(SETTINGSFOLDER + "Platforms.txt") = 1 And MovePlat = True then
 		MovePlat = False
 		DeleteFile("Platforms.txt")
 		PrintF("New Platforms.txt Found, deleting old Platforms.txt")
 	EndIf
-	If MovePlat = True Then
+	If MovePlat = True then
 		CopyFile("Platforms.txt",SETTINGSFOLDER + "Platforms.txt")
 		DeleteFile("Platforms.txt")
 	EndIf
-	If FileType(SETTINGSFOLDER + "Platforms.txt") = 0 Then
-		PrintF("No New Platforms.txt found, creating one")
-		CreateFile(SETTINGSFOLDER + "Platforms.txt")
-	Else
-		PrintF("Platforms.txt found, checking it against platform list")
+	
+
+	If FileType(SETTINGSFOLDER + "Platforms.txt") = 1 then
 		ReadPlatform = ReadFile(SETTINGSFOLDER + "Platforms.txt")
-		WritePlatform = WriteFile(TEMPFOLDER + "Platforms.txt")
-		For a:String = EachIn JPLATFORMS
-			If Left(a,2)="PC" Then Continue
-			PrintF("Platform: "+a)
-			SeekStream(ReadPlatform,0)
-			Repeat
-				
-				Line = ReadLine(ReadPlatform)
-				If Left(Line , 1) = "#" Then Continue
-				If Left(Line , Len(a) ) = a Then
-					PrintF("Found")
-					WriteLine(WritePlatform , Line)
+		b = 1
+		Repeat
+			'PC is 24 and not used in Platforms.txt so skip
+			If b = 24 then b = 25
+			Line = ReadLine(ReadPlatform)
+			EmuPath = ""
+			For a = 1 To Len(Line)
+				If Mid(Line, a, 1) = ">" then
+					EmuPath = Right(Line, Len(Line) - a)
 					Exit
 				EndIf
-				If Eof(ReadPlatform) Then
-					PrintF("Not Found. Adding")
-					WriteLine(WritePlatform , a+">")
-					Exit
+			Next
+			If EmuPath = "" Or EmuPath = " " then
+				'Do nothing
+			Else
+				Platform = GlobalPlatforms.GetPlatformByID(b)
+				If Platform.Emulator = "" Or Platform.Emulator = Null Or Platform.Emulator = " " then
+					Platform.Emulator = EmuPath
 				EndIf
-			Forever
+			EndIf
 			
-		Next
+			
+			If Eof(ReadPlatform) then
+				Exit
+			EndIf
+			b = b + 1
+		Forever
+		GlobalPlatforms.SavePlatforms()
 		CloseFile(ReadPlatform)
-		CloseFile(WritePlatform)
 		DeleteFile(SETTINGSFOLDER + "Platforms.txt")
-		CopyFile(TEMPFOLDER + "Platforms.txt" , SETTINGSFOLDER + "Platforms.txt")
-		DeleteFile(TEMPFOLDER + "Platforms.txt")
 	EndIf
-	PrintF("Finished Checking Platforms.txt")
+
 End Function
 
 
