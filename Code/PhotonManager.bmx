@@ -1,9 +1,7 @@
 'TODO: Update Artwork BrowseOnline Function
 'TODO: add clear cache to Settings
 'TODO: Hover over online game choice and show artwork thumb / More info button: downloads lua and displays the info
-'TODO: Check for old platform input and update it
 'TODO: Platform Window for adding/restoring/deleting platforms
-'TODO: Add option to turn off games explorer extract adding all other executables to game
 'TODO: Add in version information into configuration files to allow for easy updates
 
 
@@ -32,12 +30,10 @@
 'wxAPP contains yield controls!
 
 'All subfiles checked, no pending fixes found
-'BUG: My Programs Crash when Using CreateProcess on Windows to load them from another program, No Idea Why... FIXED: with WinExec used for my programs ONLY
+'OLDBUG: My Programs Crash when Using CreateProcess on Windows to load them from another program, No Idea Why... FIXED: with WinExec used for my programs ONLY
 'TODO: Detect/ Load Country (in General/GlobalConsts) (for Global Country:String = "UK")
 'Ex: Open Databasemanager, run steam wiz, close when searching, input steam manual, run steam wizard
 'FIX: Icon png/jpg - Need FreeImage... Appears to fail badly(freeimage that is)
-'FIX: All Wizards in separate processes
-'FIX: UpdateGame needs to load as separate process
 
 'END OF NOTHING IMPORTANT HERE
 
@@ -190,23 +186,13 @@ If EvaluationMode = True Then
 EndIf 
 SearchBeep = LoadSound("Resources" + FolderSlash + "BEEP.wav")
 
-
 ?Win32
 WinDir = GetEnv("WINDIR")
-PrintF("Windows Folder: "+WinDir)
+PrintF("Windows Folder: " + WinDir)
 ?
 
-
-GlobalPlatforms = New PlatformReader
-If FileType(SETTINGSFOLDER + "Platforms.xml") = 1 then
-	GlobalPlatforms.ReadInPlatforms()	
-Else
-	GlobalPlatforms.PopulateDefaultPlatforms()
-	GlobalPlatforms.ReadInPlatforms()
-EndIf
-
-'TODO: REMOVE THIS FUNCTION FROM ALL FILES
-PlatformListChecks()
+SetupPlatforms()
+OldPlatformListChecks()
 
 CheckInternet()
 'CheckPGMInternet()
@@ -1457,7 +1443,10 @@ Type PluginsWindow Extends wxFrame
 		Self.Update()
 		ScrollBox.Update()
 		
-
+		If PMMaximize = 1 then
+			Self.Maximize(1)
+		EndIf 		
+		
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
 		Local P1Hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local BackButton:wxButton = New wxButton.Create(Panel1 , PW_BB , "Back")
@@ -1474,6 +1463,8 @@ Type PluginsWindow Extends wxFrame
 		vbox.Add(Panel1 , 0 , wxEXPAND , 0)
 		
 		Self.SetSizer(vbox)
+		
+
 		
 		Connect(PW_BB , wxEVT_COMMAND_BUTTON_CLICKED , ShowSettingsMenu)
 		Connect(PW_OB , wxEVT_COMMAND_BUTTON_CLICKED , SavePluginSettingsFun)
@@ -1591,6 +1582,7 @@ Type SettingsWindow Extends wxFrame
 	Field SW_DefaultGameLua:wxComboBox
 	Field SW_DownloadAllArtwork:wxComboBox
 	Field SW_DebugLog:wxComboBox
+	Field SW_GEAddAllEXEs:wxComboBox
 	
 	Field KeyboardInputField:KeyboardInputWindow
 	Field JoyStickInputField:JoyStickInputWindow
@@ -1633,6 +1625,8 @@ Type SettingsWindow Extends wxFrame
 		Local E251:String = "Colour Picker"
 		Local E252:String = "Maximize"
 		Local E253:String = "Default Game Search"
+		
+		Local E301:String = "Add extra EXEs"
 		
 		
 		
@@ -1997,6 +1991,24 @@ Type SettingsWindow Extends wxFrame
 		
 		ScrollBox6.SetSizer(ScrollBoxvbox6)
 		
+		'-----------------------------Game Explorer---------------------------------------
+		Local ScrollBox7:wxScrolledWindow = New wxScrolledWindow.Create(SettingsNotebook , wxID_ANY , - 1, - 1, - 1 , - 1 , wxHSCROLL)
+		Local ScrollBoxvbox7:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)		
+		ScrollBox7.SetScrollRate(20, 20)		
+		
+		
+		Local ST25:wxStaticHelpText = wxStaticHelpText(New wxStaticHelpText.Create(ScrollBox7 , wxID_ANY , "Add Extra EXE's: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)	)
+		wxStaticHelpText(ST25).SetFields( E301, DefaultHelp, HelpText)
+		
+		SW_GEAddAllEXEs = New wxComboHelpBox.Create(ScrollBox7 , SW_R , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
+		wxComboHelpBox(SW_GEAddAllEXEs).SetFields( E301, DefaultHelp, HelpText)
+		
+		
+		ScrollBoxvbox7.Add(ST25 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox7.Add(SW_GEAddAllEXEs , 0 , wxEXPAND | wxALL , 4)		
+		
+		ScrollBox7.SetSizer(ScrollBoxvbox7)		
+		
 		'--------------------------------------------------------------------
 		
 		
@@ -2006,6 +2018,7 @@ Type SettingsWindow Extends wxFrame
 		ScrollBox4.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		ScrollBox5.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		ScrollBox6.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
+		ScrollBox7.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		
 		ScrollBox.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		ScrollBox2.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
@@ -2013,11 +2026,13 @@ Type SettingsWindow Extends wxFrame
 		ScrollBox4.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		ScrollBox5.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		ScrollBox6.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
+		ScrollBox7.SetForegroundColour(New wxColour.Create(PMRedF, PMGreenF, PMBlueF) )
 		
 		
 		SettingsNotebook.AddPage(ScrollBox, "General", 1)
 		SettingsNotebook.AddPage(ScrollBox2, "Artwork", 0)
-		SettingsNotebook.AddPage(ScrollBox3, "Steam", 0)
+		SettingsNotebook.AddPage(ScrollBox3, "Steam Import", 0)
+		SettingsNotebook.AddPage(ScrollBox7, "Game Explorer Import", 0)
 		SettingsNotebook.AddPage(ScrollBox4, "FrontEnd", 0)
 		SettingsNotebook.AddPage(ScrollBox6, "Manager", 0)
 		SettingsNotebook.AddPage(ScrollBox5, "Runner", 0)
@@ -2130,6 +2145,12 @@ Type SettingsWindow Extends wxFrame
 			SW_DebugLog.SetValue("No")
 		EndIf
 		
+		
+		If PM_GE_AddAllEXEs then
+			SW_GEAddAllEXEs.SetValue("Yes")
+		Else
+			SW_GEAddAllEXEs.SetValue("No")
+		EndIf
 		'--------------------------------------------------------------------
 		
 		
@@ -2414,6 +2435,12 @@ Type SettingsWindow Extends wxFrame
 			DebugLogEnabled = 1
 		Else
 			DebugLogEnabled = 0
+		EndIf
+		
+		If SW_GEAddAllEXEs.GetValue() = "Yes" then
+			PM_GE_AddAllEXEs = 1
+		Else
+			PM_GE_AddAllEXEs = 0
 		EndIf
 		
 		PMDefaultGameLua = SW_DefaultGameLua.GetValue()
@@ -3530,7 +3557,7 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" Then	
 		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled"))
 	EndIf 	
-	If ReadSettings.GetSetting("GameCache") <> "" Then	
+	If ReadSettings.GetSetting("GameCache") <> "" then	
 		GAMECACHELIMIT = Int(ReadSettings.GetSetting("GameCache"))
 	EndIf 	
 	If ReadSettings.GetSetting("LowMem") <> "" Then		
@@ -3553,7 +3580,10 @@ Function LoadGlobalSettings()
 	EndIf			
 	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
 		DebugLogEnabled = Int(ReadSettings.GetSetting("DebugLogEnabled") )
-	EndIf				
+	EndIf			
+	If ReadSettings.GetSetting("GEAddAllEXEs") <> "" then		
+		PM_GE_AddAllEXEs = Int(ReadSettings.GetSetting("GEAddAllEXEs") )
+	EndIf 
 	ReadSettings.CloseFile()
 End Function
 
@@ -3580,7 +3610,8 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("ShowInfoButton" , ShowInfoButton)	
 	SaveSettings.SaveSetting("ShowScreenButton" , ShowScreenButton)	
 	SaveSettings.SaveSetting("DebugLogEnabled" , DebugLogEnabled)		
-	
+	SaveSettings.SaveSetting("GEAddAllEXEs" , PM_GE_AddAllEXEs)		
+
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()
 	

@@ -298,20 +298,21 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 			
 			GameNode.OEXEs = CreateList()
 			GameNode.OEXEsName = CreateList()
-			
-			For EXEName = EachIn SubEXEList
-				?Win32
-				If Lower(col3.GetText() ) = Lower(EXEName.EXE) then Continue
-				?Not Win32
-				If col3.GetText() = EXEName.Name then Continue
-				?
-				If Left(EXEName.EXE, 1) = Chr(34) then
-					ListAddLast(GameNode.OEXEs , EXEName.EXE )
-				Else
-					ListAddLast(GameNode.OEXEs , Chr(34)+EXEName.EXE+Chr(34) )
-				EndIf
-				ListAddLast(GameNode.OEXEsName , EXEName.Name )				
-			Next
+			If PM_GE_AddAllEXEs = True then
+				For EXEName = EachIn SubEXEList
+					?Win32
+					If Lower(col3.GetText() ) = Lower(EXEName.EXE) then Continue
+					?Not Win32
+					If col3.GetText() = EXEName.Name then Continue
+					?
+					If Left(EXEName.EXE, 1) = Chr(34) then
+						ListAddLast(GameNode.OEXEs , EXEName.EXE )
+					Else
+						ListAddLast(GameNode.OEXEs , Chr(34)+EXEName.EXE+Chr(34) )
+					EndIf
+					ListAddLast(GameNode.OEXEsName , EXEName.Name )				
+				Next
+			EndIf
 			
 			Log1.AddText("Geting info for: " + GName)
 			PrintF("Geting info for: " + GName)

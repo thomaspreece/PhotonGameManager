@@ -1,4 +1,4 @@
-Global RunnerButtonCloseOnly:Int = False 
+Global RunnerButtonCloseOnly:int = False
 Global OriginWaitEnabled = True 
 
 
@@ -84,11 +84,6 @@ Const GC_DC  = 1477
 Const GDP_GRC = 1500
 Const GDP_GCC = 1501
 
-Const MainColor_R = 200
-Const MainColor_G = 200
-Const MainColor_B = 255
-
-
 Const PM_I1 = 1600
 Const PM_I2 = 1601
 Const PM_I3 = 1602
@@ -133,6 +128,19 @@ Global Beep=LoadSound(RESFOLDER+"BEEP.wav")
 
 Const BannerFloat:Float = 5
 
+
+
+Global PERed:int = 185'190
+Global PEGreen:int = 210'190
+Global PEBlue:int = 255'255
+
+Global PERed2:int = 215
+Global PEGreen2:int = 230
+Global PEBlue2:int = 255
+
+Global PERed3:int = 215
+Global PEGreen3:int = 230
+Global PEBlue3:int = 255
 
 Const SizeOf_PE32 = 296
 Const TH32CS_SNAPHEAPLIST = $1

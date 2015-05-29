@@ -1,3 +1,5 @@
+'TODO: Put filter into separate thread to increase smoothness and prevent wxwidgets debug message error
+
 
 'NOTHING IMPORTANT HERE
 'All subfiles checked, no pending fixes found
@@ -64,6 +66,7 @@ Import BRL.Bank
 'Import BRL.LinkedList
 Import BRL.System
 'Import BRL.StandardIO
+Import brl.threads
 
 ?Not Win32
 Global FolderSlash:String = "/"
@@ -113,7 +116,7 @@ Print "Version = " + CurrentVersion
 Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
-If FileType("DebugLog.txt")=1 Then 
+If FileType("DebugLog.txt") = 1 then
 	DebugLogEnabled = True
 EndIf 
 
@@ -141,13 +144,9 @@ If EvaluationMode = True Then
 EndIf 
 
 
-
-
 LoadGlobalSettings()
 SettingFile.ParseFile(SETTINGSFOLDER+"PhotonExplorer.xml")
 
-'Local GameName:String
-'Local EXENum:Int
 ProgramMode = 1
 Local PastArgument:String 
 For Argument$ = EachIn AppArgs$
@@ -213,7 +212,8 @@ WinDir = GetEnv("WINDIR")
 PrintF("Windows Folder: " + WinDir)
 ?
 
-PlatformListChecks()
+SetupPlatforms()
+OldPlatformListChecks()
 
 If wxIsPlatform64Bit() = 1 Then
 	PrintF("Detected 64bit")
@@ -268,13 +268,13 @@ End
 Function LoadSettings()
 	Select SettingFile.GetSetting("ListType")
 		Case "1"
-			GameListStyle = wxLC_ICON | wxSUNKEN_BORDER | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE
+			GameListStyle = wxLC_ICON | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE | wxBORDER_NONE
 			ShowIcons = 1
 		Case "2"
-			GameListStyle = wxLC_LIST | wxSUNKEN_BORDER | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE
+			GameListStyle = wxLC_LIST | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE | wxBORDER_NONE
 			ShowIcons = 1						
 		Case "3"
-			GameListStyle = wxLC_LIST | wxSUNKEN_BORDER | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE					
+			GameListStyle = wxLC_LIST | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE | wxBORDER_NONE				
 			ShowIcons = 0			
 	End Select
 
@@ -321,13 +321,6 @@ Function LoadSettings()
 	End Select
 	
 End Function
-
-
-
-
-
-
-
 
 
 Type GameExplorerShell Extends wxApp 
@@ -420,11 +413,12 @@ Type GameExplorerFrame Extends wxFrame
 	Field StartupRefreshTimer3:wxTimer
 	
 	Method OnInit()
+	
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
-		Self.maximize(1)
+		Self.Maximize(1)
 		
-		Self.SetBackgroundColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B))		
+		Self.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )		
 
 		SubMenu1 = New wxMenu.Create()
 		SubMenu1.AppendRadioItem(GL_SM1_IV , "Icon View")
@@ -579,58 +573,62 @@ Type GameExplorerFrame Extends wxFrame
 		
 		Local SortText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Sort:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		SortCombo = New wxComboBox.Create(FilPlatPanel , GES_SL , "Alphabetical - Ascending" , SORTS , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
-		Local FilterText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Filter:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		FilterTextBox = New wxTextCtrl.Create(FilPlatPanel, GES_FTB , "" , -1 , -1 , -1 , -1 , 0 )
-		Local PlatformText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Platform:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local FilterText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Filter:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		FilterTextBox = New wxTextCtrl.Create(FilPlatPanel, GES_FTB , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+		Local PlatformText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Platform:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		PlatformCombo = New wxComboBox.Create(FilPlatPanel , GES_PL , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY)		
 		
-		Local UsedPlatformList:TList
-		'Local UsedPlatformList2:TList
-		UsedPlatformList = CreateList()
-		'UsedPlatformList2 = CreateList()
+		Local UsedPlatformList:TList = CreateList()
 		Local GameNode:GameReadType
 		ReadGamesDir = ReadDir(GAMEDATAFOLDER)
 		Repeat
 			Dir:String = NextFile(ReadGamesDir)
 			If Dir = "" Then Exit
-			If Dir="." Or Dir=".." Then Continue 
+			If Dir = "." Or Dir = ".." then Continue
 			
 			GameNode = New GameReadType
-			If GameNode.GetGame(Dir) = - 1 Then
+			If GameNode.GetGame(Dir) = - 1 then
 			
 			Else
-				ListAddLast(UsedPlatformList , GameNode.Plat)
+				If UsedPlatformList.Contains(String(GameNode.PlatformNum) ) then
+				
+				Else
+					ListAddLast(UsedPlatformList , String(GameNode.PlatformNum) )
+				EndIf
 			EndIf
 
 		Forever
 		CloseDir(ReadGamesDir)
 		
-		PlatformCombo.Append("All")
+		PlatformCombo.Append("All", "All")
 		PlatformCombo.SetSelection(0)
 		
-		Local Plat:String
-		For Plat = EachIn JPLATFORMS
-			If UsedPlatformList.Contains(Plat) Then
-				PlatformCombo.Append(Plat)
-				'ListAddLast(UsedPlatformList2 , Plat)
+		Local PlatNum:String
+		Local Platform:PlatformType
+		For PlatNum = EachIn UsedPlatformList
+			Platform = GlobalPlatforms.GetPlatformByID(Int(PlatNum) )
+			If Platform.Name = "" then
+			
+			Else
+				PlatformCombo.Append(Platform.Name, String(Platform.ID) )
 			EndIf
 		Next
 		
 		
-		If CmdLineGameName = "" Then 
-			If SettingFile.GetSetting("Sort") <> "" Then	
+		If CmdLineGameName = "" then
+			If SettingFile.GetSetting("Sort") <> "" then	
 				SortCombo.SetValue(SettingFile.GetSetting("Sort"))
 			EndIf
 			If SettingFile.GetSetting("Filter") <> "" Then
 				FilterTextBox.ChangeValue(SettingFile.GetSetting("Filter"))
 			EndIf 
 			If SettingFile.GetSetting("Platform") <> "" Then
-				PlatformCombo.SetValue(SettingFile.GetSetting("Platform"))
-			EndIf 
+				PlatformCombo.SetValue(SettingFile.GetSetting("Platform") )
+			EndIf
 		EndIf 
 			
 		
-		FilPlatHbox.Add(SortText , 0 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM| wxALIGN_CENTER , 10 )
+		FilPlatHbox.Add(SortText , 0 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM | wxALIGN_CENTER , 10 )
 		FilPlatHbox.Add(SortCombo , 2 , wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM , 10)
 		FilPlatHbox.Add(FilterText , 0 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM| wxALIGN_CENTER , 10 )
 		FilPlatHbox.Add(FilterTextBox , 2 , wxEXPAND | wxALL , 10)
@@ -644,11 +642,19 @@ Type GameExplorerFrame Extends wxFrame
 		
 		'---------------------------------SPLIT PANEL---------------------------------
 		Local WinSplit:wxSplitterWindow = New wxSplitterWindow.Create(Self , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxSP_NOBORDER | wxSP_LIVE_UPDATE)
-	
+		
+		WinSplit.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
+		WinSplit.SetForegroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
+		
 		Local GameListPanel:wxPanel = New wxPanel.Create(WinSplit , - 1)
+		GameListPanel.SetBackgroundColour(New wxColour.Create(PERed2, PEGreen2, PEBlue2) )
+		
 	 	Local GameListPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-	 	GameList = New wxListCtrl.Create(GameListPanel , GES_GL , - 1 , - 1 , - 1 , - 1 , GameListStyle )
-		GameListPanelhbox.Add(GameList , 1 ,  wxEXPAND | wxLEFT | wxBOTTOM , 5)
+	 	GameList = New wxListCtrl.Create(GameListPanel , GES_GL , - 1 , - 1 , - 1 , - 1 , GameListStyle)
+		GameList.SetBackgroundColour(New wxColour.Create(PERed2, PEGreen2, PEBlue2) )
+		
+		
+		GameListPanelhbox.Add(GameList , 1 , wxEXPAND | wxALL , 20)
 		GameListPanel.SetSizer(GameListPanelhbox)
 
 		
@@ -658,17 +664,17 @@ Type GameExplorerFrame Extends wxFrame
 		?MacOS
 		GameNotebook = New wxChoicebook.Create(GameNotebookPanel , GES_GN , - 1 , - 1 , - 1 , - 1 , wxCHB_DEFAULT)
 		?Not MacOS
-		GameNotebook = New wxNotebook.Create(GameNotebookPanel , GES_GN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_MULTILINE)
+		GameNotebook = New wxNotebook.Create(GameNotebookPanel , GES_GN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_MULTILINE | wxNB_FLAT)
 		?
-		GameNotebook.SetBackgroundColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B))
-		GameNotebookPanelhbox.Add(GameNotebook , 1 ,  wxEXPAND | wxLEFT |wxRIGHT | wxBOTTOM , 5)
+		GameNotebook.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
+		GameNotebookPanelhbox.Add(GameNotebook , 1 , wxEXPAND | wxLEFT , 10)
 		GameNotebookPanel.SetSizer(GameNotebookPanelhbox)
 		
 		
 		'----------------------------Details+Front Art Panel------------------------------
 		Local SubWinSplit:wxSplitterWindow = New wxSplitterWindow.Create(GameNotebook , GES_SWS , - 1 , - 1 , - 1 , - 1 , wxSP_NOBORDER | wxSP_LIVE_UPDATE)
-		'SubWinSplit.SetBackgroundColour(New wxColour.Create(255,255,255))
 		Local FBAMainPanel:wxPanel = New wxPanel.Create(SubWinSplit , - 1)
+		FBAMainPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		FBAMainPanelvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		FBAPanel = ImagePanel(New ImagePanel.Create(FBAMainPanel , - 1) )
 		Select SettingFile.GetSetting("SideArtType")	
@@ -684,12 +690,12 @@ Type GameExplorerFrame Extends wxFrame
 				FBAPanel.SetImageType(1)
 		End Select
 		
-		Local sl2:wxStaticLine = New wxStaticLine.Create(FBAMainPanel , wxID_ANY , -1 , -1 , -1 , -1 , wxLI_HORIZONTAL)
-		FBAMainPanelvbox.Add(FBAPanel , 1 , wxEXPAND , 5)
-		FBAMainPanelvbox.Add(sl2 , 0 , wxEXPAND , 0)
+		'Local sl2:wxStaticLine = New wxStaticLine.Create(FBAMainPanel , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
+		FBAMainPanelvbox.Add(FBAPanel , 1 , wxEXPAND | wxBOTTOM | wxTOP , 5)
 		FBAMainPanel.SetSizer(FBAMainPanelvbox)
 		
 		GameDetailsPanel = New wxPanel.Create(SubWinSplit , - 1)
+		GameDetailsPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		GDPvbox = New wxBoxSizer.Create(wxVERTICAL)
 		
 		Local GNameFont:wxFont = New wxFont.Create()
@@ -700,9 +706,9 @@ Type GameExplorerFrame Extends wxFrame
 		GNameText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE )
 		GNameText.SetFont(GNameFont)
 		
-		Local sl1:wxStaticLine = New wxStaticLine.Create(GameDetailsPanel , wxID_ANY , -1 , -1 , -1 , -1 , wxLI_HORIZONTAL)
+		'Local sl1:wxStaticLine = New wxStaticLine.Create(GameDetailsPanel , wxID_ANY , -1 , -1 , -1 , -1 , wxLI_HORIZONTAL)
 		'GDescText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 )
-		GDescText = New wxTextCtrl.Create( GameDetailsPanel , wxID_ANY , "" , -1 , -1 , -1 , -1 , wxTE_READONLY | wxTE_WORDWRAP | wxTE_MULTILINE)
+		GDescText = New wxTextCtrl.Create( GameDetailsPanel , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , wxTE_READONLY | wxTE_WORDWRAP | wxTE_RICH | wxTE_MULTILINE)
 		GGenreText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 )
 		GDevText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 )
 		GPubText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 )
@@ -728,9 +734,9 @@ Type GameExplorerFrame Extends wxFrame
 		GDP_sub_hbox3.Add(GCompletedCombo , 1 , wxEXPAND , 0)
 
 		GDP_sub_hbox4.AddSizer(GDP_sub_hbox2 , 1 , wxEXPAND , 0)
-		GDP_sub_hbox4.AddSizer(GDP_sub_hbox3 , 1 , wxEXPAND   , 0)
+		GDP_sub_hbox4.AddSizer(GDP_sub_hbox3 , 1 , wxEXPAND , 0)
 			
-		GDPvbox.Add(sl1 , 0 , wxEXPAND , 0)
+		'GDPvbox.Add(sl1 , 0 , wxEXPAND , 0)
 		GDPvbox.Add(GNameText , 0 , wxEXPAND | wxALL , 5)
 		GDPvbox.Add(GDescText , 1 , wxEXPAND | wxALL , 5)
 		GDPvbox.Add(GGenreText , 0 , wxEXPAND | wxTOP | wxLEFT | wxRIGHT , 5)
@@ -799,7 +805,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local GamePatchNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
 		Local GamePatchNotebook:wxNotebook = New wxNotebook.Create(GamePatchNotebookPanel , GP_GPN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GamePatchNotebook.SetBackgroundColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B))
+		GamePatchNotebook.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
 		GamePatchNotebookPanelhbox.Add(GamePatchNotebook , 1 ,  wxEXPAND | wxALL , 5)
 		GamePatchNotebookPanel.SetSizer(GamePatchNotebookPanelhbox)
 
@@ -846,7 +852,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameCheatNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		Local GameCheatNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local GameCheatNotebook:wxNotebook = New wxNotebook.Create(GameCheatNotebookPanel , GC_GCN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GameCheatNotebook.SetBackgroundColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B))
+		GameCheatNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
 		GameCheatNotebookPanelhbox.Add(GameCheatNotebook , 1 ,  wxEXPAND | wxALL , 5)
 		GameCheatNotebookPanel.SetSizer(GameCheatNotebookPanelhbox)
 		
@@ -899,7 +905,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameWalkNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		Local GameWalkNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local GameWalkNotebook:wxNotebook = New wxNotebook.Create(GameWalkNotebookPanel , GW_GWN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GameWalkNotebook.SetBackgroundColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B))
+		GameWalkNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
 		GameWalkNotebookPanelhbox.Add(GameWalkNotebook , 1 ,  wxEXPAND | wxALL , 5)
 		GameWalkNotebookPanel.SetSizer(GameWalkNotebookPanelhbox)
 		
@@ -931,7 +937,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local WalkSearchButton:wxButton = New wxButton.Create(GameWalkPanel , GW_SP_SB ,"Go")
 		GP_SP_hbox.Add(WalkText , 0 , wxEXPAND | wxTOP | wxBOTTOM , 4)
 		GP_SP_hbox.Add(WalkSearchBox , 1 , wxEXPAND | wxLEFT | wxRIGHT , 5)
-		GP_SP_hbox.Add(WalkSearchButton , 0 , wxEXPAND  , 5)
+		GP_SP_hbox.Add(WalkSearchButton , 0 , wxEXPAND , 5)
 		
 		WalkList = New wxListBox.Create(GameWalkPanel , GW_WL , Null , -1 , -1 , -1 , -1 , wxLB_SINGLE) 
 		Local WalkDownloadButton:wxButton = New wxButton.Create(GameWalkPanel , GW_DW , "Download")
@@ -952,7 +958,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameManualNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		Local GameManualNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local GameManualNotebook:wxNotebook = New wxNotebook.Create(GameManualNotebookPanel , GM_GPN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GameManualNotebook.SetBackgroundColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B))
+		GameManualNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
 		GameManualNotebookPanelhbox.Add(GameManualNotebook , 1 ,  wxEXPAND | wxALL , 5)
 		GameManualNotebookPanel.SetSizer(GameManualNotebookPanelhbox)
 
@@ -1022,7 +1028,7 @@ Type GameExplorerFrame Extends wxFrame
 		'hbox.Add(GameNotebook , 1 , wxEXPAND | wxALL , 10 )
 		
 		vbox.Add(FilPlatPanel , 0 ,  wxEXPAND | wxLEFT | wxRIGHT | wxTOP , 0)
-		vbox.Add(WinSplit , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 0 )
+		vbox.Add(WinSplit , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 10 )
 
 		Self.SetSizer(vbox)
 		Self.Centre()
@@ -1939,17 +1945,17 @@ Type GameExplorerFrame Extends wxFrame
 		Local data:Object = event.userData
 		Select String(data)
 			Case "1"
-				GameListStyle = wxLC_ICON | wxSUNKEN_BORDER | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE
+				GameListStyle = wxLC_ICON | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE | wxBORDER_NONE
 				ShowIcons = 1
 				SettingFile.SaveSetting("ListType" , "1")
 				SettingFile.SaveFile()
 			Case "2"
-				GameListStyle = wxLC_LIST | wxSUNKEN_BORDER | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE
+				GameListStyle = wxLC_LIST | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE | wxBORDER_NONE
 				ShowIcons = 1	
 				SettingFile.SaveSetting("ListType" , "2")
 				SettingFile.SaveFile()						
 			Case "3"
-				GameListStyle = wxLC_LIST | wxSUNKEN_BORDER | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE					
+				GameListStyle = wxLC_LIST | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE | wxBORDER_NONE			
 				ShowIcons = 0
 				SettingFile.SaveSetting("ListType" , "3")
 				SettingFile.SaveFile()				
@@ -2689,9 +2695,13 @@ Type GameExplorerFrame Extends wxFrame
 		Local InfoFile:TStream
 		Local itemCompleted:String
 		Local GameNode:GameReadType
-		
-		Local PlatformFilterType:String = PlatformCombo.GetValue()
-		PrintF("Platform: "+PlatformFilterType)
+		Local PlatformFilterType:String
+		If PlatformCombo.GetSelection() = wxNOT_FOUND then
+			PlatformFilterType = "All"
+		Else
+			PlatformFilterType = String(PlatformCombo.GetItemClientData(PlatformCombo.GetSelection() ) )
+		EndIf 
+		PrintF("Platform: " + String(PlatformCombo.GetValue() ) )
 		GameDir = ReadDir(GAMEDATAFOLDER)
 		Local EvaluationGameNum = 0
 		Repeat
@@ -2702,8 +2712,8 @@ Type GameExplorerFrame Extends wxFrame
 			If GameNode.GetGame(item) = - 1 Then
 			
 			Else
-				If GameNode.Plat=PlatformFilterType Or PlatformFilterType="All" Then
-					ListAddLast(GamesTList,item)
+				If PlatformFilterType = "All" Or GameNode.PlatformNum = Int(PlatformFilterType) then
+					ListAddLast(GamesTList, item)
 					EvaluationGameNum = EvaluationGameNum + 1
 					If EvaluationGameNum > 4 And EvaluationMode = True Then 
 						Exit
@@ -2936,7 +2946,7 @@ Type ImagePanel Extends wxPanel
 		Local WHratio:Float
 		dc.Clear()
 		canvas.GetClientSize(x,y)
-		dc.SetBackground(New wxBrush.CreateFromColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B), wxTRANSPARENT))
+		dc.SetBackground(New wxBrush.CreateFromColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3), wxTRANSPARENT) )
 		dc.Clear()
 		dc.SetTextForeground(New wxColour.Create(0,0,0))
 		Local NoLen:Int, ArtworkLen:Int, FoundLen:Int
@@ -3069,7 +3079,7 @@ Type ScreenShotPanel Extends wxPanel
 		dc.Clear()
 	
 		canvas.GetClientSize(x,y)
-		dc.SetBackground(New wxBrush.CreateFromColour(New wxColour.Create(MainColor_R,MainColor_G,MainColor_B), wxSOLID))
+		dc.SetBackground(New wxBrush.CreateFromColour(New wxColour.Create(PERed,PEGreen,PEBlue), wxSOLID))
 		dc.Clear()
 		dc.SetTextForeground(New wxColour.Create(0,0,0))
 		Local NoLen:Int, ArtworkLen:Int, FoundLen:Int

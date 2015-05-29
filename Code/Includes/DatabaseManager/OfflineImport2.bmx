@@ -407,11 +407,40 @@ Type OfflineImport2 Extends wxFrame
 				
 				GameNode.RunEXE = Chr(34) + EXE + Chr(34)
 				
-				b = 1
-				For d = 1 To Len(EXEs)
-					If Mid(EXEs , d , 2) = "||" then
-						tempString = Mid(EXEs , b , d - b)
-						Print tempString
+				If PM_GE_AddAllEXEs = True then
+					b = 1
+					For d = 1 To Len(EXEs)
+						If Mid(EXEs , d , 2) = "||" then
+							tempString = Mid(EXEs , b , d - b)
+							Print tempString
+							tempEXE = ""
+							tempName = ""
+							For e = 1 To Len(tempString)
+								If Mid(tempString, e , 1) = "|" then
+									tempEXE = Chr(34) + Left(tempString, e - 1) + Chr(34)
+									tempName = Right(tempString , Len(tempString) - e )
+									Exit
+								EndIf
+							Next
+							If tempEXE = "" then tempEXE = Chr(34) + tempString + Chr(34)
+							
+							If tempEXE = GameNode.RunEXE then
+							
+							else
+								ListAddLast(GameNode.OEXEs , tempEXE )
+								ListAddLast(GameNode.OEXEsName , tempName )
+							EndIf 
+							
+							b = d + 2
+						EndIf
+					Next	
+				
+					tempString = Mid(EXEs , b)
+					Print tempString
+					If tempString = "" Or tempString = " " then
+					
+					else
+						
 						tempEXE = ""
 						tempName = ""
 						For e = 1 To Len(tempString)
@@ -424,41 +453,13 @@ Type OfflineImport2 Extends wxFrame
 						If tempEXE = "" then tempEXE = Chr(34) + tempString + Chr(34)
 						
 						If tempEXE = GameNode.RunEXE then
-						
+							
 						else
 							ListAddLast(GameNode.OEXEs , tempEXE )
-							ListAddLast(GameNode.OEXEsName , tempName )
-						EndIf 
-						
-						b = d + 2
-					EndIf
-				Next	
-					
-				tempString = Mid(EXEs , b)
-				Print tempString
-				If tempString = "" Or tempString = " " then
-				
-				else
-					
-					tempEXE = ""
-					tempName = ""
-					For e = 1 To Len(tempString)
-						If Mid(tempString, e , 1) = "|" then
-							tempEXE = Chr(34) + Left(tempString, e - 1) + Chr(34)
-							tempName = Right(tempString , Len(tempString) - e )
-							Exit
+							ListAddLast(GameNode.OEXEsName , tempName )		
 						EndIf
-					Next
-					If tempEXE = "" then tempEXE = Chr(34) + tempString + Chr(34)
-					
-					If tempEXE = GameNode.RunEXE then
-						
-					else
-						ListAddLast(GameNode.OEXEs , tempEXE )
-						ListAddLast(GameNode.OEXEsName , tempName )		
 					EndIf
-				EndIf
-								
+				EndIf 				
 				GameNode.SaveGame()
 
 			EndIf		

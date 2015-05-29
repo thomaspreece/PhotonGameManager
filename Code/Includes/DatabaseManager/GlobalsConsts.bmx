@@ -70,6 +70,8 @@ Global PMMaximize:Int = 1
 Global PMDefaultGameLua:String = "thegamesdb.net"
 Global PMFetchAllArt:Int = 0
 
+Global PM_GE_AddAllEXEs:Int = 0
+
 Const GNTextH:Int = 0
 
 Const MW_AGB = 41
