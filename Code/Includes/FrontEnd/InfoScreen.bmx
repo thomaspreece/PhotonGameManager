@@ -11,7 +11,7 @@ Type InfoType Extends GeneralType
 		
 	Field InfoSelected:Int	
 	Field UpSelected:Int
-	Field DownSelected:Int 	
+	Field DownSelected:int 	
 
 	Field TempVal1:Int
 	Field TempVal2:Int 	
@@ -168,10 +168,10 @@ Type InfoType Extends GeneralType
 			DrawText("Developer:   "+GameNode.Dev, 2*TempVal1 , 2*Height40Scaled + StartHeight + (a*FontHeight2) )			
 			DrawText("Publisher:   " + GameNode.Pub , (GWidth / 2)+TempVal1 , 2*Height40Scaled + StartHeight + (a*FontHeight2) )
 			a = a + 1
-			DrawText("Platform:   " + GameNode.Plat , 2*TempVal1 , 2*Height40Scaled + StartHeight + (a*FontHeight2) )	
+			DrawText("Platform:   " + GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name , 2 * TempVal1 , 2 * Height40Scaled + StartHeight + (a * FontHeight2) )	
 			DrawText("Released:   " + GameNode.ReleaseDate , (GWidth / 2) + TempVal1 , 2*Height40Scaled + StartHeight + (a * FontHeight2) )
 			a = a + 1
-			DrawText("Players:   " + GameNode.Players , 2*TempVal1 , 2*Height40Scaled + StartHeight + (a * FontHeight2) )
+			DrawText("Players:   " + GameNode.Players , 2 * TempVal1 , 2 * Height40Scaled + StartHeight + (a * FontHeight2) )
 			DrawText("Co-op:   " + GameNode.CoOp , ( GWidth / 2) + TempVal1 , 2*Height40Scaled + StartHeight + (a * FontHeight2) )
 			
 			SetColor 255 , 255 , 255

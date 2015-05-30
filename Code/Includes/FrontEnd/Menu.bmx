@@ -232,7 +232,6 @@ Type MenuWrapperType Extends GeneralType
 	End Method
 
 	Method Update()
-		tempWriteLog3("Menu Wrapper")
 		If UpdateTypeList.First() <> Self Then
 			UpdateTypeList.Remove(Self)
 			ListAddFirst(UpdateTypeList , Self)
@@ -1610,8 +1609,8 @@ Function GetNextPlatform()
 	Local SelectNext = 0
 	Local FirstPlatform:String = ""
 	For a:String = EachIn UsedPlatformList
-		PrintF("List-"+a)
-		If FirstPlatform = "" Then 
+		PrintF("List-" + a)
+		If FirstPlatform = "" then
 			FirstPlatform = a
 		EndIf 
 		If SelectNext = 1 Then
@@ -1624,29 +1623,29 @@ Function GetNextPlatform()
 		EndIf 
 	Next
 	ChangeInterface(0, True , False ) 'Resets filters & Changes to menu interface temperourily
-	If SelectNext = 1 Then
+	If SelectNext = 1 then
 		PrintF("SelectNext - All Games")
 		FilterType = "All Games"
 		FilterName = ""
-		GamesPlatformFilter = ""
+		GamesPlatformFilter = 0
 	Else
 		If Selected="" Then 
 			If FirstPlatform = Null Then
 				PrintF("Selected - All Games")
 				FilterType = "All Games"
 				FilterName = ""		
-				GamesPlatformFilter = ""	
+				GamesPlatformFilter = 0	
 			Else
 				PrintF(FirstPlatform)
 				FilterType = "Platform"
-				FilterName = FirstPlatform
-				GamesPlatformFilter = FirstPlatform
+				FilterName = GlobalPlatforms.GetPlatformByID(Int(FirstPlatform) ).Name
+				GamesPlatformFilter = Int(FirstPlatform)
 			EndIf 
 		Else
 			PrintF(Selected)
 			FilterType = "Platform"
-			FilterName = Selected
-			GamesPlatformFilter = Selected	
+			FilterName = GlobalPlatforms.GetPlatformByID(Int(Selected)).Name
+			GamesPlatformFilter = Int(Selected)
 		EndIf 	
 	EndIf
 	

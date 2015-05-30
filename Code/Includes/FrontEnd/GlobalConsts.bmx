@@ -79,7 +79,7 @@ Global Filter:String = ""
 Global FilterType:String = "All Games"
 Global FilterName:String = ""
 
-Global GamesPlatformFilter:String = ""
+Global GamesPlatformFilter:int = 0
 Global GamesGenreFilter:String = ""
 Global GamesRelFilter:String = ""
 Global GamesCompFilter:String = ""

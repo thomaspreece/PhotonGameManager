@@ -543,10 +543,9 @@ Type CoverWallInterface Extends GeneralType
 			EndIf
 		EndIf
 		
-	End Method 
+	End Method
 	
 	Method Update()
-		tempWriteLog3("CoverWall Wrapper")
 		CoverWall.Update()
 		Completed.Update()
 		Rating.Update()	
@@ -895,7 +894,6 @@ Type ListViewInterface Extends GeneralType
 	End Method 
 	
 	Method Update()
-		tempWriteLog3("ListView Wrapper")	
 		If OldCurrentGamePos <> CurrentGamePos Then
 			UpdateCover()
 			SetImageFont(MainTextFont)
@@ -1230,7 +1228,7 @@ Type InfoViewBannerInterface Extends GeneralType
 			DrawText("Developer:   "+GameNode.Dev, 2*TempVal1 , 2.5*Height40Scaled + StartHeight + (a*FontHeight2) )			
 			DrawText("Publisher:   " + GameNode.Pub , (GWidth / 2)+TempVal1 , 2.5*Height40Scaled + StartHeight + (a*FontHeight2) )
 			a = a + 1
-			DrawText("Platform:   " + GameNode.Plat , 2*TempVal1 , 2.5*Height40Scaled + StartHeight + (a*FontHeight2) )	
+			DrawText("Platform:   " + GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name , 2 * TempVal1 , 2.5 * Height40Scaled + StartHeight + (a * FontHeight2) )	
 			DrawText("Released:   " + GameNode.ReleaseDate , (GWidth / 2) + TempVal1 , 2.5*Height40Scaled + StartHeight + (a * FontHeight2) )
 			a = a + 1
 			DrawText("Players:   " + GameNode.Players , 2*TempVal1 , 2.5*Height40Scaled + StartHeight + (a * FontHeight2) )
@@ -1243,7 +1241,6 @@ Type InfoViewBannerInterface Extends GeneralType
 	End Method
 	
 	Method Update()
-		tempWriteLog3("InfoView Wrapper")	
 		Completed.Update()
 		Rating.Update()		
 		CoverFlow.Update()
@@ -1443,7 +1440,7 @@ Type InfoViewInterface Extends GeneralType
 			DrawText("Developer:   "+GameNode.Dev, 2*TempVal1 , 2.5*Height40Scaled + StartHeight + (a*FontHeight2) )			
 			DrawText("Publisher:   " + GameNode.Pub , (GWidth / 2)+TempVal1 , 2.5*Height40Scaled + StartHeight + (a*FontHeight2) )
 			a = a + 1
-			DrawText("Platform:   " + GameNode.Plat , 2*TempVal1 , 2.5*Height40Scaled + StartHeight + (a*FontHeight2) )	
+			DrawText("Platform:   " + GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name , 2*TempVal1 , 2.5*Height40Scaled + StartHeight + (a*FontHeight2) )	
 			DrawText("Released:   " + GameNode.ReleaseDate , (GWidth / 2) + TempVal1 , 2.5*Height40Scaled + StartHeight + (a * FontHeight2) )
 			a = a + 1
 			DrawText("Players:   " + GameNode.Players , 2*TempVal1 , 2.5*Height40Scaled + StartHeight + (a * FontHeight2) )
@@ -1456,7 +1453,6 @@ Type InfoViewInterface Extends GeneralType
 	End Method
 	
 	Method Update()
-		tempWriteLog3("InfoView Wrapper")	
 		Completed.Update()
 		Rating.Update()		
 		CoverFlow.Update()
@@ -1560,7 +1556,6 @@ Type CoverFlowInterface Extends GeneralType
 	End Method
 	
 	Method Update() 
-		tempWriteLog3("CoverFlowWrapper")	
 		Completed.Update()
 		Rating.Update()		
 		Screen.Update()
@@ -1773,7 +1768,6 @@ Type BannerFlowInterface Extends GeneralType
 	End Method 
 	
 	Method Update()
-		tempWriteLog3("BannerFlow Wrapper")	
 		If OldCurrentGamePos <> CurrentGamePos Then
 			UpdateCover()		
 			SetImageFont(MainTextFont)

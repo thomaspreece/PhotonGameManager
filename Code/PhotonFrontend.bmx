@@ -13,6 +13,9 @@ Import BaH.Volumes
 Import PUB.FreeProcess
 Import Pub.FreeJoy
 
+'TODO: Get close window cross button to actually end the program
+
+
 'NOTHING IMPORTANT HERE!
 'Max2D - MouseX,MouseY incorrect on Ubuntu V.M - Fine on native Ubuntu!
 'BUG: Windows 8 Doesn't work - Believed to be fixed
@@ -92,8 +95,8 @@ If FileType("DebugLog.txt") = 1 Then
 	DebugLogEnabled = True
 EndIf
 
-Local StartWait:Int = 0
-Local ForceFront:Int = 0
+Local StartWait:int = 0
+Local ForceFront:int = 0
 
 Local PastArgument:String 
 For Argument$ = EachIn AppArgs$
@@ -118,8 +121,8 @@ For Argument$ = EachIn AppArgs$
 Next
 
 If DebugLogEnabled=False Then 
-	DeleteFile(LOGFOLDER+LogName)
-	DeleteFile(LOGFOLDER+LogName2)
+	DeleteFile(LOGFOLDER + LogName)
+	DeleteFile(LOGFOLDER + LogName2)
 EndIf 
 
 
@@ -136,21 +139,15 @@ EndIf
 CheckInternet()
 CheckVersion()
 
-SettingFile.ParseFile(SETTINGSFOLDER+"FrontEnd.xml")
-
-DeleteFile(TEMPFOLDER + "Log12.txt")
-CreateFile(TEMPFOLDER + "Log12.txt")
-DeleteFile(TEMPFOLDER + "Log19.txt")
-CreateFile(TEMPFOLDER + "Log19.txt")
-DeleteFile(TEMPFOLDER + "Log23.txt")
-CreateFile(TEMPFOLDER + "Log23.txt")
+SettingFile.ParseFile(SETTINGSFOLDER + "FrontEnd.xml")
 
 ?Win32
 WinDir = GetEnv("WINDIR")
 PrintF("Windows Folder: " + WinDir)
 ?
 
-PlatformListChecks()
+SetupPlatforms()
+OldPlatformListChecks()
 'CORENUM = 2'CpuCount()
 'PrintF("Found "+CORENUM+" Cores/Threads")
 AppTitle = "FrontEnd"
@@ -270,7 +267,7 @@ EntityTexture(SkyBox , GreyTex)
 Menu:MenuWrapperType = New MenuWrapperType
 Menu.Init()
 
-Local RePopulate=False
+Local RePopulate = False
 
 CurrentInterfaceNumber = Int(SettingFile.GetSetting("Interface") )
 CurrentInterface = New GeneralType
@@ -287,7 +284,7 @@ If SettingFile.GetSetting("FilterType") <> "" Then
 	FilterType = SettingFile.GetSetting("FilterType")
 	RePopulate=True 	
 EndIf	
-If SettingFile.GetSetting("FilterName") <> "" Then		
+If SettingFile.GetSetting("FilterName") <> "" then		
 	FilterName = SettingFile.GetSetting("FilterName")
 	RePopulate=True 	
 EndIf	
@@ -298,12 +295,12 @@ If SettingFile.GetSetting("GamesSortFilter") <> "" Then
 EndIf	
 
 If SettingFile.GetSetting("GamesPlatformFilter") <> "" Then		
-	GamesPlatformFilter = SettingFile.GetSetting("GamesPlatformFilter")
-	RePopulate=True 	
+	GamesPlatformFilter = int(SettingFile.GetSetting("GamesPlatformFilter") )
+	RePopulate = True 	
 EndIf	
 If SettingFile.GetSetting("GamesGenreFilter") <> "" Then		
 	GamesGenreFilter = SettingFile.GetSetting("GamesGenreFilter")
-	RePopulate=True 	
+	RePopulate = True 	
 EndIf	
 If SettingFile.GetSetting("GamesRelFilter") <> "" Then		
 	GamesRelFilter = SettingFile.GetSetting("GamesRelFilter")
@@ -477,17 +474,11 @@ Local SecondTimer = MilliSecs()
 
 'MARK: MAIN LOOP
 Repeat
-	
-	'----------------------------------CRASH-3-START
-	'----------------------------------CRASH-4-START
 	'MARK: 3D stuff
 	For obj = EachIn UpdateTypeList
 		obj.Update()
-	Next
-	'----------------------------------CRASH-3-FINISH
-	'----------------------------------CRASH-4-FINISH
-	tempWriteLog("MT: P1")	
-	If RenderLoop = True Then 
+	Next	
+	If RenderLoop = True then
 		LockMutex(TTexture.Mutex_tex_list)
 		RenderWorld 'CRASH-4
 		UnlockMutex(TTexture.Mutex_tex_list)
@@ -540,17 +531,12 @@ Repeat
 		
 		
 	EndMax2D()
-	tempWriteLog("MT: P5")	
 	If RenderLoop = True 	
 		Flip	
 	EndIf 
-	tempWriteLog("MT: P6")			
-	'------------------------------------------------------START PROBLEM AREA
-	tempWriteLog("MT: P2")
 	FrameLimiter()
 	RenderLimiter()
 	MemoryLimiter()
-	tempWriteLog("MT: P3")
 	
 	If MouseDown(1) Then
 		If SwipeMode = True Then	
@@ -605,7 +591,6 @@ Repeat
 		MouseClick = 2
 	EndIf
 	
-	tempWriteLog("MT: P11")
 	ExitLoop.UpdateKeyboard()
 	ExitLoop.UpdateJoy()	
 	For obj = EachIn UpdateTypeList
@@ -617,9 +602,6 @@ Repeat
 	For obj = EachIn UpdateTypeList	
 		If obj.UpdateJoy()= True Then Exit 
 	Next		
-
-	
-	tempWriteLog("MT: P12")
 	
 	MouseClick = 0
 	If MouseSwipe < 3 Then MouseSwipe = 0
@@ -638,7 +620,6 @@ Repeat
 			If RepeatPosLoop = False Then Exit
 		Forever
 	EndIf
-	tempWriteLog("MT: P7")	
 
 	If OldFilter <> Filter Then
 		OldFilter = Filter
@@ -679,8 +660,7 @@ Repeat
 		ForceTextureReset = False 
 	EndIf
 	
-	tempWriteLog("MT: P14")	
-	If MilliSecs() - SecondTimer > 1000 Then
+	If MilliSecs() - SecondTimer > 1000 then
 		If TryLockMutex(Mutex_ThreadStatus) Then 
 			If ThreadStatus = 0 Then
 				If TryLockMutex(Mutex_ProcessStack) Then
@@ -698,8 +678,6 @@ Repeat
 	
 
 	If ExitProgramCall = True Then Exit
-	tempWriteLog("MT: P8")	
-	'------------------------------------------------------END PROBLEM AREA
 Forever
 
 LockMutex(Mutex_CloseTextureThread)
@@ -717,7 +695,7 @@ Function EndProgram()
 	
 	SettingFile.SaveSetting("FilterType" , FilterType)	
 	SettingFile.SaveSetting("FilterName" , FilterName)	
-	SettingFile.SaveSetting("GamesSortFilter" ,  GamesSortFilter)	
+	SettingFile.SaveSetting("GamesSortFilter" , GamesSortFilter)	
 
 	SettingFile.SaveSetting("GamesPlatformFilter" , GamesPlatformFilter)		
 	SettingFile.SaveSetting("GamesGenreFilter" , GamesGenreFilter)		
@@ -758,7 +736,7 @@ End Function
 
 Function ResetFilters()
 	Filter = ""
-	GamesPlatformFilter = ""
+	GamesPlatformFilter = 0
 	GamesGenreFilter = ""	
 	GamesRelFilter = ""
 	GamesCompFilter = ""
@@ -766,7 +744,7 @@ Function ResetFilters()
 	GamesPlayerFilter = ""
 	GamesCoopFilter = ""
 	GamesDeveloperFilter  = ""
-	GamesPublisherFilter  = ""
+	GamesPublisherFilter = ""
 	GamesCertificateFilter = ""
 	GamesSortFilter = "" 		
 End Function
@@ -848,10 +826,10 @@ Function PopulateUsedPlatformList()
 	Local GameNode:GameReadType = New GameReadType
 	For a = 0 To GameArrayLen - 1
 		GameNode.GetGame(GameArray[a])
-		If ListContains(UsedPlatformList , GameNode.Plat) <> 1 And GameNode.Plat <> "" Then
-			ListAddLast(UsedPlatformList , GameNode.Plat)
+		If ListContains(UsedPlatformList , String(GameNode.PlatformNum) ) <> 1 And GameNode.PlatformNum <> 0 then
+			ListAddLast(UsedPlatformList , String(GameNode.PlatformNum) )
 		EndIf
-	Next 
+	Next
 End Function 
 
 Function PopulateGames()
@@ -888,11 +866,11 @@ Function PopulateGames()
 			'	ListAddLast(tempGameList , temp)
 			EndIf
 			
-			If GamesPlatformFilter <> "" And Lower(GameNode.Plat) <> Lower(GamesPlatformFilter)
-				AddGame = False 
+			If GamesPlatformFilter <> 0 And GameNode.PlatformNum <> GamesPlatformFilter
+				AddGame = False
 			EndIf 
 			
-			If GamesGenreFilter <> "" And ListContains(GameNode.Genres , GamesGenreFilter) <> 1 Then
+			If GamesGenreFilter <> "" And ListContains(GameNode.Genres , GamesGenreFilter) <> 1 then
 				AddGame = False
 			EndIf
 			
@@ -973,6 +951,7 @@ Function ApplySort:TList(GamesTList:TList)
 	Local itemScore:String
 	'Local SearchTerm:String
 	Local itemCompleted:String
+	Local PlatformName:String
 	
 	If GamesSortFilter <> "" Then 
 		For item$ = EachIn GamesTList
@@ -982,10 +961,11 @@ Function ApplySort:TList(GamesTList:TList)
 			Else
 				Select GamesSortFilter
 					Case "Platform"
-						If GameNode.Plat="" Then
-							ListAddLast(GamesTSList,"zzzz>"+item)
+						PlatformName = GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name
+						If PlatformName = "" then
+							ListAddLast(GamesTSList, "zzzz>" + item)
 						Else
-							ListAddLast(GamesTSList,GameNode.Plat+">"+item)
+							ListAddLast(GamesTSList, PlatformName + ">" + item)
 						EndIf	
 
 					Case "Players"
@@ -1109,7 +1089,7 @@ End Function
 
 Function LoadFonts()
 	NameFont = LoadImageFont(RESFOLDER + "ariblk.ttf" , (Float(30) / 768) * GHeight)
-	MenuButtonFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(20)/768)*GHeight)
+	MenuButtonFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(20) / 768) * GHeight)
 	MainTextFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(18) / 768) * GHeight)
 	SmallMenuButtonFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(17)/768)*GHeight)
 
@@ -1118,34 +1098,7 @@ Function LoadFonts()
 	BigMenuFont = LoadImageFont(RESFOLDER + "ariblk.ttf" , (Float(25) / 768) * GHeight) 
 	If FilterFont = Null Or MainTextFont = Null Or NameFont = Null Or MenuButtonFont = Null Or MenuFont = Null Or BigMenuFont = Null  Then
 		RuntimeError "Font Load Error"
-	EndIf 
-End Function
-
-Function tempWriteLog(Tex:String)
-	?Debug
-	WriteLog = OpenFile(TEMPFOLDER + "Log12.txt")
-	SeekStream(WriteLog,StreamSize(WriteLog))
-	WriteLog.WriteLine(Tex)
-	CloseFile(WriteLog)
-	?
-End Function
-
-Function tempWriteLog2(Tex:String)
-	?Debug
-	WriteLog = OpenFile(TEMPFOLDER + "Log19.txt")
-	SeekStream(WriteLog,StreamSize(WriteLog))
-	WriteLog.WriteLine(Tex)
-	CloseFile(WriteLog)
-	?
-End Function
-
-Function tempWriteLog3(Tex:String)
-	?Debug	
-	WriteLog = OpenFile(TEMPFOLDER + "Log23.txt")
-	SeekStream(WriteLog,StreamSize(WriteLog))
-	WriteLog.WriteLine(Tex)
-	CloseFile(WriteLog)
-	?
+	EndIf
 End Function
 
 Function LoadGlobalSettings()
@@ -1154,7 +1107,7 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("Country")<>"" Then 
 		Country = ReadSettings.GetSetting("Country")
 	EndIf
-	If ReadSettings.GetSetting("PGMOff")<>"" Then 
+	If ReadSettings.GetSetting("PGMOff") <> "" then
 		PerminantPGMOff = Int(ReadSettings.GetSetting("PGMOff") )
 	EndIf	
 	If ReadSettings.GetSetting("GraphicsWidth") <> "" Then	

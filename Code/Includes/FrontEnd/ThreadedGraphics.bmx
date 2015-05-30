@@ -31,7 +31,6 @@ endrem
 
 'MARK: MAIN CORE - Texture Operations
 Function FrameLimiter()
-	tempWriteLog2("MT: Q1")
 		
 	ProcessGraphicsQueue(1)'NEW
 	
@@ -40,17 +39,15 @@ Function FrameLimiter()
 	'	RendersWithoutProcess = RendersWithoutProcess - 1
 	'Delay 1'NEW
 	Wend	
-	tempWriteLog2("MT: Q2")	
 	'OverProcessTime = (MilliSecs() + OverProcessTime - FrameTimer) - (1000 / FRAMERATE)
 	'RendersWithoutProcess = RendersWithoutProcess + 1
 	'If RendersWithoutProcess < 0 Then RendersWithoutProcess = 0
 	FrameTimer = MilliSecs()
-	tempWriteLog2("MT: Q3")	
 	'If RendersWithoutProcess > FRAMERATE Then
 	'	ProcessGraphicsQueue(0)
 	'	RendersWithoutProcess = 0
 	'EndIf	
-	tempWriteLog2("MT: Q4")	
+
 End Function
 
 Function RenderLimiter()
@@ -92,19 +89,15 @@ Function ProcessGraphicsQueue(Num:Int)
 	Local Tex2:TTexture
 	If Num = 0 Then Num = 30
 	For a = 1 To Num
-		tempWriteLog2("MT: R1")
 		If(TryLockMutex(Mutex_TextureQueue) ) Then
 			If TextureQueue.Count() < 1 Then
 				UnlockMutex(Mutex_TextureQueue)
 				Exit
 			EndIf
-			tempWriteLog2("MT: R3")
 			Tex = TPixmapTexture(TextureQueue.RemoveFirst())
 			UnlockMutex(Mutex_TextureQueue)
-			tempWriteLog2("MT: R4")
 			Tex2 = LoadTextureFromPixmap(Tex)
 			LockMutex(TTexture.Mutex_tex_list)
-			tempWriteLog2("MT: R5")
 			If Tex2 <> Null Then
 				If ListContains(ProcessedTextures , Tex2.file) <> True Then
 					ListAddLast(ProcessedTextures , Tex2.file)			
@@ -114,7 +107,6 @@ Function ProcessGraphicsQueue(Num:Int)
 		Else
 			Exit
 		EndIf
-		tempWriteLog2("MT: R2")
 	Next
 End Function 
 
