@@ -3,7 +3,8 @@
 'TODO: Hover over online game choice and show artwork thumb / More info button: downloads lua and displays the info
 'TODO: Platform Window for adding/restoring/deleting platforms
 'TODO: Add in version information into configuration files to allow for easy updates
-
+'TODO: Add in settings for Explorer colour options
+'TODO: Add in Explorer settings tab to tell you that to alter settings go to explorer and use menus
 
 'TODO: Fix platform list not sorting alphabetically: (puts capitals before lower case)
 

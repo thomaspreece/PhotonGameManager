@@ -145,8 +145,19 @@ Type MainMenuType Extends GeneralType
 							FilterName = ""
 							ChangeInterface(CurrentInterfaceNumber,1,0)
 						Case "Platforms"
+							Local PlatformNameList:TList = CreateList()
+							Local tempPlatform:String
+							
+							For tempPlatform = EachIn PlatformList
+								If tempPlatform = "Sort By Platform" Or tempPlatform = ".." then
+										ListAddLast(PlatformNameList,tempPlatform)
+								Else
+										ListAddLast(PlatformNameList, GlobalPlatforms.GetPlatformByID(Int(tempPlatform) ).Name)							
+								EndIf
+								
+							Next
 							MenuFlow.Clear()
-							MenuFlow.Init(PlatformList , "Platforms" , 1)
+							MenuFlow.Init(PlatformNameList , "Platforms" , 1)
 							FilterType = "Platform"
 							FilterName = ""
 						Case "Genres"
@@ -201,11 +212,11 @@ Type MainMenuType Extends GeneralType
 						FilterName = ""
 						GamesSortFilter = "Platform"
 					Else
-						GamesPlatformFilter = MenuFlow.MenuArray[item]
+						GamesPlatformFilter = GlobalPlatforms.GetPlatformByName(MenuFlow.MenuArray[item]).ID
 						FilterName = MenuFlow.MenuArray[item]
 					EndIf
 					PopulateGames()
-					ChangeInterface(CurrentInterfaceNumber,1,0)
+					ChangeInterface(CurrentInterfaceNumber, 1, 0)
 				Case "Genres"
 					If MenuFlow.MenuArray[item] = "Sort By Genre" Then
 						FilterName = ""
@@ -411,8 +422,8 @@ Type MainMenuType Extends GeneralType
 		Local GameNode:GameReadType = New GameReadType
 		For a = 0 To GameArrayLen - 1
 			GameNode.GetGame(GameArray[a])
-			If ListContains(PlatformList , GameNode.Plat) <> 1 And GameNode.Plat <> "" Then
-				ListAddLast(PlatformList , GameNode.Plat)
+			If ListContains(PlatformList , String(GameNode.PlatformNum) ) <> 1 And GameNode.PlatformNum <> 0 then
+				ListAddLast(PlatformList , String(GameNode.PlatformNum) )
 			EndIf
 			For Genre = EachIn GameNode.Genres
 				If ListContains(GenreList , Genre) <> 1 Then
@@ -500,7 +511,7 @@ Type MenuFlowType
 	Field Covers:MainMenuItemType[]
 	Field CoverFloor:TMesh	
 	Field MenuArray:String[]
-	Field MenuArrayLen:Int 
+	Field MenuArrayLen:int
 	Field MenuResFolder:String
 	Field CurrentMenuPos:Int
 	Field DelayPos:Int 
@@ -537,7 +548,7 @@ Type MenuFlowType
 		EndIf
 		'MenuList = List 'Array
 		MenuResFolder = ResourceFolder
-		MenuArray = MenuArray[..List.count()]
+		MenuArray = MenuArray[..List.Count()]
 		Covers = Covers[..List.Count()]
 		Local item:String 
 		Local a:Int = 0
@@ -700,7 +711,7 @@ Type MenuFlowType
 							Default
 								If Num > 4 Then
 									Return - 40
-								ElseIf Num < 4 Then
+								ElseIf Num < 4 then
 									Return 40
 								Else
 									RuntimeError "Invalid Cover Num"
