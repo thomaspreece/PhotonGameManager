@@ -1,5 +1,5 @@
 'TODO: Put filter into separate thread to increase smoothness and prevent wxwidgets debug message error
-
+'TODO: Save splitpanel positions
 
 'NOTHING IMPORTANT HERE
 'All subfiles checked, no pending fixes found
@@ -199,7 +199,7 @@ Select ProgramMode
 	Case 1
 		LogName = "Log-Explorer-MainApp"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
 	Case 2
-		LogName = "Log-Explorer-PhotonRunner"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
+		LogName = "Log-Explorer-PhotonRunner" + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
 	Case 3
 		LogName = "Log-Explorer-Tray"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
 	Default 
@@ -757,7 +757,7 @@ Type GameExplorerFrame Extends wxFrame
 		'-----------------------------------------Trailer Panel--------------------------------------
 		Local GameTrailerPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		Local GameTrailerPanelvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
+		GameTrailerPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		?Win32
 		TrailerCtrl = New wxMediaCtrl.Create(GameTrailerPanel , wxID_ANY , "" , -1 , -1 , -1 , -1 , 0 , BackEnd )
 		
@@ -777,24 +777,24 @@ Type GameExplorerFrame Extends wxFrame
 		
 		'--------------------------------------------Screenshot Panel-----------------------------------
 		Local GameScreenPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
-		
+		GameScreenPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		Local GS_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		GS_SC1_Panel = ScreenShotPanel(New ScreenShotPanel.Create(GameScreenPanel , - 1) )
 		GS_SC1_Panel.SetImageType(3)
-		Local sl101:wxStaticLine = New wxStaticLine.Create(GameScreenPanel , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
+		'Local sl101:wxStaticLine = New wxStaticLine.Create(GameScreenPanel , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
 		GS_SC2_Panel = ScreenShotPanel(New ScreenShotPanel.Create(GameScreenPanel , - 1) )
 		GS_SC2_Panel.SetImageType(3)		
-		Local sl102:wxStaticLine = New wxStaticLine.Create(GameScreenPanel , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
+		'Local sl102:wxStaticLine = New wxStaticLine.Create(GameScreenPanel , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxLI_HORIZONTAL)
 		
-		Local OpenScreenShotButton:wxButton = New wxButton.Create(GameScreenPanel , GS_OSB ,"View ScreenShots")
+		Local OpenScreenShotButton:wxButton = New wxButton.Create(GameScreenPanel , GS_OSB , "View ScreenShots")
 		
 		
 		
 		GS_vbox.Add(GS_SC1_Panel , 1 , wxEXPAND | wxALL , 5)
-		GS_vbox.Add(sl101 , 0 , wxEXPAND , 0)
+		'GS_vbox.Add(sl101 , 0 , wxEXPAND , 0)
 		GS_vbox.Add(GS_SC2_Panel , 1 , wxEXPAND | wxALL , 5)
-		GS_vbox.Add(sl102 , 0 , wxEXPAND , 0)
+		'GS_vbox.Add(sl102 , 0 , wxEXPAND , 0)
 		GS_vbox.Add(OpenScreenShotButton , 0 , wxEXPAND | wxALL , 5)
 		GameScreenPanel.SetSizer(GS_vbox)
 		
@@ -803,7 +803,7 @@ Type GameExplorerFrame Extends wxFrame
 		
 		Local GamePatchNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
 		Local GamePatchNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		
+		GamePatchNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		Local GamePatchNotebook:wxNotebook = New wxNotebook.Create(GamePatchNotebookPanel , GP_GPN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
 		GamePatchNotebook.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
 		GamePatchNotebookPanelhbox.Add(GamePatchNotebook , 1 ,  wxEXPAND | wxALL , 5)
@@ -850,6 +850,7 @@ Type GameExplorerFrame Extends wxFrame
 	
 
 		Local GameCheatNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
+		GameCheatNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		Local GameCheatNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local GameCheatNotebook:wxNotebook = New wxNotebook.Create(GameCheatNotebookPanel , GC_GCN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
 		GameCheatNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
@@ -903,6 +904,7 @@ Type GameExplorerFrame Extends wxFrame
 		
 		
 		Local GameWalkNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
+		GameWalkNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		Local GameWalkNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local GameWalkNotebook:wxNotebook = New wxNotebook.Create(GameWalkNotebookPanel , GW_GWN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
 		GameWalkNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
@@ -956,6 +958,7 @@ Type GameExplorerFrame Extends wxFrame
 		'--------------------------------------------Manual Panel----------------------------------
 	
 		Local GameManualNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
+		GameManualNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		Local GameManualNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local GameManualNotebook:wxNotebook = New wxNotebook.Create(GameManualNotebookPanel , GM_GPN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
 		GameManualNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
@@ -2168,30 +2171,30 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameName:String = String(GameNamesArray[item])
 		
 		GameNode = New GameReadType
-		If GameNode.GetGame(GameName) = - 1 Then
+		If GameNode.GetGame(GameName) = - 1 then
 		
 		Else
 			Self.GameNotebook.Enable()
-			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Front_OPT.jpg") = 1 Then
-				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Front_OPT.jpg" , 1)
+			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Front_OPT_2X.jpg") = 1 then
+				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Front_OPT_2X.jpg" , 1)
 			Else
 				FBAPanel.SetImage("" , 1)
 								
 			EndIf
-			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Back_OPT.jpg") = 1 Then
-				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Back_OPT.jpg" , 2)
+			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Back_OPT_2X.jpg") = 1 then
+				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Back_OPT_2X.jpg" , 2)
 			Else
 				FBAPanel.SetImage("" , 2)
 								
 			EndIf			
-			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Screen_OPT.jpg") = 1 Then
-				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Screen_OPT.jpg" , 3)
+			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Screen_OPT_2X.jpg") = 1 then
+				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Screen_OPT_2X.jpg" , 3)
 			Else
 				FBAPanel.SetImage("" , 3)
 								
 			EndIf			
-			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Banner_OPT.jpg") = 1 Then
-				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Banner_OPT.jpg" , 4)
+			If FileType(GAMEDATAFOLDER + GameName + FolderSlash + "Banner_OPT_2X.jpg") = 1 then
+				FBAPanel.SetImage(GAMEDATAFOLDER + GameName + FolderSlash + "Banner_OPT_2X.jpg" , 4)
 			Else
 				FBAPanel.SetImage("" , 4)
 								
@@ -2324,7 +2327,7 @@ Type GameExplorerFrame Extends wxFrame
 			Self.GCertText.SetLabel("Certificate: " + CorrectText(GameNode.Cert) )
 			Self.GCoopText.SetLabel("Co-Op: " + CorrectText(GameNode.Coop) )
 			Self.GPlayersText.SetLabel("Players: " + CorrectText(GameNode.Players) )
-			Self.GPlatText.SetLabel("Platform: " + CorrectText(GameNode.Plat) )
+			Self.GPlatText.SetLabel("Platform: " + CorrectText(GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name) )
 			If String(GameNode.Rating) = "0" Then
 				Self.GRatingCombo.SetValue("Select...")
 			Else
@@ -2854,7 +2857,7 @@ Type ImagePanel Extends wxPanel
 		Image = New String[5]
 		Changed = False
 		ConnectAny(wxEVT_PAINT , OnPaint)
-		ConnectANY( wxEVT_LEFT_DCLICK , ImageLeftClickedFun)
+		ConnectAny( wxEVT_LEFT_DCLICK , ImageLeftClickedFun)
 		ConnectANY( wxEVT_RIGHT_DOWN , ImageRightClickedFun)
 		
 		Connect(IP_M1_I1 , wxEVT_COMMAND_MENU_SELECTED , MenuClickFun , "1")
@@ -2885,9 +2888,9 @@ Type ImagePanel Extends wxPanel
 		If temp = "" Then
 		
 		Else
-			If FileType(Left(temp,Len(temp)-8)+".jpg") = 1 Then
-				OpenURL(Left(temp , Len(temp) - 8) + ".jpg")
-			ElseIf FileType(temp) = 1 Then
+			If FileType(Left(temp, Len(temp) - 11) + ".jpg") = 1 then
+				OpenURL(Left(temp , Len(temp) - 11) + ".jpg")
+			ElseIf FileType(temp) = 1 then
 				OpenURL(temp)
 			Else
 				
@@ -3036,7 +3039,7 @@ Type ScreenShotPanel Extends wxPanel
 	End Method
 	
 	Method SetImageType(ImageT:Int)
-		If ImageT > 5 Or ImageT < 1 Then
+		If ImageT > 5 Or ImageT < 1 then
 			CustomRuntimeError("Error 104: Wrong ImageType") 'MARK: Error 104
 		EndIf
 		ImageType = ImageT
@@ -3045,8 +3048,8 @@ Type ScreenShotPanel Extends wxPanel
 	
 	Function ImageLeftClickedFun(event:wxEvent)
 		Local IPanel:ScreenShotPanel = ScreenShotPanel(event.parent)
-		Local temp:String = IPanel.Image[IPanel.ImageType-1]
-		If temp = "" Then
+		Local temp:String = IPanel.Image[IPanel.ImageType - 1]
+		If temp = "" then
 		
 		Else
 			If FileType(Left(temp,Len(temp)-8)+".jpg") = 1 Then
@@ -3079,9 +3082,9 @@ Type ScreenShotPanel Extends wxPanel
 		dc.Clear()
 	
 		canvas.GetClientSize(x,y)
-		dc.SetBackground(New wxBrush.CreateFromColour(New wxColour.Create(PERed,PEGreen,PEBlue), wxSOLID))
+		dc.SetBackground(New wxBrush.CreateFromColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3), wxSOLID) )
 		dc.Clear()
-		dc.SetTextForeground(New wxColour.Create(0,0,0))
+		dc.SetTextForeground(New wxColour.Create(0, 0, 0) )
 		Local NoLen:Int, ArtworkLen:Int, FoundLen:Int
 		If canvas.Image[canvas.ImageType - 1] = ""
 			'dc.GetTextExtent("No Artwork Found" , x2 , y2)			
@@ -3121,7 +3124,7 @@ Type ScreenShotPanel Extends wxPanel
 				HWratio = Float(y3) / x3
 				WHratio = Float(x3) / y3
 				
-				If HWratio*x < y Then
+				If HWratio * x < y then
 					ImagePix = ResizePixmap(ImagePix , x , HWratio * x)	
 					BlackBit = New wxBitmap.CreateEmpty(x , HWratio * x)
 					BlackBit.Colourize(New wxColour.Create(0 , 0 , 0) )
