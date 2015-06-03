@@ -170,7 +170,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Self.Disable()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 4, "SourceChanged", wxWindow(Self) )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 4, "SourceChanged")
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
@@ -320,7 +320,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Self.Disable()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "Search", wxWindow(Self) )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "Search" )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
@@ -448,7 +448,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		LuaMutexUnlock()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "FurtherSearch", wxWindow(Self) )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "FurtherSearch" )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		?Not Threaded
 		LuaMutexLock()
