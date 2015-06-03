@@ -1,22 +1,10 @@
 Global PROGRAMICON:String = RESFOLDER + "Database.ico"
 'Global ExtractProgLoc:String = APPFOLDER+"ResourcesExtract\ResourcesExtract.exe"
 
-Global SearchSourceLuaList:String[]
-
-Global LuaVM:Byte Ptr
-Global LuaBlank:String = "function GetPlatforms(PlatformID,List)~nend~nfunction GetText()~nend~nfunction SearchGame(Text,Platform,ListDepth,List)~nend"
-Global LuaInternet:LuaInternetType = LuaInternetType(New LuaInternetType.Create() )
-
-
 Global wxEVT_COMMAND_SEARCHPANEL_SELECTED:Int = wxNewEventType()
 Global wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED:Int = wxNewEventType()
 Global wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH:Int = wxNewEventType()
 
-?Threaded
-Global LuaEventMutex:TMutex = CreateMutex()
-Global LuaMutex:TMutex = CreateMutex()
-?
-Global LuaEvent:String = ""
 
 ?Threaded
 Global LogWinListMutex:TMutex = CreateMutex()

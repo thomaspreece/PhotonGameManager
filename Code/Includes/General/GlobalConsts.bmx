@@ -3,6 +3,24 @@ Const SEE_MASK_NOCLOSEPROCESS = $00000040
 Const INFINITE = $FFFFFFFF
 '
 
+Global SubVersion:String
+Global OSubVersion:String
+
+
+'LuaVM Stuff
+Global LuaVM:Byte Ptr
+Global LuaBlank:String = "function GetPlatforms(PlatformID,List)~nend~nfunction GetText()~nend~nfunction SearchGame(Text,Platform,ListDepth,List)~nend"
+Global SearchSourceLuaList:String[]
+
+?Threaded
+Global LuaEventMutex:TMutex = CreateMutex()
+Global LuaMutex:TMutex = CreateMutex()
+?
+Global LuaEvent:String = ""
+
+
+
+
 Global GlobalPlatforms:PlatformReader
 
 
@@ -17,53 +35,17 @@ Else
 	CustomRuntimeError("GlobalConsts - No FolderSlash")
 EndIf 
 
-?Win32
-Global FRONTENDPROGRAM:String = "PhotonFrontend.exe"
-Global MANAGERPROGRAM:String = "PhotonManager.exe"
-Global EXPLORERPROGRAM:String = "PhotonExplorer.exe"
-Global DOWNLOADERPROGRAM:String = "PhotonDownloader.exe"
-Global UPDATEPROGRAM:String = "PhotonUpdate.exe"
-?Linux
-Global FRONTENDPROGRAM:String = Chr(34)+RealPath("PhotonFrontend")+Chr(34)
-Global MANAGERPROGRAM:String = Chr(34)+RealPath("PhotonManager")+Chr(34)
-Global EXPLORERPROGRAM:String = Chr(34)+RealPath("PhotonExplorer")+Chr(34)
-Global DOWNLOADERPROGRAM:String = Chr(34)+RealPath("PhotonDownloader")+Chr(34)
-Global UPDATEPROGRAM:String = Chr(34)+RealPath("PhotonUpdate")+Chr(34)
-?MacOS
-Global FRONTENDPROGRAM:String = Chr(34)+RealPath("PhotonFrontend.app")+"/Contents/MacOS/PhotonFrontend"+Chr(34)
-Global MANAGERPROGRAM:String = Chr(34)+RealPath("PhotonManager.app")+"/Contents/MacOS/PhotonManager"+Chr(34)
-Global EXPLORERPROGRAM:String = Chr(34)+RealPath("PhotonExplorer.app")+"/Contents/MacOS/PhotonExplorer"+Chr(34)
-Global DOWNLOADERPROGRAM:String = Chr(34)+RealPath("PhotonDownloader.app")+"/Contents/MacOS/PhotonDownloader"+Chr(34)
-Global UPDATEPROGRAM:String = Chr(34)+RealPath("PhotonUpdate.app")+"/Contents/MacOS/PhotonUpdate"+Chr(34)
-?
-
-Global SkipBatchWait:Int = 0 
-Global FinishProgramRunning:Int = 0
+Include "ProgramPaths.bmx"
 
 
-Global GAMEDATAFOLDER:String = TempFolderPath + "Games" + FolderSlash
-Global SETTINGSFOLDER:String = TempFolderPath + "Settings" + FolderSlash
-Global TEMPFOLDER:String = TempFolderPath + "Temp" + FolderSlash
-Global LOGFOLDER:String = TempFolderPath + "Log" + FolderSlash
-
-
-Global MOUNTERFOLDER:String = "Mounters"+FolderSlash
-Global RESFOLDER:String = "Resources"+FolderSlash
-Global APPFOLDER:String = "Plugins" + FolderSlash
-Global LUAFOLDER:String = "Lua" + FolderSlash
-
-?Win32
-Global SevenZipPath:String = APPFOLDER + "critical\7zip\7z.exe"
-?Not Win32
-Global SevenZipPath:String = APPFOLDER + "critical/7zip/7z"
-?
-Global ResourceExtractPath:String = APPFOLDER + "critical\ResourcesExtract\ResourcesExtract.exe"
+Global SkipBatchWait:int = 0
+Global FinishProgramRunning:int = 0
 
 Global CurrentVersion:String = "V4.12"
 
 Global WinDir:String = ""
-Global WinBit:Int
-Global WinExplorer:Int
+Global WinBit:int
+Global WinExplorer:int
 
 Global Country:String = "UK"
 Global Debug:Int = False

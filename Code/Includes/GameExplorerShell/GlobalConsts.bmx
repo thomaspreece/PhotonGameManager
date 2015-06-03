@@ -1,6 +1,7 @@
 Global RunnerButtonCloseOnly:int = False
 Global OriginWaitEnabled = True 
 
+Global wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED:int = wxNewEventType()
 
 Const GES_GL = 1001
 Const GES_PL = 1002
@@ -98,12 +99,25 @@ Const SRT1 = 1700
 Const SRT2 = 1701
 Const SRT3 = 1702
 
+Const GW_DP_DT = 1800
+Const GW_DP_DSo = 1801
+Const GW_DP_DSe = 1802
+Const GM_DP_DL = 1803
+Const GM_DP_SB = 1804
+Const GM_DP_SHL = 1805
+Const GW_DP_DP = 1806
+Const GM_DP_LS = 1807
+
+Const LT1 = 1851
+Const WS = 1852
+Const RT1 = 1853
+Const MT1 = 1854
+
 Global PROGRAMICON:String = RESFOLDER + "Controller.ico"
 Global PROGRAMICON2:String = RESFOLDER + "Runner.ico"
-Global PROGRAMICON3:String = RESFOLDER + "JoyStick.ico"
 ?Win32
 Const BackEnd:String = wxMEDIABACKEND_WMP10
-Const ShowPlayerCtrls:Int = 0
+Const ShowPlayerCtrls:int = 0
 ?
 
 
@@ -123,8 +137,7 @@ Global CurrentSearchLine:String
 
 Global InternetTimeout:Int 
 
-Global HotKey:GlobalHotkey = New GlobalHotkey
-Global Beep=LoadSound(RESFOLDER+"BEEP.wav")
+Global Beep = LoadSound(RESFOLDER + "BEEP.wav")
 
 Const BannerFloat:Float = 5
 
