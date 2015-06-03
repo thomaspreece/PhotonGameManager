@@ -40,29 +40,13 @@ Import "Icons\PhotonFrontEnd.o"
 Global FolderSlash:String ="\"
 ?
 
-Local TempFolderPath:String
-If FileType("SaveLocationOverride.txt") = 1 Then 
-	ReadLocationOverride = ReadFile("SaveLocationOverride.txt")
-	TempFolderPath = ReadLine(ReadLocationOverride)
-	CloseFile(ReadLocationOverride)
-	If Right(TempFolderPath,1)=FolderSlash Then 
-	
-	Else
-		TempFolderPath = TempFolderPath + FolderSlash
-	EndIf 
-Else
-	If FileType(GetUserDocumentsDir()+FolderSlash+"GameManagerV4") <> 2 Then 
-		CreateFolder(GetUserDocumentsDir()+FolderSlash+"GameManagerV4")
-	EndIf 
-	TempFolderPath = GetUserDocumentsDir()+FolderSlash+"GameManagerV4"+FolderSlash
-EndIf 
-
-
+Include "Includes\General\StartupOverrideCheck.bmx"
+Local TempFolderPath:String = OverrideCheck(FolderSlash)
 
 Include "Includes\FrontEnd\GlobalConsts.bmx"
 Include "Includes\General\GlobalConsts.bmx"
 
-
+AppTitle = "Photon"
 ' Revision Version Generation Code
 ' @bmk include Includes/General/Increment.bmk
 ' @bmk doOverallVersionFiles Version/OverallVersion.txt
@@ -76,14 +60,14 @@ Include "Includes\General\GlobalConsts.bmx"
 Incbin "Version/PF-Version.txt"
 Incbin "Version/OverallVersion.txt"
 
-Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PF-Version.txt"), 1)
-Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+SubVersion = ExtractSubVersion(LoadText("incbin::Version/PF-Version.txt"), 1)
+OSubVersion = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
 
 Print "Version = " + CurrentVersion
 Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
-
+DebugCheck()
 FolderCheck()
 
 LogName = "Log-FrontEnd"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
@@ -91,9 +75,7 @@ CreateFile(LOGFOLDER + LogName)
 LogName2 = "Log-FrontEnd-2ndCore"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
 CreateFile(LOGFOLDER+LogName2)
 
-If FileType("DebugLog.txt") = 1 Then
-	DebugLogEnabled = True
-EndIf
+
 
 Local StartWait:int = 0
 Local ForceFront:int = 0
@@ -141,16 +123,12 @@ CheckVersion()
 
 SettingFile.ParseFile(SETTINGSFOLDER + "FrontEnd.xml")
 
-?Win32
-WinDir = GetEnv("WINDIR")
-PrintF("Windows Folder: " + WinDir)
-?
+WindowsCheck()
 
 SetupPlatforms()
 OldPlatformListChecks()
 'CORENUM = 2'CpuCount()
 'PrintF("Found "+CORENUM+" Cores/Threads")
-AppTitle = "FrontEnd"
 
 
 PopulateGames()
@@ -1143,4 +1121,11 @@ Function LoadGlobalSettings()
 		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
 	EndIf				
 	ReadSettings.CloseFile()
+End Function
+
+Function WindowsCheck()
+	?Win32
+	WinDir = GetEnv("WINDIR")
+	PrintF("Windows Folder: " + WinDir)
+	?
 End Function

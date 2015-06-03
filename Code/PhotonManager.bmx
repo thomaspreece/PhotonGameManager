@@ -125,26 +125,13 @@ Global FolderSlash:String = "/"
 Global FolderSlash:String = "\"
 ?
 
-Local TempFolderPath:String
-If FileType("SaveLocationOverride.txt") = 1 then
-	ReadLocationOverride = ReadFile("SaveLocationOverride.txt")
-	TempFolderPath = ReadLine(ReadLocationOverride)
-	CloseFile(ReadLocationOverride)
-	If Right(TempFolderPath, 1) = FolderSlash then
-	
-	Else
-		TempFolderPath = TempFolderPath + FolderSlash
-	EndIf
-Else
-	If FileType(GetUserDocumentsDir() + FolderSlash + "GameManagerV4") <> 2 then
-		CreateFolder(GetUserDocumentsDir() + FolderSlash + "GameManagerV4")
-	EndIf 
-	TempFolderPath = GetUserDocumentsDir() + FolderSlash + "GameManagerV4" + FolderSlash
-EndIf
+Include "Includes\General\StartupOverrideCheck.bmx"
+Local TempFolderPath:String = OverrideCheck(FolderSlash)
 
 Include "Includes\General\GlobalConsts.bmx"
 Include "Includes\DatabaseManager\GlobalsConsts.bmx"
 
+AppTitle = "Photon"
 ' Revision Version Generation Code
 ' @bmk include Includes/General/Increment.bmk
 ' @bmk doOverallVersionFiles Version/OverallVersion.txt
@@ -158,40 +145,32 @@ Include "Includes\DatabaseManager\GlobalsConsts.bmx"
 Incbin "Version/PM-Version.txt"
 Incbin "Version/OverallVersion.txt"
 
-Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PM-Version.txt"), 1)
-Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+SubVersion = ExtractSubVersion(LoadText("incbin::Version/PM-Version.txt"), 1)
+OSubVersion = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
 
 Print "Version = " + CurrentVersion
 Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
 
-If FileType("DebugLog.txt") = 1 then
-	DebugLogEnabled = True
-EndIf
+DebugCheck()
 
 FolderCheck()
 GamesCheck()
 LogName = "Log-Manager " + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
 CreateFile(LOGFOLDER+LogName)
 
-AppTitle = "PhotonManager"
-
 
 LoadGlobalSettings()
 LoadManagerSettings()
 
 CheckKey()
-If EvaluationMode = True Then
+If EvaluationMode = True then
 	Notify "You are running in evaluation mode, this limits you to the first 5 games added to the database in FrontEnd and PhotonExplorer"
-EndIf 
+EndIf
 SearchBeep = LoadSound("Resources" + FolderSlash + "BEEP.wav")
 
-?Win32
-WinDir = GetEnv("WINDIR")
-PrintF("Windows Folder: " + WinDir)
-?
-
+WindowsCheck()
 SetupPlatforms()
 OldPlatformListChecks()
 
@@ -203,47 +182,14 @@ CheckEXEDatabaseStatus()
 
 'ValidateGames()
 
-If wxIsPlatform64Bit() = 1 Then
-	PrintF("Detected 64bit")
-	WinBit = 64
-Else
-	PrintF("Detected 32bit")
-	WinBit = 32
-EndIf
 
-
-
-?Win32
-Local OSMajor:Int 
-Local OSMinor:Int
-wxGetOsVersion(OSMajor,OSMinor)
-
-PrintF("Detected Win Version: "+OSMajor+"."+OSMinor)
-
-If OSMajor => 6 Then
-	WinExplorer = True
-Else
-	WinExplorer = False
-EndIf
-?Not Win32
-	WinExplorer = False
-?
-
-LuaVM = luaL_newstate()
-InitLuGI(LuaVM)
-luaL_openlibs(LuaVM)
-
-
-Local RunWizard:Int = - 1
+StartupLuaVM()
 
 Local PastArgument:String 
 For Argument$ = EachIn AppArgs$
 	Select PastArgument
 		Case "-EditGame","EditGame"
 			EditGameName = Argument
-			PastArgument = ""
-		Case "-Wiz","Wiz"
-			RunWizard = Int(Argument)
 			PastArgument = ""
 		Case "-Debug","Debug"
 			If Int(Argument) = 1 Then 
@@ -252,7 +198,7 @@ For Argument$ = EachIn AppArgs$
 			PastArgument = ""
 		Default
 			Select Argument
-				Case "-Wiz" , "-Debug" , "-EditGame","Wiz" , "Debug" , "EditGame"
+				Case "-Debug" , "-EditGame", "Debug" , "EditGame"
 					PastArgument = Argument
 			End Select
 	End Select
@@ -264,21 +210,11 @@ If DebugLogEnabled=False Then
 	DeleteFile(LOGFOLDER+LogName)
 EndIf 
 
-Rem
-If RunWizard = 1 Then
-	
-	DatabaseApp = New SteamOnlineImportApp
-	DatabaseApp.Run()
-	End
-EndIf 
-EndRem
 
 DatabaseApp = New DatabaseManager
 DatabaseApp.Run()
 
-'If ReloadApp = True Then
-'	RestartProgram()
-'EndIf
+EndLuaVM()
 End
 
 Type DatabaseManager Extends wxApp
@@ -309,7 +245,7 @@ Type DatabaseManager Extends wxApp
 	
 End Type
 
-lua_close(LuaVM)
+
 
 
 Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
@@ -3646,6 +3582,35 @@ Function SavePixmapJPeg(Pixmap:TPixmap , SaveLocation:String , SaveQuality:Int =
 	FreeImage = FreeImage.convertTo24Bits()
 	FreeImage.save(SaveLocation, FIF_JPEG, SaveQuality)
 End Function
+
+Function WindowsCheck()
+	?Win32
+	WinDir = GetEnv("WINDIR")
+	PrintF("Windows Folder: " + WinDir)
+	
+	If wxIsPlatform64Bit() = 1 then
+		PrintF("Detected 64bit")
+		WinBit = 64
+	Else
+		PrintF("Detected 32bit")
+		WinBit = 32
+	EndIf
+
+	Local OSMajor:Int
+	Local OSMinor:int
+	wxGetOsVersion(OSMajor, OSMinor)
+
+	PrintF("Detected Win Version: "+OSMajor+"."+OSMinor)
+
+	If OSMajor => 6 Then
+		WinExplorer = True
+	Else
+		WinExplorer = False
+	EndIf
+	?Not Win32
+		WinExplorer = False
+	?
+End Function
 		
 Include "Includes\DatabaseManager\GameExplorerExtract.bmx"
 Include "Includes\DatabaseManager\SteamExtract.bmx"
@@ -3655,6 +3620,7 @@ Include "Includes\General\General.bmx"
 Include "Includes\DatabaseManager\Games.bmx"
 Include "Includes\DatabaseManager\PluginConfigs.bmx"
 Include "Includes\DatabaseManager\InputSettings.bmx"
+Include "Includes\General\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\DatabaseSearchPanelType.bmx"
 
