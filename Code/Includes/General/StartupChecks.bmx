@@ -1,3 +1,10 @@
+'WindowsCheck is dependant on code file so is contained in each Photon*****.bmx master file
+
+Function DebugCheck()
+	If FileType("DebugLog.txt") = 1 then
+		DebugLogEnabled = True
+	EndIf
+End Function
 
 Function FolderCheck()
 	If FileType(StripSlash(LOGFOLDER) ) = 0 then
@@ -34,8 +41,24 @@ Function FolderCheck()
 	EndIf		
 	If FileType(StripSlash(LUAFOLDER + FolderSlash + "Game") ) = 0 then
 		CreateDir(StripSlash(LUAFOLDER + FolderSlash + "Game"), 1 )
-		PrintF("Creating Mounter Folder: " + LUAFOLDER + FolderSlash + "Game")
+		PrintF("Creating Lua Folder: " + LUAFOLDER + FolderSlash + "Game")
 	EndIf		
+	If FileType(StripSlash(LUAFOLDER + FolderSlash + "Patch") ) = 0 then
+		CreateDir(StripSlash(LUAFOLDER + FolderSlash + "Patch"), 1 )
+		PrintF("Creating Lua Folder: " + LUAFOLDER + FolderSlash + "Patch")
+	EndIf		
+	If FileType(StripSlash(LUAFOLDER + FolderSlash + "Cheat") ) = 0 then
+		CreateDir(StripSlash(LUAFOLDER + FolderSlash + "Cheat"), 1 )
+		PrintF("Creating Lua Folder: " + LUAFOLDER + FolderSlash + "Cheat")
+	EndIf		
+	If FileType(StripSlash(LUAFOLDER + FolderSlash + "Walkthrough") ) = 0 then
+		CreateDir(StripSlash(LUAFOLDER + FolderSlash + "Walkthrough"), 1 )
+		PrintF("Creating Lua Folder: " + LUAFOLDER + FolderSlash + "Walkthrough")
+	EndIf		
+	If FileType(StripSlash(LUAFOLDER + FolderSlash + "Manual") ) = 0 then
+		CreateDir(StripSlash(LUAFOLDER + FolderSlash + "Manual"), 1 )
+		PrintF("Creating Lua Folder: " + LUAFOLDER + FolderSlash + "Manual")
+	EndIf			
 	
 End Function
 

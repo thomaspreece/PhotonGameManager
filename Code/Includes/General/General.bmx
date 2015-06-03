@@ -252,7 +252,7 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 	?MacOS
 	'Fixed Bug: Mac cannot take command line arguments starting with - when using Blitz programs, eg -Mode so adjusted to remove -.
 	If Left(Command,Len(FRONTENDPROGRAM))=FRONTENDPROGRAM Or Left(Command,Len(MANAGERPROGRAM))=MANAGERPROGRAM Or Left(Command,Len(EXPLORERPROGRAM))=EXPLORERPROGRAM Or Left(Command,Len(DOWNLOADERPROGRAM))=DOWNLOADERPROGRAM Or Left(Command,Len(UPDATEPROGRAM))=UPDATEPROGRAM Then
-		Command=Replace(Command," -"," ")
+		Command = Replace(Command, " -", " ")
 	EndIf 
 	?
 
@@ -279,7 +279,7 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 			EndIf 			
 			If Command2="" Or Command2=" " Then Command2=Null 
 			PrintF("Command1: "+Command1+" Command2: "+Command2)
-			ex.execute(Command1,Command2)
+			Ex.Execute(Command1, Command2)
 			'ShellExec(Chr(34)+Command1+Chr(34),1)
 			ReturnedValue = 1
 		EndIf
@@ -1008,9 +1008,10 @@ Function CustomRuntimeError(ERROR:String)
 	?Threaded
 		RuntimeError ERROR
 	?Not Threaded
-		Local dial:wxMessageDialog = New wxMessageDialog.Create(Null, ERROR, "Runtime Error", wxOK | wxICON_ERROR)
-		dial.ShowModal()
-		dial.Free()	
+		'Local dial:wxMessageDialog = New wxMessageDialog.Create(Null, ERROR, "Runtime Error", wxOK | wxICON_ERROR)
+		'dial.ShowModal()
+		'dial.Free()	
+		RuntimeError ERROR
 	?
 	End
 End Function
