@@ -6,12 +6,12 @@ Type PhotonRunner Extends wxApp
 	Method OnInit:Int()		
 		wxImage.AddHandler( New wxICOHandler)
 		Runner = RunnerWindow(New RunnerWindow.Create(Null , wxID_ANY , "PhotonRunner" , - 1 , - 1 , 300 , 300) )
-		Runner.SetGame(GameNode,EXENum)
+		Runner.SetGame(GameNode, EXENum)
 		Return True
 	End Method
 	
 	Method SetGame(GN:String , EN:Int)
-		PrintF(GN+" " + EN)
+		PrintF(GN + " " + EN)
 		GameNode = GN
 		EXENum = EN
 	End Method 

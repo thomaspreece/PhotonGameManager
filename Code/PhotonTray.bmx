@@ -1,12 +1,41 @@
+Framework wx.wxapp
+Import wx.wximage
+Import wx.wxTaskBarIcon
 
+Import brl.retro
+Import pub.freeprocess
+
+Import Bah.Volumes
+Import bah.libxml
+Import bah.regex
+Import bah.libcurlssl
+
+?Not Win32
+Global FolderSlash:String="/"
+
+?Win32
+Import "Icons\PhotonFrontEnd.o"
+Global FolderSlash:String = "\"
+?
+
+Include "Includes\General\StartupOverrideCheck.bmx"
+Local TempFolderPath:String = OverrideCheck(FolderSlash)
+
+Include "Includes\General\GlobalConsts.bmx"
+
+Global PROGRAMICON:String = RESFOLDER + "JoyStick.ico"
+Global PhotonTrayApp:PhotonTray
+
+PhotonTrayApp = New PhotonTray
+PhotonTrayApp.Run()
 
 Type PhotonTray Extends wxApp
 	Field TaskBarIcon:MyTaskBarIcon
 	
 	Method OnInit:Int()
 		wxImage.AddHandler( New wxICOHandler)	
-		TaskBarIcon = MyTaskBarIcon(New MyTaskBarIcon.Create())
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON3,wxBITMAP_TYPE_ICO)
+		TaskBarIcon = MyTaskBarIcon(New MyTaskBarIcon.Create() )
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		TaskBarIcon.SetIcon(Icon,"Photon GameManager")
 		Return True
 	End Method
@@ -34,25 +63,27 @@ Type MyTaskBarIcon Extends wxTaskBarIcon
 		Local data:Object = event.userData
 		Select String(data)
 			Case "1"
-				PrintF(EXPLORERPROGRAM)
-				RunProcess(EXPLORERPROGRAM,1)
+				Print(EXPLORERPROGRAM)
+				RunProcess(EXPLORERPROGRAM, 1)
 			Case "2"
-				PrintF(FRONTENDPROGRAM)
-				RunProcess(FRONTENDPROGRAM,1)
+				Print(FRONTENDPROGRAM)
+				RunProcess(FRONTENDPROGRAM, 1)
 			Case "3"
-				PrintF(MANAGERPROGRAM)
-				RunProcess(MANAGERPROGRAM,1)
+				Print(MANAGERPROGRAM)
+				RunProcess(MANAGERPROGRAM, 1)
 			Case "4"
-				PrintF(UPDATEPROGRAM)
-				RunProcess(UPDATEPROGRAM,1)
+				Print(UPDATEPROGRAM)
+				RunProcess(UPDATEPROGRAM, 1)
 			Case "5"
 				MyTaskBar.RemoveIcon()
 				MyTaskBar.Free()
 				End 
 			Default
-				CustomRuntimeError( "Error 301: Invalid Menu Item") 'MARK: Error 301
+				RuntimeError( "Error 301: Invalid Menu Item") 'MARK: Error 301
 				 'MARK: Error 301
 		End Select
 
 	End Function
-End Type 
+End Type
+
+Include "Includes\General\General.bmx"

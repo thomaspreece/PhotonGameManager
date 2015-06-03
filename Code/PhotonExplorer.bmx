@@ -1,5 +1,6 @@
 'TODO: Put filter into separate thread to increase smoothness and prevent wxwidgets debug message error
 'TODO: Save splitpanel positions
+'TODO: Fix lua script to be protected when lua script returns wrong types
 
 'NOTHING IMPORTANT HERE
 'All subfiles checked, no pending fixes found
@@ -30,6 +31,7 @@ Import wx.wxComboBox
 Import wx.wxTextCtrl
 Import wx.wxBitmap
 Import wx.wxStaticLine
+Import wx.wxHyperlinkCtrl
 
 'Media Control Requires Ubunutu Restricted Access To Compile, libgstreamer-plugins-base0.10-dev, libgstreamer0.10-dev
 ?Win32
@@ -54,7 +56,7 @@ Import BRL.FileSystem
 Import BRL.StandardIO
 Import BRL.Retro
 Import BRL.PolledInput
-Import BRL.OpenALAudio 
+Import BRL.OpenALAudio
 Import BRL.DirectSoundAudio
 Import BRL.FreeAudioAudio
 Import BRL.WAVLoader
@@ -63,39 +65,35 @@ Import BRL.Blitz
 Import PUB.Win32
 Import PUB.FreeProcess
 Import BRL.Bank
-'Import BRL.LinkedList
 Import BRL.System
-'Import BRL.StandardIO
 Import brl.threads
+
+?Win32
+Import "Icons\PhotonExplorer.o"
+?
+
+Import LuGI.Core
+Include "ExplorerGlue.bmx"
+
+''Must Generate Glue Code in UnThreaded Mode
+'Import LuGI.Generator
+'GenerateGlueCode("ExplorerGlue.bmx")
+'End
 
 ?Not Win32
 Global FolderSlash:String = "/"
 
 ?Win32
-Import "Icons\PhotonExplorer.o"
 Global FolderSlash:String ="\"
 ?
 
-Local TempFolderPath:String
-If FileType("SaveLocationOverride.txt") = 1 Then 
-	ReadLocationOverride = ReadFile("SaveLocationOverride.txt")
-	TempFolderPath = ReadLine(ReadLocationOverride)
-	CloseFile(ReadLocationOverride)
-	If Right(TempFolderPath,1)=FolderSlash Then 
-	
-	Else
-		TempFolderPath = TempFolderPath + FolderSlash
-	EndIf 
-Else
-	If FileType(GetUserDocumentsDir()+FolderSlash+"GameManagerV4") <> 2 Then 
-		CreateFolder(GetUserDocumentsDir()+FolderSlash+"GameManagerV4")
-	EndIf 
-	TempFolderPath = GetUserDocumentsDir()+FolderSlash+"GameManagerV4"+FolderSlash
-EndIf 
+Include "Includes\General\StartupOverrideCheck.bmx"
+Local TempFolderPath:String = OverrideCheck(FolderSlash)
 
 Include "Includes\General\GlobalConsts.bmx"
 Include "Includes\GameExplorerShell\GlobalConsts.bmx"
 
+AppTitle = "Photon"
 ' Revision Version Generation Code
 ' @bmk include Includes/General/Increment.bmk
 ' @bmk doOverallVersionFiles Version/OverallVersion.txt
@@ -109,26 +107,22 @@ Include "Includes\GameExplorerShell\GlobalConsts.bmx"
 Incbin "Version/PE-Version.txt"
 Incbin "Version/OverallVersion.txt"
 
-Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PE-Version.txt"), 1)
-Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+SubVersion = ExtractSubVersion(LoadText("incbin::Version/PE-Version.txt"), 1)
+OSubVersion = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
 
 Print "Version = " + CurrentVersion
 Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
-If FileType("DebugLog.txt") = 1 then
-	DebugLogEnabled = True
-EndIf 
 
-
+DebugCheck()
 FolderCheck()
-LogName = "ExplorerPreFile"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
-CreateFile(LOGFOLDER+LogName)
 
-AppTitle = "Photon GameManager"
+LogName = "Log-Explorer" + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
+CreateFile(LOGFOLDER + LogName)
 
-Local ArguemntNo:Int = 0
-Local RunnerEXENumber:Int
+Local ArguemntNo:int = 0
+Local RunnerEXENumber:int
 Local RunnerGameName:String
 Local ProgramMode:Int = 1
 
@@ -141,14 +135,14 @@ Local ProgramMode:Int = 1
 CheckKey()
 If EvaluationMode = True Then 
 	Notify "You are running in evaluation mode, this limits you to 5 games."
-EndIf 
+EndIf
 
-
+SettingFile.ParseFile(SETTINGSFOLDER + "PhotonExplorer.xml")
 LoadGlobalSettings()
-SettingFile.ParseFile(SETTINGSFOLDER+"PhotonExplorer.xml")
+LoadSettings()
+StartupLuaVM()
 
-ProgramMode = 1
-Local PastArgument:String 
+Local PastArgument:String
 For Argument$ = EachIn AppArgs$
 	Select PastArgument
 		Case "-Cabinate","Cabinate"
@@ -160,19 +154,7 @@ For Argument$ = EachIn AppArgs$
 		Case "-Game","Game"
 			CmdLineGameName = Argument
 			PastArgument = ""
-		Case "-Tray","Tray"
-			'Rem
-			If Int(Argument) = 1 Then 
-				ProgramMode = 3
-			EndIf 
-			PastArgument = ""
-			'EndRem
-		Case "-Runner","Runner"
-			If Int(Argument) = 1 Then 
-				ProgramMode = 2
-			EndIf 
-			PastArgument = ""	
-		Case "-GameName","GameName"
+		Case "-GameName", "GameName"
 			RunnerGameName = Argument
 			PastArgument = ""		
 		Case "-EXENum","EXENum"
@@ -185,83 +167,30 @@ For Argument$ = EachIn AppArgs$
 			PastArgument = ""
 		Default
 			Select Argument
-				Case "-Tray" , "-Debug" , "-Runner" , "-GameName" , "-EXENum" , "-Game" , "-GameTab", "-Cabinate", "Tray" , "Debug" , "Runner" , "GameName" , "EXENum" , "Game" , "GameTab", "Cabinate"
+				Case "-Debug" , "-GameName" , "-EXENum" , "-Game" , "-GameTab", "-Cabinate", "Debug" , "GameName" , "EXENum" , "Game" , "GameTab", "Cabinate"
 					PastArgument = Argument
 			End Select
 	End Select
 Next
 
-If DebugLogEnabled=False Then 
-	DeleteFile(LOGFOLDER+LogName)
-EndIf 
+If DebugLogEnabled = False then
+	DeleteFile(LOGFOLDER + LogName)
+EndIf
 
-Select ProgramMode
-	Case 1
-		LogName = "Log-Explorer-MainApp"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
-	Case 2
-		LogName = "Log-Explorer-PhotonRunner" + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
-	Case 3
-		LogName = "Log-Explorer-Tray"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
-	Default 
-		LogName = "Log-Explorer-Default"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
-End Select
-CreateFile(LOGFOLDER+LogName)
 
-?Win32
-WinDir = GetEnv("WINDIR")
-PrintF("Windows Folder: " + WinDir)
-?
-
+WindowsCheck()
 SetupPlatforms()
 OldPlatformListChecks()
 
-If wxIsPlatform64Bit() = 1 Then
-	PrintF("Detected 64bit")
-	WinBit = 64
-Else
-	PrintF("Detected 32bit")
-	WinBit = 32
-EndIf
-
 Global GameExplorerApp:GameExplorerShell
-Global PhotonRunnerApp:PhotonRunner
-Global PhotonTrayApp:PhotonTray
 
-LoadSettings()
-
-
-If ProgramMode = 1 Then 
-	CheckInternet()
-	CheckVersion()
-	GameExplorerApp = New GameExplorerShell
-	GameExplorerApp.Run()
-EndIf
-
-If ProgramMode = 2 Then
-	'If ArgumentNo < 4 Then
-	'	Notify "Not enough arguments"
-	'	End
-	'EndIf
-	If FileType(GAMEDATAFOLDER + RunnerGameName) <> 2 Then
-		Notify "Invalid Game"
-		End
-	EndIf 
-	PhotonRunnerApp = New PhotonRunner
-	PhotonRunnerApp.SetGame(RunnerGameName , RunnerEXENumber)
-	PhotonRunnerApp.Run()
-EndIf
-
-If ProgramMode = 3 Then 
-	PhotonTrayApp = New PhotonTray
-	PhotonTrayApp.Run()
-EndIf
+CheckInternet()
+CheckVersion()
+GameExplorerApp = New GameExplorerShell
+GameExplorerApp.Run()
 
 
-SettingFile.CloseFile()
 Print "Close"
-If CmdLineGameName <> "" Then 
-	RunProcess("FrontEnd.exe",1)
-EndIf 
 End
 
 
@@ -319,18 +248,33 @@ Function LoadSettings()
 		Case "0"
 			GenericArt = 0						
 	End Select
-	
 End Function
 
 
-Type GameExplorerShell Extends wxApp 
+Type GameExplorerShell Extends wxApp
 	Field Menu:GameExplorerFrame
 	Method OnInit:Int()
 		wxImage.AddHandler( New wxICOHandler)		
 		'wxImage.AddHandler( New wxPNGHandler)		
 		'wxImage.AddHandler( New wxJPEGHandler)
-		'wxImage.AddHandler( New wxJPEGHandler)			
-		Menu = GameExplorerFrame(New GameExplorerFrame.Create(Null , GES, "PhotonExplorer", -1, -1, 800, 600))
+		'wxImage.AddHandler( New wxJPEGHandler)		
+		Local w:Int = Int(SettingFile.GetSetting("WindowWidth") )
+		Local h:Int = Int(SettingFile.GetSetting("WindowHeight") )
+		Local Winx:Int
+		Local Winy:Int
+		If SettingFile.GetSetting("WindowX") = "" Or SettingFile.GetSetting("WindowY") = "" then
+			Winx = - 1
+			Winy = - 1
+		Else
+			Winx = Int(SettingFile.GetSetting("WindowX") )
+			Winy = Int(SettingFile.GetSetting("WindowY") )
+		EndIf
+		
+		If w = 0 Or h = 0 then
+			Menu = GameExplorerFrame(New GameExplorerFrame.Create(Null , GES, "PhotonExplorer", Winx, Winy, 800, 600) )
+		Else
+			Menu = GameExplorerFrame(New GameExplorerFrame.Create(Null , GES, "PhotonExplorer", Winx, Winy, w, h) )
+		EndIf
 		Return True
 
 	End Method
@@ -338,11 +282,13 @@ Type GameExplorerShell Extends wxApp
 End Type
 
 Type GameExplorerFrame Extends wxFrame
+	Field WinSplit:wxSplitterWindow
+	Field SubWinSplit:wxSplitterWindow
 	Field vbox:wxBoxSizer
 
 	Field GameList:wxListCtrl
 	?MacOS
-	Field GameNotebook:wxChoicebook 
+	Field GameNotebook:wxChoicebook
 	?Not MacOS
 	Field GameNotebook:wxNotebook
 	?
@@ -412,13 +358,35 @@ Type GameExplorerFrame Extends wxFrame
 	Field StartupRefreshTimer2:wxTimer	
 	Field StartupRefreshTimer3:wxTimer
 	
+	Field ResizeTimer:wxTimer
+	Field MoveTimer:wxTimer
+	
+	Field DownloadList:wxListBox
+	Field DownloadSearchBox:wxTextCtrl
+	Field DownloadSearchButton:wxButton
+	Field DownloadSourceBox:wxComboBox
+	Field DownloadTypeBox:wxComboBox	
+	Field DownloadSourceHyperText:wxHyperlinkCtrl
+	Field DownloadPlatformBox:wxComboBox
+	Field DownloadListDepth:int
+	Field DownloadOldSearch:String
+	Field DownloadListSelectButton:wxButton
+	
+	Field LuaTimer:wxTimer
+	
 	Method OnInit()
 	
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
-		Self.Maximize(1)
+		
+		Self.Maximize(Int(SettingFile.GetSetting("WindowMaximized") ) )
 		
 		Self.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )		
+
+		LuaTimer = New wxTimer.Create(Self, LT1)
+		ResizeTimer = New wxTimer.Create(Self, RT1)
+		MoveTimer = New wxTimer.Create(Self, MT1)
+
 
 		SubMenu1 = New wxMenu.Create()
 		SubMenu1.AppendRadioItem(GL_SM1_IV , "Icon View")
@@ -545,9 +513,9 @@ Type GameExplorerFrame Extends wxFrame
 		FileMenu.Append(GL_FM_Exit , "Exit")	
 		Connect(GL_FM_Exit , wxEVT_COMMAND_MENU_SELECTED , ExitFun)		
 		
-		?Linux
+		
 		ConnectAny(wxEVT_CLOSE , ExitFun)
-		?
+		
 		Local MainMenu:wxMenu = New wxMenu.Create()
 		MainMenu.AppendSubMenu(SubMenu1 , "List Type" )
 		MainMenu.AppendSubMenu(SubMenu2 , "Icon Type" )
@@ -641,7 +609,7 @@ Type GameExplorerFrame Extends wxFrame
 		
 		
 		'---------------------------------SPLIT PANEL---------------------------------
-		Local WinSplit:wxSplitterWindow = New wxSplitterWindow.Create(Self , wxID_ANY , - 1 , - 1 , - 1 , - 1 , wxSP_NOBORDER | wxSP_LIVE_UPDATE)
+		WinSplit = New wxSplitterWindow.Create(Self , WS , - 1 , - 1 , - 1 , - 1 , wxSP_NOBORDER | wxSP_LIVE_UPDATE)
 		
 		WinSplit.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
 		WinSplit.SetForegroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
@@ -672,7 +640,7 @@ Type GameExplorerFrame Extends wxFrame
 		
 		
 		'----------------------------Details+Front Art Panel------------------------------
-		Local SubWinSplit:wxSplitterWindow = New wxSplitterWindow.Create(GameNotebook , GES_SWS , - 1 , - 1 , - 1 , - 1 , wxSP_NOBORDER | wxSP_LIVE_UPDATE)
+		SubWinSplit = New wxSplitterWindow.Create(GameNotebook , GES_SWS , - 1 , - 1 , - 1 , - 1 , wxSP_NOBORDER | wxSP_LIVE_UPDATE)
 		Local FBAMainPanel:wxPanel = New wxPanel.Create(SubWinSplit , - 1)
 		FBAMainPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 		FBAMainPanelvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
@@ -931,11 +899,11 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameWalkPanel:wxPanel = New wxPanel.Create(GameWalkNotebook , - 1)
 		Local GW_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
-		WalkSearchCatBox = New wxComboBox.Create(GameWalkPanel, GW_SP_SC , "All Platforms" , GAMEFAQPLATFORMS , -1 , -1 , -1 , -1 , wxCB_READONLY )
+		WalkSearchCatBox = New wxComboBox.Create(GameWalkPanel, GW_SP_SC , "All Platforms" , GAMEFAQPLATFORMS , - 1 , - 1 , - 1 , - 1 , wxCB_READONLY )
 		
 		GP_SP_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)		
 		Local WalkText:wxStaticText = New wxStaticText.Create(GameWalkPanel , wxID_ANY , "Search:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		WalkSearchBox = New wxTextCtrl.Create(GameWalkPanel, GW_SP_ST , "" , -1 , -1 , -1 , -1 , 0 )
+		WalkSearchBox = New wxTextCtrl.Create(GameWalkPanel, GW_SP_ST , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 		Local WalkSearchButton:wxButton = New wxButton.Create(GameWalkPanel , GW_SP_SB ,"Go")
 		GP_SP_hbox.Add(WalkText , 0 , wxEXPAND | wxTOP | wxBOTTOM , 4)
 		GP_SP_hbox.Add(WalkSearchBox , 1 , wxEXPAND | wxLEFT | wxRIGHT , 5)
@@ -981,14 +949,14 @@ Type GameExplorerFrame Extends wxFrame
 		Local GM_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		GM_SP_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Local ManualText:wxStaticText = New wxStaticText.Create(GameManualPanel , wxID_ANY , "Search:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		ManualSearchBox = New wxTextCtrl.Create(GameManualPanel, GM_SP_ST , "" , -1 , -1 , -1 , -1 , 0 )
-		Local ManualSearchButton:wxButton = New wxButton.Create(GameManualPanel , GM_SP_SB ,"Go")
+		Local ManualText:wxStaticText = New wxStaticText.Create(GameManualPanel , wxID_ANY , "Search:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		ManualSearchBox = New wxTextCtrl.Create(GameManualPanel, GM_SP_ST , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+		Local ManualSearchButton:wxButton = New wxButton.Create(GameManualPanel , GM_SP_SB , "Go")
 		GM_SP_hbox.Add(ManualText , 0 , wxEXPAND | wxTOP | wxBOTTOM , 4)
 		GM_SP_hbox.Add(ManualSearchBox , 1 , wxEXPAND | wxLEFT | wxRIGHT , 5)
 		GM_SP_hbox.Add(ManualSearchButton , 0 , wxEXPAND  , 5)
 		
-		ManualList = New wxListBox.Create(GameManualPanel , GM_ML , Null , -1 , -1 , -1 , -1 , wxLB_SINGLE) 
+		ManualList = New wxListBox.Create(GameManualPanel , GM_ML , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
 		Local ManualDownloadButton:wxButton = New wxButton.Create(GameManualPanel , GM_DM , "Download")
 		
 		GM_vbox.AddSizer(GM_SP_hbox , 0 , wxEXPAND | wxALL , 5)
@@ -999,6 +967,70 @@ Type GameExplorerFrame Extends wxFrame
 		
 		GameManualNotebook.AddPage(GameManualLocalPanel , "Local" )
 		GameManualNotebook.AddPage(GameManualPanel , "Download" )		
+
+		'--------------------------------------------Download Panel----------------------------------
+
+		Local DownloadNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
+		DownloadNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
+		Local DownloadNotebookPanelvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+		Local DownloadSelectPanel:wxPanel = New wxPanel.Create(DownloadNotebookPanel , - 1)
+		Local DSP_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+		Local DSP_hbox1:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local DownloadTypeText:wxStaticText = New wxStaticText.Create(DownloadSelectPanel , wxID_ANY , "Type:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		DownloadTypeBox = New wxComboBox.Create(DownloadSelectPanel, GW_DP_DT , "" , ["Cheats", "Walkthroughs", "Patches", "Manuals" ] , - 1 , - 1 , - 1 , - 1 , wxCB_READONLY )
+		
+		DSP_hbox1.Add(DownloadTypeText , 0 , wxEXPAND | wxALL , 5)
+		DSP_hbox1.Add(DownloadTypeBox , 1 , wxEXPAND | wxALL , 5)
+		
+		
+		Local DSP_hbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local DownloadSourceText:wxStaticText = New wxStaticText.Create(DownloadSelectPanel , wxID_ANY , "Source:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		DownloadSourceBox = New wxComboBox.Create(DownloadSelectPanel, GW_DP_DSo , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_READONLY )
+		
+		DSP_hbox2.Add(DownloadSourceText , 0 , wxEXPAND | wxALL , 5)
+		DSP_hbox2.Add(DownloadSourceBox , 1 , wxEXPAND | wxALL , 5)
+
+		Local DSP_hbox4:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local DownloadPlatformText:wxStaticText = New wxStaticText.Create(DownloadSelectPanel , wxID_ANY , "Platform:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		DownloadPlatformBox = New wxComboBox.Create(DownloadSelectPanel, GW_DP_DP , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_READONLY )
+		
+		DSP_hbox4.Add(DownloadPlatformText , 0 , wxEXPAND | wxALL , 5)
+		DSP_hbox4.Add(DownloadPlatformBox , 1 , wxEXPAND | wxALL , 5)
+		
+
+		Local DSP_hbox3:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local DownloadSearchText:wxStaticText = New wxStaticText.Create(DownloadSelectPanel , wxID_ANY , "Search:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		DownloadSearchBox = New wxTextCtrl.Create(DownloadSelectPanel, GW_DP_DSe , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+		DownloadSearchButton = New wxButton.Create(DownloadSelectPanel , GM_DP_SB , "Go")
+		
+		DSP_hbox3.Add(DownloadSearchText , 0 , wxEXPAND | wxALL , 5)
+		DSP_hbox3.Add(DownloadSearchBox , 1 , wxEXPAND | wxALL , 5)		
+		DSP_hbox3.Add(DownloadSearchButton , 0 , wxEXPAND | wxALL , 5)		
+		
+		
+		DSP_vbox.AddSizer(DSP_hbox1, 0, wxEXPAND, 0)
+		DSP_vbox.AddSizer(DSP_hbox2, 0, wxEXPAND, 0)
+		DSP_vbox.AddSizer(DSP_hbox4, 0, wxEXPAND, 0)
+		DSP_vbox.AddSizer(DSP_hbox3, 0, wxEXPAND, 0)
+			
+		DownloadSelectPanel.SetSizer(DSP_vbox)	
+					
+		DownloadList = New wxListBox.Create(DownloadNotebookPanel , GM_DP_DL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
+		DownloadListSelectButton = New wxButton.Create(DownloadNotebookPanel , GM_DP_LS , "Download")
+		DownloadSourceHyperText = New wxHyperlinkCtrl.Create(DownloadNotebookPanel, GM_DP_SHL, "-", "", - 1, - 1, - 1, - 1, wxHL_ALIGN_LEFT)
+		
+	
+		Self.DownloadDisableEnable(0, 0, 0, 0)	
+	
+		
+		DownloadNotebookPanelvbox.Add(DownloadSelectPanel , 0 , wxEXPAND | wxALL , 5)
+		DownloadNotebookPanelvbox.Add(DownloadList, 1, wxEXPAND, 0)
+		DownloadNotebookPanelvbox.Add(DownloadListSelectButton, 0, wxEXPAND | wxALL, 5)
+		DownloadNotebookPanelvbox.Add(DownloadSourceHyperText, 0, wxEXPAND | wxALL, 5)
+		
+		DownloadNotebookPanel.SetSizer(DownloadNotebookPanelvbox)
 
 		'-----------------------------------------------------------------------------------		
 
@@ -1012,15 +1044,19 @@ Type GameExplorerFrame Extends wxFrame
 		GameNotebook.AddPage(GamePatchNotebookPanel , "Patches" )
 		GameNotebook.AddPage(GameCheatNotebookPanel , "Cheats" )
 		GameNotebook.AddPage(GameWalkNotebookPanel , "Walkthroughs" )
-		
-
+		GameNotebook.AddPage(DownloadNotebookPanel , "Download" )
 		
 
 		WinSplit.SplitVertically(GameListPanel , GameNotebookPanel , - 300)
 	 	WinSplit.SetSashGravity(1)
 	 	WinSplit.SetMinimumPaneSize(100)
 		
-	 	SubWinSplit.SplitHorizontally(FBAMainPanel , GameDetailsPanel , 200)
+		If SettingFile.GetSetting("SplitterSash2") = "" Or SettingFile.GetSetting("SplitterSash2") = Null Or SettingFile.GetSetting("SplitterSash2") = 0 then
+			SubWinSplit.SplitHorizontally(FBAMainPanel , GameDetailsPanel , 200)
+		Else
+			SubWinSplit.SplitHorizontally(FBAMainPanel , GameDetailsPanel , Int(SettingFile.GetSetting("SplitterSash2") ) )
+		EndIf		
+	 	
 	 	SubWinSplit.SetSashGravity(0)
 	 	SubWinSplit.SetMinimumPaneSize(10)	
 		
@@ -1034,10 +1070,20 @@ Type GameExplorerFrame Extends wxFrame
 		vbox.Add(WinSplit , 1 , wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM , 10 )
 
 		Self.SetSizer(vbox)
-		Self.Centre()
+		
+		
+		If SettingFile.GetSetting("WindowX") = "" Or SettingFile.GetSetting("WindowY") = "" then
+			Self.Center()
+		EndIf
 		
 		
 		Self.PopulateGameList()
+		
+		Connect(GW_DP_DSo, wxEVT_COMMAND_TEXT_UPDATED, DownloadSourceChangedFun)
+		Connect(GW_DP_DT, wxEVT_COMMAND_COMBOBOX_SELECTED, DownloadTypeChange)
+		Connect(GM_DP_SB, wxEVT_COMMAND_BUTTON_CLICKED, DownloadSearchFun)
+		Connect(GM_DP_DL, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, DownloadListItemSelectedFun)
+		
 		
 		
 		Connect(GES_SL , wxEVT_COMMAND_COMBOBOX_SELECTED , GameListUpdate)
@@ -1089,6 +1135,9 @@ Type GameExplorerFrame Extends wxFrame
 		Connect(GDP_GRC , wxEVT_COMMAND_COMBOBOX_SELECTED , UserDataUpdate)
 		Connect(GDP_GCC , wxEVT_COMMAND_COMBOBOX_SELECTED , UserDataUpdate)
 		
+		Connect(GM_DP_SHL, wxEVT_COMMAND_HYPERLINK, HyperLinkFun)
+		Connect(WS , wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, SplitterSashMovedFun)
+		Connect(GES_SWS , wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, SplitterSash2MovedFun)
 
 		?Win32		
 		Local StringItem:String 
@@ -1126,7 +1175,7 @@ Type GameExplorerFrame Extends wxFrame
 			
 		StartupRefreshTimer = New wxTimer.Create(Self,SRT1)
 		StartupRefreshTimer.Start(1000 , True)
-		Connect(SRT1 ,wxEVT_TIMER , StartupRefreshTimerFun)
+		Connect(SRT1 , wxEVT_TIMER , StartupRefreshTimerFun)
 
 		?Linux
 		StartupRefreshTimer2 = New wxTimer.Create(Self,SRT2)
@@ -1136,21 +1185,572 @@ Type GameExplorerFrame Extends wxFrame
 
 		StartupRefreshTimer3 = New wxTimer.Create(Self,SRT3)
 		StartupRefreshTimer3.Start(3000 , True)
-		Connect(SRT3 ,wxEVT_TIMER , StartupRefreshTimerFun3)
+		Connect(SRT3 , wxEVT_TIMER , StartupRefreshTimerFun3)
 		
-		Connect(GES ,wxEVT_SIZE , ResizeEventFun)
+		Connect(GES , wxEVT_SIZE , ResizeEventFun)
+		Connect(GES , wxEVT_MOVE , MoveEventFun)
+		Connect(RT1, wxEVT_TIMER, ResizedFun)
+		Connect(MT1, wxEVT_TIMER, MovedFun)
 		
-		
+		LuaTimer.Start(100)
+		Connect(LT1, wxEVT_TIMER , DownloadLuaEvent)
 		
 	End Method
 	
+	Function HyperLinkFun(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		If GameExploreWin.DownloadSourceHyperText.GetURL() = "-" then
+			Return
+		EndIf
+		Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null, "Goto website: " + GameExploreWin.DownloadSourceHyperText.GetURL() + "?~n(Note that Photon does not take any responsibility for the content or quality of the link and the site it points to)" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
+		If MessageBox.ShowModal() = wxID_YES then
+			wxLaunchDefaultBrowser(GameExploreWin.DownloadSourceHyperText.GetURL() )	
+		EndIf
+	End Function	
+	
+	Function DownloadLuaEvent(event:wxEvent)
+		?Threaded
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		If GameExploreWin = Null then Return
+		
+		Local LuaEvent2:String
+
+		LockMutex(LuaEventMutex)
+		LuaEvent2 = LuaEvent
+		LuaEvent = ""
+		UnlockMutex(LuaEventMutex)
+		
+		Select LuaEvent2
+			Case "SourceChanged"
+				GameExploreWin.DownloadSourceChangedReturn()
+			Case "Search"
+				GameExploreWin.DownloadSearchReturn()
+			Case "FurtherSearch"
+				GameExploreWin.DownloadFurtherSearchReturn()
+			Case ""
+				'Do nothing
+			Default
+				'Error
+		End Select
+		
+		?
+	End Function
+	
+	
+	Function DownloadSourceChangedFun(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		GameExploreWin.DownloadSourceChanged()
+	End Function
+	
+	Method DownloadSourceChanged()
+		Self.DownloadDisableEnable(0, 0, 0, 0)
+	
+		If LuaMutexLock(1, 1) = 0 then
+			Return
+		EndIf
+		
+		Self.DownloadSourceHyperText.SetLabel("-")
+		Self.DownloadSourceHyperText.SetURL("")		
+		Self.DownloadSourceHyperText.Refresh(1)
+		
+		Self.DownloadList.Clear()
+		Self.DownloadPlatformBox.Clear()
+		
+		'Create Platform List
+		Local LuaList:LuaListType = New LuaListType.Create()
+		'Get Lua File
+		Local LuaFile:String
+		If Self.DownloadTypeBox.GetSelection() = wxNOT_FOUND then
+			Return
+		Else
+			Select Self.DownloadTypeBox.GetSelection()+2
+				Case 2
+					LuaFile = LUAFOLDER + "Cheat" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 3
+					LuaFile = LUAFOLDER + "Walkthrough" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 4
+					LuaFile = LUAFOLDER + "Patch" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 5
+					LuaFile = LUAFOLDER + "Manual" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Default
+					CustomRuntimeError("SourceChanged - Select Error")
+			End Select 	
+		EndIf	
+		
+		If LuaHelper_LoadString(LuaVM, "" , LuaFile) <> 0 then
+			LuaMutexUnlock()
+			Return
+		EndIf
+		PrintF("Running: " + LuaFile)
+		
+		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
+		lua_pushinteger( LuaVM , GameNode.PlatformNum)
+		lua_pushbmaxobject( LuaVM, LuaList )
+		LuaMutexUnlock()
+		
+		
+		?Threaded
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 4, "SourceChanged")
+		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
+		
+		?Not Threaded
+		LuaMutexLock()
+		If LuaHelper_pcall(LuaVM, 2, 4) <> 0 then
+			Return
+			LuaMutexUnlock()
+		Else
+			LuaMutexUnlock()
+		EndIf
+		DownloadSourceChangedReturn()
+		?	
+	End Method
+	
+	Method DownloadSourceChangedReturn()
+	
+		LuaMutexLock()
+		Local ErrorString:String
+		Local Error:Int
+		
+		'Get Return status
+		If lua_isnumber(LuaVM, 1) = False then
+			Error = 198
+		Else		
+			Error = luaL_checkint( LuaVM, 1 )
+		EndIf
+		
+		If Error <> 0 then
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				ErrorString = "Lua code did not return int @1 or/and string @2"
+			Else
+				ErrorString = luaL_checkstring(LuaVM , 2)
+			EndIf 
+			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
+			LuaMutexUnlock()
+			Return
+		EndIf
+		
+		
+		'Get selected platform
+		If lua_isstring(LuaVM, 3) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
+			LuaMutexUnlock()
+			Return		
+		EndIf
+		Local SelectedPlatform:String = luaL_checkstring(LuaVM , 3)
+		If lua_isbmaxobject(LuaVM, 4) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
+			LuaMutexUnlock()
+			Return		
+		EndIf
+		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
+		Local SinglePlatform:LuaListItemType
+		
+		'Remove 2 return values from stack
+		LuaHelper_CleanStack(LuaVM)
+		
+		For SinglePlatform = EachIn LuaList.List
+			Self.DownloadPlatformBox.Append(SinglePlatform.ItemName, SinglePlatform.ClientData)
+		Next
+		
+		Local SelectedPlatformItem:Int = Self.DownloadPlatformBox.FindString(SelectedPlatform)
+		If SelectedPlatformItem <> - 1 then
+			Self.DownloadPlatformBox.SetSelection(SelectedPlatformItem)
+		EndIf
+		
+		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetText")
+		LuaHelper_pcall(LuaVM, 0, 3)
+		
+		Error = luaL_checkint( LuaVM, 1 )
+		If Error <> 0 then
+			LuaHelper_FunctionError(LuaVM, Error, "Error Getting Website Source Link")
+			LuaMutexUnlock()
+			Return
+		EndIf
+		
+		Local ReturnedSourceText:String = luaL_checkstring(LuaVM , 2)
+		Local ReturnedSourceURL:String = luaL_checkstring(LuaVM , 3)
+		LuaHelper_CleanStack(LuaVM)
+
+		Self.DownloadSourceHyperText.SetLabel(ReturnedSourceText)
+		Self.DownloadSourceHyperText.SetURL(ReturnedSourceURL)
+		Self.DownloadSourceHyperText.Show()
+		Self.DownloadSourceHyperText.Refresh(1)
+		
+		Self.DownloadDisableEnable(0, 1, 1, 1)	
+		'Blank out lua Code
+		If LuaHelper_LoadString(LuaVM, LuaBlank) <> 0 then CustomRuntimeError("Blank Lua Code Error")
+		
+		LuaMutexUnlock()
+			
+	End Method	
+	
+
+	
+	Method DownloadDisableEnable( List:Int, Search:Int, Platform:Int, Source:Int)
+		If List = 1 then
+			Self.DownloadList.Enable()
+			Self.DownloadListSelectButton.Enable()
+		Else
+			Self.DownloadList.Disable()
+			Self.DownloadListSelectButton.Disable()
+		EndIf
+		If Search = 1 then
+			Self.DownloadSearchBox.Enable()
+			Self.DownloadSearchButton.Enable()
+		Else
+			Self.DownloadSearchBox.Disable()
+			Self.DownloadSearchButton.Disable()
+		EndIf
+		If Platform = 1 then
+			Self.DownloadPlatformBox.Enable()
+		Else
+			Self.DownloadPlatformBox.Disable()
+		EndIf
+		If Source = 1 then
+			Self.DownloadSourceBox.Enable()
+		Else
+			Self.DownloadSourceBox.Disable()
+		EndIf		
+	End Method
+	
+	Function DownloadListItemSelectedFun(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		GameExploreWin.DownloadListItemSelected()		
+	End Function
+	
+	Method DownloadListItemSelected()
+		Local MessageBox:wxMessageDialog
+		If Self.DownloadListDepth = 0 then
+			'Send Event			
+			'Self.SearchList.Clear()
+			If Self.DownloadList.GetStringSelection() = "No Search Results Returned" then
+				PrintF("Invalid search selection")
+				MessageBox = New wxMessageDialog.Create(Null , "Not a valid selection!" , "Error" , wxOK | wxICON_EXCLAMATION)
+				MessageBox.ShowModal()
+				MessageBox.Free()					
+			Else
+				Self.DownloadDisableEnable(0, 1, 1, 1)
+				Self.DownloadListDepth = 1
+			EndIf
+		else
+			Self.DownloadFurtherSearch(String(Self.DownloadList.GetItemClientData(Self.DownloadList.GetSelection() ) ) )
+		EndIf
+	End Method
+	
+	Method DownloadFurtherSearch(ClientData:String)
+		LuaMutexLock()
+		
+		Self.DownloadList.Clear()
+		
+		Local PlatformData:String = String(Self.DownloadPlatformBox.GetItemClientData(Self.DownloadPlatformBox.GetSelection() ) )
+		Local LuaList:LuaListType = New LuaListType.Create()
+		Local LuaInternet:LuaInternetType = LuaInternetType(New LuaInternetType.Create() )
+		
+		Local LuaFile:String
+		If Self.DownloadTypeBox.GetSelection() = wxNOT_FOUND then
+			Return
+		Else
+			Select Self.DownloadTypeBox.GetSelection()+2
+				Case 2
+					LuaFile = LUAFOLDER + "Cheat" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 3
+					LuaFile = LUAFOLDER + "Walkthrough" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 4
+					LuaFile = LUAFOLDER + "Patch" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 5
+					LuaFile = LUAFOLDER + "Manual" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Default
+					CustomRuntimeError("SourceChanged - Select Error")
+			End Select 	
+		EndIf	
+		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+			LuaMutexUnlock()
+			Return
+		EndIf
+		
+		'Get Lua Function
+		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "Search")
+		'Push PlatformNum and empty list
+		lua_pushbmaxobject( LuaVM , Self.DownloadOldSearch)
+		lua_pushbmaxobject( LuaVM , ClientData)
+		lua_pushbmaxobject( LuaVM , PlatformData)
+		lua_pushinteger( LuaVM , Self.DownloadListDepth)
+		lua_pushbmaxobject( LuaVM, LuaInternet )
+		lua_pushbmaxobject( LuaVM, LuaList )
+		'Call Lua Function
+		
+		LuaMutexUnlock()
+		
+		?Threaded
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "FurtherSearch" )
+		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
+		?Not Threaded
+		LuaMutexLock()
+		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+			Return
+			LuaMutexUnlock()
+		Else
+			LuaMutexUnlock()
+		EndIf
+		DownloadFurtherSearchReturn()
+		?
+		
+	End Method
+
+	Method DownloadFurtherSearchReturn()
+	
+		LuaMutexLock()
+		PlaySound Beep
+		Local Error:Int
+		
+		'Get Return status
+		Error = luaL_checkint( LuaVM, 1 )
+		
+		If Error <> 0 then
+			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
+			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
+			LuaMutexUnlock()
+			Return
+		EndIf
+				
+		Self.DownloadListDepth = luaL_checkint( LuaVM , 3)
+		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
+		
+		LuaHelper_CleanStack(LuaVM)
+		
+		Local LuaListItem:LuaListItemType
+		For LuaListItem = EachIn LuaList.List
+			Self.DownloadList.Append(LuaListItem.ItemName, LuaListItem.ClientData)
+		Next
+		
+		LuaHelper_LoadString(LuaVM, LuaBlank)
+		
+		LuaMutexUnlock()
+							
+	End Method
+	
+	Function DownloadSearchFun(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		GameExploreWin.DownloadSearch()
+	End Function
+	
+	Method DownloadSearch()
+		LuaMutexLock()		
+	
+		Self.DownloadListDepth = 1
+		Self.DownloadDisableEnable(0, 1, 1, 1)
+		Self.DownloadList.Clear()
+		
+		Local SearchTerm:String = Self.DownloadSearchBox.GetValue()
+		
+		Local PlatformData:String
+		If Self.DownloadPlatformBox.GetSelection() = wxNOT_FOUND then
+			LuaMutexUnlock()
+			Return			
+		Else
+			PlatformData = String(Self.DownloadPlatformBox.GetItemClientData(Self.DownloadPlatformBox.GetSelection() ) )
+		EndIf
+		
+		Local LuaList:LuaListType = New LuaListType.Create()
+		
+		Local LuaFile:String
+		If Self.DownloadTypeBox.GetSelection() = wxNOT_FOUND then
+			Return
+		Else
+			Select Self.DownloadTypeBox.GetSelection()+2
+				Case 2
+					LuaFile = LUAFOLDER + "Cheat" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 3
+					LuaFile = LUAFOLDER + "Walkthrough" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 4
+					LuaFile = LUAFOLDER + "Patch" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Case 5
+					LuaFile = LUAFOLDER + "Manual" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+				Default
+					CustomRuntimeError("SourceChanged - Select Error")
+			End Select 	
+		EndIf			
+		
+		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+			LuaMutexUnlock()
+			Return
+		EndIf
+		
+		Self.DownloadOldSearch = SearchTerm
+		
+		'Get Lua Function
+		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "Search")
+		'Push PlatformNum and empty list
+		lua_pushbmaxobject( LuaVM , SearchTerm)
+		lua_pushbmaxobject( LuaVM , "")
+		lua_pushbmaxobject( LuaVM , PlatformData)
+		lua_pushinteger( LuaVM , Self.DownloadListDepth)
+		lua_pushbmaxobject( LuaVM, LuaInternet )
+		lua_pushbmaxobject( LuaVM, LuaList )
+		'Call Lua Function
+		
+		LuaMutexUnlock()
+		
+		?Threaded
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "Search" )
+		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
+		
+		?Not Threaded
+		LuaMutexLock()
+		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+			Return
+			LuaMutexUnlock()
+		Else
+			LuaMutexUnlock()
+		EndIf
+		DownloadSearchReturn()
+		?
+	End Method	
+	
+	
+	Method DownloadSearchReturn()
+		PlaySound Beep
+		Local ErrorString:String
+		
+		LuaMutexLock()
+		Local Error:Int
+		
+		'Get Return status
+		If lua_isnumber(LuaVM, 1) = False then
+			Error = 198
+		Else		
+			Error = luaL_checkint( LuaVM, 1 )
+		EndIf
+		
+		If Error <> 0 then
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				ErrorString = "Lua code did not return int @1 or/and string @2"
+			Else
+				ErrorString = luaL_checkstring(LuaVM , 2)
+			EndIf 
+			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
+			LuaMutexUnlock()
+			Return
+		EndIf
+		
+					
+		If lua_isstring(LuaVM, 3) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
+			LuaMutexUnlock()
+			Return		
+		EndIf
+		Self.DownloadListDepth = luaL_checkint( LuaVM , 3)
+		If lua_isbmaxobject(LuaVM, 4) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
+			LuaMutexUnlock()
+			Return		
+		EndIf		
+		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
+		
+		LuaHelper_CleanStack(LuaVM)
+		
+		
+		If CountList(LuaList.List) > 0 then
+			Local LuaListItem:LuaListItemType
+			For LuaListItem = EachIn LuaList.List
+				Self.DownloadList.Append(LuaListItem.ItemName, LuaListItem.ClientData)
+			Next
+			Self.DownloadDisableEnable(1, 1, 1, 1)
+		Else
+			Self.DownloadList.Append("No Search Results Returned", "")
+		EndIf
+		
+		LuaHelper_LoadString(LuaVM, LuaBlank)
+		LuaMutexUnlock()
+	End Method
+	
+	
+	Function DownloadTypeChange(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)	
+		Local item:Int = GameExploreWin.DownloadTypeBox.GetSelection()
+		Local Sources:TList, Source:String
+		
+		GameExploreWin.DownloadDisableEnable(0, 0, 0, 0)
+		
+		If item = wxNOT_FOUND then
+			CustomRuntimeError("DownloadTypeChange: item not found")
+		Else
+			GameExploreWin.DownloadSourceBox.Clear()
+			GameExploreWin.DownloadPlatformBox.Clear()
+			GameExploreWin.DownloadList.Clear()
+			GameExploreWin.DownloadSourceHyperText.SetLabel("-")
+			GameExploreWin.DownloadSourceHyperText.SetURL("")
+			GameExploreWin.DownloadSourceHyperText.Refresh(1)
+			Sources = GetLuaList(item + 2)
+			For Source = EachIn Sources
+				GameExploreWin.DownloadSourceBox.Append(Source)
+			Next
+			GameExploreWin.DownloadSourceBox.SetStringSelection(LuaHelper_GetDefault(item + 2) )
+			If Sources.Count() > 0 then
+				GameExploreWin.DownloadDisableEnable(0, 0, 0, 1)
+				GameExploreWin.DownloadSourceChanged()
+			Else
+				GameExploreWin.DownloadSourceBox.Append("No available sources")
+				GameExploreWin.DownloadSourceBox.SetSelection(0)
+			EndIf
+		EndIf
+	End Function
+	
+	Function MoveEventFun(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		event.Skip(True)
+		GameExploreWin.MoveTimer.Stop()
+		GameExploreWin.MoveTimer.Start(2000, 1)	
+	End Function
+	
+	Function MovedFun(event:wxEvent)
+		PrintF("Moved Win")
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		Local x:Int, y:Int
+		GameExploreWin.GetPosition(x, y)
+		SettingFile.SaveSetting("WindowX" , String(x) )
+		SettingFile.SaveSetting("WindowY" , String(y) )
+		SettingFile.SaveFile()
+	End Function
+	
+	Function ResizedFun(event:wxEvent)
+		PrintF("Resized Win")
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		Local w:Int, h:Int
+		GameExploreWin.GetSize(w, h)
+		
+		SettingFile.SaveSetting("WindowWidth" , String(w) )
+		SettingFile.SaveSetting("WindowHeight" , String(h) )
+		SettingFile.SaveSetting("WindowMaximized" , String(GameExploreWin.IsMaximized() ) )
+		SettingFile.SaveFile()
+	End Function
+	
 	Function ResizeEventFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		PrintF("Resized Win")
-		event.skip(True)
+		event.Skip(True)
+		GameExploreWin.ResizeTimer.Stop()
+		GameExploreWin.ResizeTimer.Start(2000, 1)
 	'	GameExploreWin.Refresh()
 	'	GameExploreWin.Update()
-	End Function 
+	End Function
+	
+	Function SplitterSashMovedFun(event:wxEvent)
+		PrintF("Sash1")
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		Local w:Int, h:Int
+		GameExploreWin.WinSplit.GetSize(w, h)
+		SettingFile.SaveSetting("SplitterSash1" , String(w - GameExploreWin.WinSplit.GetSashPosition() ) )
+		SettingFile.SaveFile()
+		GameExploreWin.Refresh()
+	End Function
+	
+	Function SplitterSash2MovedFun(event:wxEvent)
+		PrintF("Sash2")
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		SettingFile.SaveSetting("SplitterSash2" , String(GameExploreWin.SubWinSplit.GetSashPosition() ) )
+		SettingFile.SaveFile()
+		GameExploreWin.Refresh()
+	End Function	
 	
 	Method RefreshWindow()
 		PrintF("Refresh")
@@ -1158,7 +1758,7 @@ Type GameExplorerFrame Extends wxFrame
 		'Linux Part required otherwise GameList doesn't update and is just blank
 		?Linux
 		Local w:Int
-		Local h:Int 
+		Local h:Int
 		Self.GetSize(w,h)
 		Self.SetSize(w+1,h)
 		?			
@@ -1169,7 +1769,7 @@ Type GameExplorerFrame Extends wxFrame
 	
 	Function StartupRefreshTimerFun3(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)	
-		If CmdLineGameName <> "" Then 
+		If CmdLineGameName <> "" then
 			Select CmdLineGameTab
 				Case "ScreenShots"
 					GameExploreWin.GameNotebook.ChangeSelection(2)
@@ -1183,7 +1783,7 @@ Type GameExplorerFrame Extends wxFrame
 					GameExploreWin.GameNotebook.ChangeSelection(6)
 			End Select
 		EndIf 		
-	End Function 
+	End Function
 
 	Function StartupRefreshTimerFun2(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
@@ -1209,24 +1809,26 @@ Type GameExplorerFrame Extends wxFrame
 					ID = ID + 1
 				EndIf 
 			Next 
-			If IDSet = True Then 
+			If IDSet = True then
 				item = New wxListItem.Create()	
 				item.SetID(ID)
 				GameExploreWin.GameList.GetItem(item)
 				item.SetState(wxLIST_STATE_SELECTED)
 				GameExploreWin.GameList.SetItem(item)
-			EndIf 
+			EndIf
 		
-		EndIf		
-	
+		EndIf
 	End Function
 
 	Function StartupRefreshTimerFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		GameExploreWin.Show()			
-		GameExploreWin.RefreshWindow()
-
-			
+		GameExploreWin.Show()				
+		Local Sash1:Int = Int(SettingFile.GetSetting("SplitterSash1") )
+		If Sash1 = 0 then
+		Else
+			GameExploreWin.WinSplit.SetSashPosition( - Sash1)
+		EndIf			
+		GameExploreWin.RefreshWindow()			
 	End Function
 
 	Function UserDataUpdate(event:wxEvent)
@@ -1316,7 +1918,7 @@ Type GameExplorerFrame Extends wxFrame
 		Repeat
 			File = NextFile(ReadWalks)
 			If File="." Or File=".." Then Continue
-			If File = "" Then Exit
+			If File = "" then Exit
 			If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides" + FolderSlash + Selection + FolderSlash + File) = 1 Then
 				GameExploreWin.LocalWalkFileList.Append(File)
 			EndIf
@@ -1326,11 +1928,19 @@ Type GameExplorerFrame Extends wxFrame
 	End Function	
 
 	Function ExitFun(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		PrintF("Exit Function")
+		SettingFile.CloseFile()
+		EndLuaVM()
 		?Win32
-        wxWindow(event.parent).Close(True)
+		If CmdLineGameName <> "" then
+			RunProcess("FrontEnd.exe", 1)
+		EndIf
 		?Linux
-		End 
+		
 		?
+		GameExploreWin.Destroy()
+		End
 	End Function
 	
 	Function LoadKeyboardFun(event:wxEvent)
@@ -1386,7 +1996,7 @@ Type GameExplorerFrame Extends wxFrame
 			Return		
 		Else
 			For Cheat = EachIn GameExploreWin.CheatTList
-				If Selection = Cheat.Name Then
+				If Selection = Cheat.Name then
 					Exit 
 				EndIf 
 			Next			
@@ -1401,7 +2011,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local MessageBox:wxMessageDialog
 		Local Walk:DownloadListObject		
 		Local Selection:String = GameExploreWin.WalkList.GetStringSelection()
-		If Selection = "" Or Selection = "No Results Returned" Or Selection = "Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search." Then
+		If Selection = "" Or Selection = "No Results Returned" Or Selection = "Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search." then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select a manual" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()	
@@ -1449,8 +2059,8 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local Walk:DownloadListObject
 		
-		If CheckInternet() = 1 Then
-			If SettingFile.GetSetting("DownloadsAccepted") = "" Then
+		If CheckInternet() = 1 then
+			If SettingFile.GetSetting("DownloadsAccepted") = "" then
 				OpenURL("http://photongamemanager.com/GameManagerPages/DownloadsToS.html")
 				MessageBox = New wxMessageDialog.Create(Null , "Before you can download anything you must accept the ToS opened in your browser (http://photongamemanager.com/GameManagerPages/DownloadsToS.html). Do you accept them?" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 				If MessageBox.ShowModal() = wxID_YES Then
@@ -1475,7 +2085,7 @@ Type GameExplorerFrame Extends wxFrame
 			EndRem 
 			
 			GameExploreWin.WalkTList = SearchGuide_GFAQs(GameExploreWin.WalkSearchBox.GetValue(),GetGFAQsCode(GameExploreWin.WalkSearchCatBox.GetCurrentSelection()))
-			GameExploreWin.WalkList.Clear() 
+			GameExploreWin.WalkList.Clear()
 			
 			For Walk = EachIn GameExploreWin.WalkTList
 				GameExploreWin.WalkList.Append(Walk.Name)
@@ -2316,10 +2926,7 @@ Type GameExplorerFrame Extends wxFrame
 				CloseDir(ReadManuals)
 			EndIf
 			
-			Self.PatchSearchBox.ChangeValue(GameNode.Name)
-			Self.WalkSearchBox.ChangeValue(GameNode.Name)
-			Self.ManualSearchBox.ChangeValue(GameNode.Name)
-			Self.CheatSearchBox.ChangeValue(GameNode.Name)
+			Self.DownloadSearchBox.ChangeValue(GameNode.Name)
 			Self.GGenreText.SetLabel("Genre: " + CorrectText(GenreList) )
 			Self.GDevText.SetLabel("Developer: " + CorrectText(GameNode.Dev) )
 			Self.GPubText.SetLabel("Publisher: " + CorrectText(GameNode.Pub) )
@@ -2936,7 +3543,6 @@ Type ImagePanel Extends wxPanel
 
 	
 	Function OnPaint(event:wxEvent)
-		
 		Local canvas:ImagePanel = ImagePanel(event.parent)
 		
 		canvas.Refresh()
@@ -3015,7 +3621,7 @@ Type ImagePanel Extends wxPanel
 		Else
 			CustomRuntimeError("Error 105: Invalid Image File") 'MARK: Error 105
 		EndIf
-		dc.free()
+		dc.Free()
 	End Function
 	
 End Type
@@ -3460,7 +4066,7 @@ Function LoadGlobalSettings()
 		SilentRunnerEnabled = Int(ReadSettings.GetSetting("SilentRunOff"))
 	EndIf 
 	If ReadSettings.GetSetting("Cabinate") <> "" Then	
-		CabinateEnable = Int(ReadSettings.GetSetting("Cabinate"))
+		CabinateEnable = Int(ReadSettings.GetSetting("Cabinate") )
 	EndIf 
 	If ReadSettings.GetSetting("RunnerButtonCloseOnly") <> "" Then	
 		RunnerButtonCloseOnly = Int(ReadSettings.GetSetting("RunnerButtonCloseOnly"))
@@ -3484,7 +4090,7 @@ Function FitPixmapIntoBox:TPixmap(Pixmap:TPixmap,IconSize:Int,Banner:Int = -1)
 		EndIf 
 		
 		Pixmap2 = CreatePixmap(IconSize,IconSize,5) 
-		ClearPixels(Pixmap2,-44563)
+		ClearPixels(Pixmap2, - 44563)
 		Pixmap2.Paste(Pixmap,(IconSize-Pixmap.Width)/2,(IconSize-Pixmap.Height)/2)
 		Return Pixmap2
 	
@@ -3502,10 +4108,40 @@ Function FitPixmapIntoBox:TPixmap(Pixmap:TPixmap,IconSize:Int,Banner:Int = -1)
 		Pixmap2.Paste(Pixmap,0,0)
 		Return Pixmap2	
 	EndIf 
-End Function 
+End Function
 
-Include "Includes\GameExplorerShell\PhotonTray.bmx"
-Include "Includes\GameExplorerShell\PhotonRunner.bmx"
-Include "Includes\GameExplorerShell\ProcessManager.bmx"
+Function WindowsCheck()
+	?Win32
+	WinDir = GetEnv("WINDIR")
+	PrintF("Windows Folder: " + WinDir)
+	
+	If wxIsPlatform64Bit() = 1 then
+		PrintF("Detected 64bit")
+		WinBit = 64
+	Else
+		PrintF("Detected 32bit")
+		WinBit = 32
+	EndIf
+
+	Local OSMajor:Int
+	Local OSMinor:int
+	wxGetOsVersion(OSMajor, OSMinor)
+
+	PrintF("Detected Win Version: "+OSMajor+"."+OSMinor)
+
+	If OSMajor => 6 Then
+		WinExplorer = True
+	Else
+		WinExplorer = False
+	EndIf
+	?Not Win32
+		WinExplorer = False
+	?
+	
+End Function
+
+
 Include "Includes\General\ValidationFunctions.bmx"
 Include "Includes\General\General.bmx"
+Include "Includes\General\LuaFunctions.bmx"
+Include "Includes\GameExplorerShell\LuaFunctions.bmx"
