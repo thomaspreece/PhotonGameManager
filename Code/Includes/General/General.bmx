@@ -442,7 +442,7 @@ Function DeleteCreateFolder(Folder:String)
 			Exit
 		EndIf
 	Next	
-	PrintF("CreateDir Loop "+a)
+	PrintF("CreateDir Loop " + a)
 	If FileType(Folder) = 0 Then
 		CustomRuntimeError("Error 11: Cannot Create Folder "+Folder) 'MARK: Error 11
 	EndIf
@@ -583,16 +583,18 @@ Type GameReadType {expose}
 	End Function
 
 
-	Function GameNameDirFilter:String(Text:String)
+	Function GameNameDirFilter:String(Text:String, StripSpaces:Int = True)
 		'Strips out all characters not allowed in filesystems
 		
 		Local Regfilter:TRegEx = New TRegEx.Create("&(amp;|)")
-		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\- _]")
+		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\.\- _]")
 		Local Regfilter3:TRegEx = New TRegEx.Create(" ")
 
 		Text = Regfilter.ReplaceAll(Text, "and")
 		Text = Regfilter2.ReplaceAll(Text, "")
-		Text = Regfilter3.ReplaceAll(Text, "_")
+		If StripSpaces = True then
+			Text = Regfilter3.ReplaceAll(Text, "_")
+		EndIf
 
 		Return Text
 	End Function	

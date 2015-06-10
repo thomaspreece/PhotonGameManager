@@ -11,6 +11,7 @@ Global OSubVersion:String
 Global LuaVM:Byte Ptr
 Global LuaBlank:String = "function GetPlatforms(PlatformID,List)~nend~nfunction GetText()~nend~nfunction SearchGame(Text,Platform,ListDepth,List)~nend"
 Global SearchSourceLuaList:String[]
+Global CurlUseragent:String = "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0"
 
 ?Threaded
 Global LuaEventMutex:TMutex = CreateMutex()

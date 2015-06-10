@@ -1,9 +1,10 @@
-Global LuaInternet:LuaInternetType = LuaInternetType(New LuaInternetType.Create() )
+Global LuaInternet:LuaInternetType
 
 Function StartupLuaVM()
 	LuaVM = luaL_newstate()
 	InitLuGI(LuaVM)
 	luaL_openlibs(LuaVM)
+	LuaInternet = LuaInternetType(New LuaInternetType.Create() )
 End Function
 
 Function EndLuaVM()
@@ -53,13 +54,14 @@ Type LuaInternetType {expose disablenew}
 	Field Time:int
 	Field Timeout:Int = 10000
 	Field Currentdl:Double
+	Field Window:wxWindow
 
 	Function progressCallback:Int(data:Object, dltotal:Double, dlnow:Double, ultotal:Double, ulnow:Double) {hidden}
 		Local LuaInternet:LuaInternetType = LuaInternetType(data)
 		If dlnow = 0 then
-			LuaInternetPulse()
+			LuaInternetPulse(LuaInternet.Window)
 		Else
-			LuaInternetSetProgress( (100 * dlnow) / dltotal)
+			LuaInternetSetProgress( (100 * dlnow) / dltotal, LuaInternet.Window)
 		EndIf
 		
 		If LuaInternet.Currentdl - dlnow = 0 then
@@ -76,8 +78,9 @@ Type LuaInternetType {expose disablenew}
 		Return 0	
 	End Function
 
-	Method Create:LuaInternetType()
+	Method Create:LuaInternetType(Win:wxWindow = Null)
 		curl = TCurlEasy.Create()
+		Self.Window = Win
 		Return Self
 	End Method
 	
@@ -96,38 +99,75 @@ Type LuaInternetType {expose disablenew}
 		LuaMutexUnlock()
 	End Method
 	
-	Method GET:String(URL:String, filename:String)
+	Method GET:String(URL:String, filename:String, Useragent:String = Null)
 		'strip any bad path
 		filename = StripDir(filename)
 		
 		Self.Time = - 1
 		Self.Currentdl = - 1
 		
-		Local TFile:TStream = WriteFile(TEMPFOLDER + filename)
+		If FileType(TEMPFOLDER + "Lua" ) = 0 then
+			CreateDir(TEMPFOLDER + "Lua", 1 )
+		EndIf
+		
+		Local TFile:TStream = WriteFile(TEMPFOLDER + "Lua" + FolderSlash + filename)
 
 		URL = URLEncode(URL)
-
+		
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
 		curl.setProgressCallback(Self.progressCallback, Object(Self) )
 		curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 		curl.setWriteStream(TFile)
+		If Useragent = Null then
+			curl.setOptString(CURLOPT_USERAGENT, CurlUseragent)
+		Else
+			curl.setOptString(CURLOPT_USERAGENT, Useragent)
+		EndIf
+
 		
 		Local res:Int = curl.perform()
 		
+		Local HTMLStream:TStream, HTML:String, Line:String
+		Local FinishSearch:Int = 0
+		Local MetaHeader:String = "<meta http-equiv=" + Chr(34) + "refresh" + Chr(34) + " content=" + Chr(34) + "0" + Chr(34) + ">"
 		CloseFile(TFile)
 
 		If res then
 			PrintF("LuaInternet GET Error: " + URL + "  " + CurlError(res) )
 			Self.LastError = CurlError(res)
 			Return "-1"
-		else
+		Else
+			'Check for meta-refresh
+			Rem
+			HTMLStream = ReadFile(TEMPFOLDER + filename)
+			FinishSearch = 0
+			Repeat
+				Line = Lower(ReadLine(HTMLStream) )
+				For a = 1 To Len(Line) - Len(MetaHeader) + 1
+					If Mid(Line, a, Len(MetaHeader) ) = MetaHeader then
+						PrintF("Refresh")
+						res = curl.perform()
+					EndIf
+					If Mid(Line, a, Len("</head>") ) = "</head>" then
+						FinishSearch = 1
+						Exit
+					EndIf
+				Next
+				If Eof(HTMLStream) then
+					FinishSearch = 1
+				EndIf
+				If FinishSearch = 1 then Exit
+			Forever
+			CloseFile(HTMLStream)
+			EndRem
+			
 			Self.LastError = ""
 			Return TEMPFOLDER + filename 'FullPathToFile
 		EndIf
 	End Method
 	
-	Method POST:String(URL:String, filename:String, data:String)
+	Method POST:String(URL:String, filename:String, data:String, Useragent:String = Null)
 		'strip any bad path
 		filename = StripDir(filename)
 		
@@ -136,7 +176,12 @@ Type LuaInternetType {expose disablenew}
 		Self.Time = - 1
 		Self.Currentdl = - 1
 		
-		Local TFile:TStream = WriteFile(TEMPFOLDER + filename)
+		If FileType(TEMPFOLDER + "Lua" ) = 0 then
+			CreateDir(TEMPFOLDER + "Lua", 1 )
+		EndIf
+				
+		
+		Local TFile:TStream = WriteFile(TEMPFOLDER + "Lua" + FolderSlash + filename)
 
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
@@ -144,6 +189,11 @@ Type LuaInternetType {expose disablenew}
 		curl.setOptString(CURLOPT_POSTFIELDS, data)		
 		curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 		curl.setWriteStream(TFile)
+		If Useragent = Null then
+			curl.setOptString(CURLOPT_USERAGENT, CurlUseragent)
+		Else
+			curl.setOptString(CURLOPT_USERAGENT, Useragent)
+		EndIf
 		
 		Local res:Int = curl.perform()
 		
@@ -345,7 +395,7 @@ Function LuaHelper_LoadString:Int(Lua:Byte Ptr, Source:String , File:String = Nu
 	'Takes LuaVM, Text Source and optional File path. If optional file path provided, Source is ignored and file is read into Source
 	
 	'Clean out Lua Stack First
-	LuaHelper_CleanStack(LuaVM)
+	LuaHelper_CleanStack(Lua)
 	
 	Local Result:Int
 	Local MessageBox:wxMessageDialog
