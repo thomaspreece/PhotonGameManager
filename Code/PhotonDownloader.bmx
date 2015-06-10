@@ -382,7 +382,7 @@ Function Download_GFAQs_Cheat:String(File:String)
 				NextLine = "Skip"
 			EndIf
 			b = a+1
-		EndIf 
+		EndIf
 	Next
 	If NextLine = "Skip"
 		NextLine = ""

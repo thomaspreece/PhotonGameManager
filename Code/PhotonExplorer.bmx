@@ -1,6 +1,7 @@
 'TODO: Put filter into separate thread to increase smoothness and prevent wxwidgets debug message error
-'TODO: Save splitpanel positions
 'TODO: Fix lua script to be protected when lua script returns wrong types
+'TODO: Fix LuaInternet to check for meta refreshes
+
 
 'NOTHING IMPORTANT HERE
 'All subfiles checked, no pending fixes found
@@ -41,6 +42,7 @@ Import wx.wxTimer
 Import wx.wxListBox
 'Import wx.wxGenericDirCtrl
 Import wx.wxTaskBarIcon
+Import wx.wxgauge
 
 Import Bah.libxml
 Import Bah.libcurlssl
@@ -1083,6 +1085,7 @@ Type GameExplorerFrame Extends wxFrame
 		Connect(GW_DP_DT, wxEVT_COMMAND_COMBOBOX_SELECTED, DownloadTypeChange)
 		Connect(GM_DP_SB, wxEVT_COMMAND_BUTTON_CLICKED, DownloadSearchFun)
 		Connect(GM_DP_DL, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, DownloadListItemSelectedFun)
+		Connect(GM_DP_LS, wxEVT_COMMAND_BUTTON_CLICKED, DownloadListItemSelectedFun)
 		
 		
 		
@@ -1431,6 +1434,44 @@ Type GameExplorerFrame Extends wxFrame
 			Else
 				Self.DownloadDisableEnable(0, 1, 1, 1)
 				Self.DownloadListDepth = 1
+				Local DownloadBox:DownloadWindow = DownloadWindow(New DownloadWindow.Create(Null, wxID_ANY, "Downloading", - 1, - 1, 300, 400, wxDEFAULT_FRAME_STYLE) )
+				DownloadBox.ClientData = String(Self.DownloadList.GetItemClientData(Self.DownloadList.GetSelection() ) )
+				DownloadBox.FName = String(Self.DownloadList.GetStringSelection() )
+				DownloadBox.GName = GameNode.Name
+				DownloadBox.GameFolderDownloadName = GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash
+				
+				If Self.DownloadTypeBox.GetSelection() = wxNOT_FOUND then
+					Return
+				Else
+					Select Self.DownloadTypeBox.GetSelection() + 2
+						Case 2
+							DownloadBox.GameFolderDownloadName = DownloadBox.GameFolderDownloadName + "Cheats" + FolderSlash
+							DownloadBox.LuaFile = LUAFOLDER + "Cheat" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+						Case 3
+							DownloadBox.GameFolderDownloadName = DownloadBox.GameFolderDownloadName + "Guides" + FolderSlash
+							DownloadBox.LuaFile = LUAFOLDER + "Walkthrough" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+						Case 4
+							DownloadBox.GameFolderDownloadName = DownloadBox.GameFolderDownloadName + "Patches" + FolderSlash
+							DownloadBox.LuaFile = LUAFOLDER + "Patch" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+						Case 5
+							DownloadBox.GameFolderDownloadName = DownloadBox.GameFolderDownloadName + "Manuals" + FolderSlash
+							DownloadBox.LuaFile = LUAFOLDER + "Manual" + FolderSlash + Self.DownloadSourceBox.GetValue() + ".lua"
+						Default
+							CustomRuntimeError("DownloadListItemSelected - Select Error")
+					End Select 	
+				EndIf
+				If FileType(DownloadBox.GameFolderDownloadName) = 0 then
+					CreateDir(DownloadBox.GameFolderDownloadName, 1)
+				EndIf
+				
+				Self.DownloadList.Clear()
+				DownloadBox.Show(1)
+				
+				?Threaded
+				DownloadBox.Thread = CreateThread(Thread_Download, DownloadBox)
+				?Not Threaded
+				Thread_Download(DownloadBox)
+				?	
 			EndIf
 		else
 			Self.DownloadFurtherSearch(String(Self.DownloadList.GetItemClientData(Self.DownloadList.GetSelection() ) ) )
@@ -1540,6 +1581,8 @@ Type GameExplorerFrame Extends wxFrame
 		Self.DownloadListDepth = 1
 		Self.DownloadDisableEnable(0, 1, 1, 1)
 		Self.DownloadList.Clear()
+		
+		LuaInternet.Reset()
 		
 		Local SearchTerm:String = Self.DownloadSearchBox.GetValue()
 		
@@ -2746,7 +2789,7 @@ Type GameExplorerFrame Extends wxFrame
 		If GameNode.GetGame(GameName) = - 1 Then
 			Return
 		Else
-			If GameNode.Trailer = "" Then
+			If GameNode.Trailer = "" then
 				MessageBox = New wxMessageDialog.Create(Null , "This game doesn't have a trailer associated with it" , "Info" , wxOK | wxICON_INFORMATION)
 				MessageBox.ShowModal()
 				MessageBox.Free()					
@@ -2886,7 +2929,7 @@ Type GameExplorerFrame Extends wxFrame
 				CloseDir(ReadPatches)
 			EndIf
 
-			If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Cheats") = 2 Then
+			If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Cheats") = 2 then
 
 				ReadCheats = ReadDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Cheats")
 				Repeat
@@ -2900,7 +2943,7 @@ Type GameExplorerFrame Extends wxFrame
 				CloseDir(ReadCheats)
 			EndIf			
 			
-			If FileType(GAMEDATAFOLDER+GameNode.OrginalName+FolderSlash+"Guides") = 2 Then
+			If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides") = 2 then
 				ReadWalks = ReadDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash +"Guides")
 				Repeat
 					File = NextFile(ReadWalks)
@@ -3759,7 +3802,94 @@ Type ScreenShotPanel Extends wxPanel
 	
 End Type
 
+Type DownloadWindow Extends wxFrame {expose disablenew}
+	Field LogBox:wxTextCtrl
+	Field LogClosed:int
+	Field DownloadFinished:int
+	Field SubProgress:wxGauge
+	Field Progress:wxGauge
+	
+	Field ClientData:String
+	Field LuaFile:String
+	Field FName:String
+	Field GName:String
+	Field GameFolderDownloadName:String
+	
+	?Threaded
+	Field Thread:TThread
+	?
+	
+	Method Finish()
+		Self.DownloadFinished = True
+		If LogClosed = True then
+			Self.Destroy()
+			Return
+		EndIf
+		Self.AddText("Finished")
+		Self.Raise()
+		Self.SetFocus()
+	End Method
+	
+	Method OnInit()
 
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
+		Self.SetIcon( Icon )		
+		LogClosed = False		
+		
+				
+		Local hbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		LogBox = New wxTextCtrl.Create(Self, wxID_ANY, "", - 1 , - 1 , - 1 , - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_BESTWRAP)
+		
+		Progress = New wxGauge.Create(Self, wxID_ANY, 100, - 1, - 1, - 1, - 1, wxGA_HORIZONTAL | wxGA_SMOOTH)		
+		SubProgress = New wxGauge.Create(Self, wxID_ANY, 100, - 1, - 1, - 1, - 1, wxGA_HORIZONTAL | wxGA_SMOOTH)		
+		
+		hbox.Add(LogBox, 1 , wxEXPAND, 0)		
+		hbox.Add(SubProgress, 0 , wxEXPAND, 0)	
+		hbox.Add(Progress, 0 , wxEXPAND, 0)	
+		
+		SetSizer(hbox)
+		Centre()	
+		
+		
+		Self.Progress.SetValue(0)
+		Self.SubProgress.SetValue(0)
+		
+		Show(0)	
+		LogClosed = False		
+		
+		ConnectAny(wxEVT_CLOSE , CloseLog)
+	End Method
+	
+	Method SetSubGauge(Percentage:Int)
+		Self.SubProgress.SetValue(Percentage)
+	End Method
+
+	Method PulseSubGauge()
+		Self.SubProgress.Pulse()
+	End Method
+
+	Method SetGauge(Percentage:Int)
+		Self.Progress.SetValue(Percentage)
+	End Method
+
+	Method PulseGauge()
+		Self.Progress.Pulse()
+	End Method
+	
+	Function CloseLog(event:wxEvent)
+		LogWin:DownloadWindow = DownloadWindow(event.parent)
+		If LogWin.DownloadFinished = True then
+			LogWin.Destroy()
+		Else
+			LogWin.LogClosed = True
+			LogWin.AddText("Cancelling..")
+		EndIf
+	End Function
+
+	Method AddText(Tex:String)
+		Self.LogBox.AppendText(Tex + Chr(10) )
+	End Method
+End Type
 
 Function ReturnTagInfo$(SearchLine$,Tag$,EndTag$,Debug=False)
 	Rem
@@ -4140,6 +4270,139 @@ Function WindowsCheck()
 	
 End Function
 
+Function Thread_Download:Object(Obj:Object)
+	Local DownloadBox:DownloadWindow = DownloadWindow(Obj)
+	
+	DownloadBox.AddText("Downloading " + DownloadBox.FName + " for game " + DownloadBox.GName)
+	DownloadBox.AddText("")
+	
+	Local LocalLuaVM:Byte Ptr
+	LocalLuaVM = luaL_newstate()
+	Local LocalLuaInternet = LuaInternetType(New LuaInternetType.Create(DownloadBox) )
+	Local LocalLuaFileList:LuaListType = New LuaListType.Create()
+	
+	InitLuGI(LocalLuaVM)
+	luaL_openlibs(LocalLuaVM)
+	
+	Local Result:Int
+	Local MessageBox:wxMessageDialog
+	Local line:String
+	Local Source:String = ""
+	
+	If DownloadBox.LuaFile <> Null then
+		Local LuaSourceFile:TStream = ReadFile(DownloadBox.LuaFile)
+		If LuaSourceFile = Null then
+			PrintF("Lua File Error: ~n" + "Could not open Lua file for reading (" + DownloadBox.LuaFile + ")")
+			DownloadBox.AddText("Lua File Error: ~n" + "Could not open Lua file for reading (" + DownloadBox.LuaFile + ")")
+			'MessageBox = New wxMessageDialog.Create(Null , "Lua File Error: ~n" + "Could not open Lua file for reading (" + DownloadBox.LuaFile + ")" , "Error" , wxOK | wxICON_EXCLAMATION)
+			'MessageBox.ShowModal()
+			'MessageBox.Free()		
+			DownloadBox.Finish()
+			Return
+		EndIf
+		Repeat
+			line = ReadLine(LuaSourceFile)
+			Source = Source + line + "~n~r"
+			If Eof(LuaSourceFile) then Exit 	
+		Forever
+		CloseFile(LuaSourceFile)
+	EndIf
+	
+	Result = luaL_loadstring(LocalLuaVM, Source)
+	If (Result <> 0) then
+		PrintF("Lua Compile Error: ~n" + luaL_checkstring(LocalLuaVM, - 1) )
+		DownloadBox.AddText("Lua Compile Error: ~n" + luaL_checkstring(LocalLuaVM, - 1) )
+		'MessageBox = New wxMessageDialog.Create(Null , "Lua Compile Error: ~n" + luaL_checkstring(LocalLuaVM, - 1) , "Error" , wxOK | wxICON_EXCLAMATION)
+		'MessageBox.ShowModal()
+		'MessageBox.Free()
+		LuaHelper_CleanStack( LocalLuaVM )		
+		DownloadBox.Finish()
+		Return	
+	End If
+	
+	lua_pcall(LocalLuaVM, 1, - 1, - 1)	
+	
+	Local ErrorMessage:String
+	
+	lua_getfield(LocalLuaVM, LUA_GLOBALSINDEX, "Get")
+	lua_pushbmaxobject( LocalLuaVM, LocalLuaFileList )
+	lua_pushbmaxobject( LocalLuaVM, LocalLuaInternet )
+	lua_pushbmaxobject( LocalLuaVM, DownloadBox.ClientData )
+	lua_pushbmaxobject( LocalLuaVM, DownloadBox )
+		
+	Result = lua_pcall(LocalLuaVM, 4, 3, 0)
+			
+	If (Result <> 0) then
+		ErrorMessage = luaL_checkstring(LocalLuaVM, - 1)
+		DownloadBox.AddText("Lua Run Error: ~n" + ErrorMessage)
+		PrintF("Lua Run Error: ~n" + ErrorMessage)
+		'MessageBox = New wxMessageDialog.Create(Null , "Lua Run Error: ~n" + ErrorMessage , "Error" , wxOK | wxICON_EXCLAMATION)
+		'MessageBox.ShowModal()
+		'MessageBox.Free()
+		LuaHelper_CleanStack(LocalLuaVM)
+		DownloadBox.Finish()		
+		Return
+	EndIf
+	
+	Error = luaL_checkint( LocalLuaVM, 1 )
+	
+	If Error <> 0 then
+		ErrorMessage = luaL_checkstring(LocalLuaVM , 2)
+		If ErrorMessage = "Operation was aborted by an application callback" then ErrorMessage = "Internet operation timeout"
+		PrintF("Lua function returned error code: " + Error + " with message: " + ErrorMessage)
+		DownloadBox.AddText("Lua function returned error code: " + Error + " with message: " + ErrorMessage)
+		'MessageBox = New wxMessageDialog.Create(Null , "Error: " + ErrorMessage + "~nError Code: " + Error , "Error" , wxOK | wxICON_EXCLAMATION)
+		'MessageBox.ShowModal()
+		'MessageBox.Free()				
+		LuaHelper_CleanStack(LocalLuaVM)
+		DownloadBox.Finish()
+		Return
+	EndIf
+		
+	LuaHelper_CleanStack(LocalLuaVM)
+	lua_close(LocalLuaVM)
+	
+	'Run through Lua File list and move them to correct place
+	Local FileName:String
+	For LuaFile:LuaListItemType = EachIn LocalLuaFileList.List
+		If LuaFile.ClientData = "" Or LuaFile.ClientData = Null then
+			If LuaFile.ItemName = "" Or LuaFile.ItemName = Null then
+			
+			Else
+				FileName = StripDir(LuaFile.ItemName)
+			EndIf
+		Else
+			FileName = StripDir(GameReadType.GameNameDirFilter(LuaFile.ClientData, False) )
+		EndIf
+		If LuaFile.ItemName = "" Or LuaFile.ItemName = Null Or FileType(LuaFile.ItemName) = 0 then
+			PrintF("Lua returned invalid download item ~nItem: "+LuaFile.ItemName+" ~nData:"+LuaFile.ClientData)
+			DownloadBox.AddText("Lua returned invalid download item ~nItem: " + LuaFile.ItemName + " ~nData:" + LuaFile.ClientData)			
+			DownloadBox.Finish()
+			Return			
+		EndIf
+		
+		Local FileName2:String = ""
+		Local a:Int = 2
+		'Check game doesnt already have file with same name
+		If FileType(DownloadBox.GameFolderDownloadName + FileName) = 1 then
+			FileName2 = FileName
+			FileName = StripExt(FileName2) + "(" + String(a) + ")." + ExtractExt(FileName2)
+		EndIf
+		Repeat
+			If FileType(DownloadBox.GameFolderDownloadName + FileName) = 1 then
+				a = a + 1
+				FileName = StripExt(FileName2) + "(" + String(a) + ")." + ExtractExt(FileName2)
+			Else
+				CopyFile(LuaFile.ItemName, DownloadBox.GameFolderDownloadName + FileName)
+				DownloadBox.AddText("Moving: " + FileName)
+				Exit
+			EndIf
+		Forever
+	Next
+		
+	DownloadBox.Finish()
+	
+End Function
 
 Include "Includes\General\ValidationFunctions.bmx"
 Include "Includes\General\General.bmx"
