@@ -156,6 +156,7 @@ Print "OSubVersion = " + OSubVersion
 DebugCheck()
 
 FolderCheck()
+TempFolderCleanup()
 GamesCheck()
 LogName = "Log-Manager " + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
 CreateFile(LOGFOLDER+LogName)
@@ -188,7 +189,7 @@ StartupLuaVM()
 Local PastArgument:String 
 For Argument$ = EachIn AppArgs$
 	Select PastArgument
-		Case "-EditGame","EditGame"
+		Case "-EditGame", "EditGame"
 			EditGameName = Argument
 			PastArgument = ""
 		Case "-Debug","Debug"
@@ -206,8 +207,8 @@ Next
 
 Global DatabaseApp:wxApp
 
-If DebugLogEnabled=False Then 
-	DeleteFile(LOGFOLDER+LogName)
+If DebugLogEnabled = False then
+	DeleteFile(LOGFOLDER + LogName)
 EndIf 
 
 
@@ -2849,7 +2850,7 @@ Type SteamIconWindow Extends wxFrame
 		Local SteamIconWin:SteamIconWindow = SteamIconWindow(event.parent)
 		Local MessageBox:wxMessageDialog
 		Local DeepScan:Int
-		MessageBox = New wxMessageDialog.Create(Null , "Would you like to do a deep scan? (takes a lot longer)"+Chr(10)+"Yes - Scan returns all icons, including those in the excluded folders list and dll files"+Chr(10)+"No - Do a normal scan for icons" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
+		MessageBox = New wxMessageDialog.Create(Null , "Would you like to do a deep scan? (takes a lot longer)" + Chr(10) + "Yes - Scan returns all icons, including those in the excluded folders list and dll files" + Chr(10) + "No - Do a normal scan for icons" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 		If MessageBox.ShowModal() = wxID_YES Then
 			DeepScan = 1
 			PrintF("Deep scan on")
@@ -2858,10 +2859,12 @@ Type SteamIconWindow Extends wxFrame
 			PrintF("Deep scan off")
 		EndIf
 		MessageBox.Free()	
-		MessageBox = New wxMessageDialog.Create(Null , "About to update Icons, it may take some time and the window may stop responding, please be patient..."+Chr(10)+"Press Ok to start" , "Info" , wxOK)
+		MessageBox = New wxMessageDialog.Create(Null , "About to update Icons, it may take some time, please be patient..." + Chr(10) + "Press Ok to start" , "Info" , wxOK)
 		MessageBox.ShowModal()
 		MessageBox.Free()			
-		CopyIconsMain(SteamIconWin.SteamFolder,DeepScan)
+		SteamIconWin.Hide()
+		ExtractSteamIcons(SteamIconWin.SteamFolder, DeepScan)
+		SteamIconWin.Show(1)
 		SteamIconWin.Populate()
 	End Function
 	
@@ -3221,146 +3224,10 @@ Type wxBitmapButtonExtended Extends wxBitmapButton
 	End Function	
 End Type
 
-Function CopyIconsMain(SteamFolder:String , FullSearch:Int = False)
-	PrintF("Searching for Icons")
-	'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Searching for Icons" , , , 300 , 400) )		
-	Log1.Show(1)
-	INum = 0
-	DeleteCreateFolder(TEMPFOLDER + "SteamIcons")
-	SteamFolder = StandardiseSlashes(SteamFolder)	
-	CopyIcons(SteamFolder , FullSearch , Log1)
-	CopyIcons(TEMPFOLDER + "Icons" , FullSearch , Log1)	
-	DeleteCreateFolder(TEMPFOLDER + "Icons")
-	'Log1.Destroy()
-	Log1.Show(0)
-End Function
-
-Function CopyIcons(SteamFolder:String,FullSearch:Int , Log1:LogWindow)
-	If FileType(SteamFolder) = 2 Then
-		Local Dir:Int = ReadDir(SteamFolder)
-		Local File:String
-		Repeat
-			File = NextFile(Dir)
-			If File="" Then Exit
-			If File="." Or File=".." Then Continue
-			If FileType(SteamFolder + FolderSlash + File) = 2 Then
-				If FullSearch = True Or IconFolderExclude(File) = False Then
-					CopyIcons(SteamFolder + FolderSlash + File,FullSearch , Log1)
-				EndIf
-			Else
-				If Lower(Right(File , 3) ) = "ico" Then
-					Log1.AddText("Found: " + SteamFolder + FolderSlash + File)
-					PrintF("Found: " + SteamFolder + FolderSlash + File)
-					CopyFile(SteamFolder + FolderSlash + File , TEMPFOLDER + "SteamIcons"+FolderSlash+"SIcon" + String(INum) + ".ico")
-					INum=INum+1
-				EndIf
-					
-				If Lower(Right(File , 3) ) = "exe" Or (Lower(Right(File , 3) ) = "dll" And FullSearch = True) Then
-					'DeleteCreateFolder(TEMPFOLDER + "Icons")
-					'Print ExtractProgLoc + " /Source " + Chr(34) + SteamFolder + "\" + File + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons\" + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1"
-					'RunProcessInProcessSpace(ExtractProgLoc + " /Source " + Chr(34) + SteamFolder + "\" + File + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons\" + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1" , Log1 , 1)
-					
-					Local ProcessSpace:TProcess 
-	
-					ProcessSpace = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + SteamFolder + FolderSlash + File + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons"+FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
-					
-					Repeat
-						If ProcessSpace = Null Then Exit 
-						If ProcessStatus(ProcessSpace) = 0 Then 
-							Exit 
-						EndIf 
-						Delay 10
-						
-					Forever
-
-					DatabaseApp.Yield()
-					'Local ExtractIcon:TProcess = CreateProcess(ExtractProgLoc + " /Source " + Chr(34) + SteamFolder + "\" + File + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons\" + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
-					'Repeat
-					'	Delay 10
-					'	If ProcessStatus(ExtractIcon)=0 Then Exit
-					'Forever		
-					'CopyIcons(TEMPFOLDER + "Icons",FullSearch , Log1)			
-				EndIf
-			
-			EndIf
-			If Log1.LogClosed = True Then Exit
-		Forever
-	Else
-		CustomRuntimeError("Error 32: Cannot find folder - "+SteamFolder) 'MARK: Error 32
-	EndIf
-End Function
-
-Function IconFolderExclude:Int(Folder:String)
-	Select Folder
-		Case "Public"
-		Case "FaceFX"
-		Case "EA Help"
-		Default
-			Return False
-	End Select
-	Return True
-End Function
-
-Rem
-Function RunProcessInProcessSpace(Process:String , Log1:LogWindow , Fun:Int)
-	Local ProcessSpace:TProcess 
-	
-	ProcessSpace = CreateProcess(Process)
-	If ProcessSpace = Null Then Return 
-	Repeat
-		If ProcessStatus(ProcessSpace1) = 0 Then 
-			Return
-		EndIf 
-	Forever
-	
-	'Rem
-	Repeat
-		If Process1Running = 0 Then
-			ProcessSpace1 = CreateProcess(Process)
-			Process1Running = 1
-			Return
-		ElseIf Process2Running = 0 Then
-			ProcessSpace2 = CreateProcess(Process)
-			Process2Running = 1
-			Return
-		ElseIf Process3Running = 0 Then
-			ProcessSpace3 = CreateProcess(Process)
-			Process3Running = 1
-			Return
-		ElseIf Process4Running = 0 Then
-			ProcessSpace4 = CreateProcess(Process)
-			Process4Running = 1
-			Return
-		ElseIf Process5Running = 0 Then
-			ProcessSpace5 = CreateProcess(Process)
-			Process5Running = 1
-			Return
-		Else
-			If ProcessStatus(ProcessSpace1) = 0 And ProcessStatus(ProcessSpace2) = 0 And ProcessStatus(ProcessSpace3) = 0 And ProcessStatus(ProcessSpace4) = 0 And ProcessStatus(ProcessSpace5) = 0 Then
-				Process1Running = 0
-				Process2Running = 0
-				Process3Running = 0
-				Process4Running = 0
-				Process5Running = 0
-				Select Fun
-					Case 1
-						CopyIcons(TEMPFOLDER + "Icons" , 0 , Log1)
-						DeleteCreateFolder(TEMPFOLDER + "Icons")	
-					Default
-						CustomRuntimeError("Error 31: Invalid ProcessSpace Function Type") 'MARK: Error 31
-				End Select
-				Return
-			EndIf
-		EndIf	
-		Delay 100	
-	Forever	
-	'EndRem			
-End Function
-EndRem
 Function GetGameIcon(EXEPath:String , GameName:String)
 	Local temp:String , File:String
 	DeleteCreateFolder(TEMPFOLDER + "Icons")
-	ExtractIcon = CreateProcess(ExtractProgLoc + " /Source " + Chr(34) + StandardiseSlashes(EXEPath) + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons"+FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
+	ExtractIcon = CreateProcess(ExtractProgLoc + " /Source " + Chr(34) + StandardiseSlashes(EXEPath) + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons" + FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
 	Repeat
 		Delay 10
 		If ProcessStatus(ExtractIcon)=0 Then Exit

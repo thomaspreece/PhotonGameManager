@@ -46,6 +46,102 @@ Function OutputSteam(Online:Int)
 End Function
 
 
+Function ExtractSteamIcons(SteamFolder:String , FullSearch:Int = False)
+	Log1.Show(1)
+	Local TempObj:Thread_CopyIconsMain_Object = New Thread_CopyIconsMain_Object
+	TempObj.Folder = SteamFolder
+	TempObj.FullSearch = FullSearch
+	
+?Threaded
+	Local SteamIconThread:TThread
+	SteamIconThread = CreateThread(Thread_CopyIconsMain, TempObj)
+	While SteamIconThread.Running()
+		DatabaseApp.Yield()
+		Delay 100
+	Wend
+?Not Threaded
+	Thread_CopyIconsMain(TempObj)
+?
+	Log1.Show(0)
+End Function
+
+Function Thread_CopyIconsMain:Object(Obj:Object)
+	Local Folder:String = Thread_CopyIconsMain_Object(Obj).Folder
+	Local FullSearch:Int = Thread_CopyIconsMain_Object(Obj).FullSearch
+	
+	PrintF("Searching for Icons")
+	INum = 0
+	DeleteCreateFolder(TEMPFOLDER + "SteamIcons")
+	Folder = StandardiseSlashes(Folder)	
+	CopyIcons(Folder , FullSearch)
+	CopyIcons(TEMPFOLDER + "Icons" , FullSearch)	
+	DeleteCreateFolder(TEMPFOLDER + "Icons")
+End Function
+
+Type Thread_CopyIconsMain_Object
+	Field Folder:String
+	Field FullSearch:int = False
+End Type
+
+Function CopyIcons(SteamFolder:String, FullSearch:Int)
+	If FileType(SteamFolder) = 2 then
+		Local Dir:Int = ReadDir(SteamFolder)
+		Local File:String
+		Repeat
+			File = NextFile(Dir)
+			If File = "" then Exit
+			If File = "." Or File = ".." then Continue
+			If FileType(SteamFolder + FolderSlash + File) = 2 then
+				If FullSearch = True Or IconFolderExclude(File) = False then
+					CopyIcons(SteamFolder + FolderSlash + File, FullSearch)
+				EndIf
+			Else
+				If Lower(Right(File , 3) ) = "ico" then
+					Log1.AddText("Found: " + SteamFolder + FolderSlash + File)
+					PrintF("Found: " + SteamFolder + FolderSlash + File)
+					CopyFile(SteamFolder + FolderSlash + File , TEMPFOLDER + "SteamIcons"+FolderSlash+"SIcon" + String(INum) + ".ico")
+					INum = INum + 1
+				EndIf
+					
+				If Lower(Right(File , 3) ) = "exe" Or (Lower(Right(File , 3) ) = "dll" And FullSearch = True) then
+					Local ExtractProcess:TProcess
+	
+					ExtractProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + SteamFolder + FolderSlash + File + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons"+FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
+					
+					Repeat
+						If ExtractProcess = Null then Exit
+						If ProcessStatus(ExtractProcess) = 0 then
+							Exit
+						EndIf
+						Delay 10
+						If Log1.LogClosed = True then Exit
+					Forever
+
+?Not Threaded
+					DatabaseApp.Yield()	
+?
+				EndIf
+			
+			EndIf
+			If Log1.LogClosed = True then Exit
+		Forever
+	Else
+		CustomRuntimeError("Error 32: Cannot find folder - "+SteamFolder) 'MARK: Error 32
+	EndIf
+End Function
+
+Function IconFolderExclude:Int(Folder:String)
+	Select Folder
+		Case "Public"
+		Case "FaceFX"
+		Case "EA Help"
+		Default
+			Return False
+	End Select
+	Return True
+End Function
+
+
 Function Thread_GetRawSteamOnline:Object(ob:Object)
 	Local MessageBox:wxMessageDialog
 	Log1.AddText("Searching for Steam Games")

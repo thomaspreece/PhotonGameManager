@@ -2,7 +2,7 @@ Private
 
 '---- GameReadType
 
-Function lugi_glue_GameReadType_GetEXEPart_CZBrJc:Int( lua_vm:Byte Ptr )
+Function lugi_glue_GameReadType_GetEXEPart_H1Zr3f:Int( lua_vm:Byte Ptr )
 	Local obj:GameReadType = GameReadType(lua_tobmaxobject(lua_vm, 1))
 	Local _arg_1:Int = 0
 	If 2 <= lua_gettop(lua_vm) Then
@@ -21,7 +21,7 @@ Function lugi_glue_GameReadType_GetEXEPart_CZBrJc:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_GameReadType_NewGame_obJLb1:Int( lua_vm:Byte Ptr )
+Function lugi_glue_GameReadType_NewGame_Yj6eL7:Int( lua_vm:Byte Ptr )
 	Local obj:GameReadType = GameReadType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushinteger( lua_vm, obj.NewGame() )
@@ -31,7 +31,7 @@ Function lugi_glue_GameReadType_NewGame_obJLb1:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_GameReadType_IntialiseFanartLists_cE1cXC:Int( lua_vm:Byte Ptr )
+Function lugi_glue_GameReadType_IntialiseFanartLists_Estlp5:Int( lua_vm:Byte Ptr )
 	Local obj:GameReadType = GameReadType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushinteger( lua_vm, obj.IntialiseFanartLists() )
@@ -41,7 +41,7 @@ Function lugi_glue_GameReadType_IntialiseFanartLists_cE1cXC:Int( lua_vm:Byte Ptr
 End Function
 
 
-Function lugi_glue_GameReadType_DeleteGame_TFj6dE:Int( lua_vm:Byte Ptr )
+Function lugi_glue_GameReadType_DeleteGame_XgXJIn:Int( lua_vm:Byte Ptr )
 	Local obj:GameReadType = GameReadType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushinteger( lua_vm, obj.DeleteGame() )
@@ -51,7 +51,7 @@ Function lugi_glue_GameReadType_DeleteGame_TFj6dE:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_GameReadType_AddToList_lpmmgT:Int( lua_vm:Byte Ptr )
+Function lugi_glue_GameReadType_AddToList_2W7tlC:Int( lua_vm:Byte Ptr )
 	Local obj:GameReadType = GameReadType(lua_tobmaxobject(lua_vm, 1))
 	Local _arg_1:TList = Null
 	Local _arg_2:String = ""
@@ -75,7 +75,7 @@ Function lugi_glue_GameReadType_AddToList_lpmmgT:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_GameReadType_GetGame_AspQOi:Int( lua_vm:Byte Ptr )
+Function lugi_glue_GameReadType_GetGame_2S2oo8:Int( lua_vm:Byte Ptr )
 	Local obj:GameReadType = GameReadType(lua_tobmaxobject(lua_vm, 1))
 	Local _arg_1:String = ""
 	If 2 <= lua_gettop(lua_vm) Then
@@ -89,7 +89,7 @@ Function lugi_glue_GameReadType_GetGame_AspQOi:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_GameReadType_WriteUserData_v758zu:Int( lua_vm:Byte Ptr )
+Function lugi_glue_GameReadType_WriteUserData_4jnmCJ:Int( lua_vm:Byte Ptr )
 	Local obj:GameReadType = GameReadType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushinteger( lua_vm, obj.WriteUserData() )
@@ -100,17 +100,21 @@ End Function
 
 '---- LuaInternetType
 
-Function lugi_glue_LuaInternetType_Create_nLO5uo:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaInternetType_Create_C0D6rn:Int( lua_vm:Byte Ptr )
 	Local obj:LuaInternetType = LuaInternetType(lua_tobmaxobject(lua_vm, 1))
+	Local _arg_1:wxWindow = Null
+	If 2 <= lua_gettop(lua_vm) Then
+		_arg_1 = wxWindow(lua_tobmaxobject(lua_vm, 2))
+	EndIf
 
-	lua_pushbmaxobject( lua_vm, obj.Create() )
+	lua_pushbmaxobject( lua_vm, obj.Create(_arg_1) )
 
 	Return 1
 
 End Function
 
 
-Function lugi_glue_LuaInternetType_Encode_X3xscn:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaInternetType_Encode_Nk14Ql:Int( lua_vm:Byte Ptr )
 	Local obj:LuaInternetType = LuaInternetType(lua_tobmaxobject(lua_vm, 1))
 	Local _arg_1:String = ""
 	If 2 <= lua_gettop(lua_vm) Then
@@ -124,7 +128,7 @@ Function lugi_glue_LuaInternetType_Encode_X3xscn:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_LuaInternetType_Destroy_5mjEhP:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaInternetType_Destroy_jPzJrx:Int( lua_vm:Byte Ptr )
 	Local obj:LuaInternetType = LuaInternetType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushinteger( lua_vm, obj.Destroy() )
@@ -134,7 +138,7 @@ Function lugi_glue_LuaInternetType_Destroy_5mjEhP:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_LuaInternetType_Reset_BjGPuO:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaInternetType_Reset_C8Kx3H:Int( lua_vm:Byte Ptr )
 	Local obj:LuaInternetType = LuaInternetType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushinteger( lua_vm, obj.Reset() )
@@ -144,7 +148,7 @@ Function lugi_glue_LuaInternetType_Reset_BjGPuO:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_LuaInternetType_GET_StD7cE:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaInternetType_GET_IwBG4r:Int( lua_vm:Byte Ptr )
 	Local obj:LuaInternetType = LuaInternetType(lua_tobmaxobject(lua_vm, 1))
 	Local _arg_1:String = ""
 	Local _arg_2:String = ""
@@ -174,7 +178,7 @@ Function lugi_glue_LuaInternetType_GET_StD7cE:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_LuaInternetType_POST_97P8k7:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaInternetType_POST_qUBYXR:Int( lua_vm:Byte Ptr )
 	Local obj:LuaInternetType = LuaInternetType(lua_tobmaxobject(lua_vm, 1))
 	Local _arg_1:String = ""
 	Local _arg_2:String = ""
@@ -212,7 +216,7 @@ End Function
 
 '---- LuaListType
 
-Function lugi_glue_LuaListType_Create_uO6xA5:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaListType_Create_EPRJhP:Int( lua_vm:Byte Ptr )
 	Local obj:LuaListType = LuaListType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushbmaxobject( lua_vm, obj.Create() )
@@ -222,7 +226,7 @@ Function lugi_glue_LuaListType_Create_uO6xA5:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_LuaListType_LuaListAddLast_qycAF9:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaListType_LuaListAddLast_tcXmCi:Int( lua_vm:Byte Ptr )
 	Local obj:LuaListType = LuaListType(lua_tobmaxobject(lua_vm, 1))
 	Local _arg_1:String = ""
 	Local _arg_2:String = ""
@@ -246,7 +250,7 @@ Function lugi_glue_LuaListType_LuaListAddLast_qycAF9:Int( lua_vm:Byte Ptr )
 End Function
 
 
-Function lugi_glue_LuaListType_ClearList_hd6HYk:Int( lua_vm:Byte Ptr )
+Function lugi_glue_LuaListType_ClearList_TbxNe4:Int( lua_vm:Byte Ptr )
 	Local obj:LuaListType = LuaListType(lua_tobmaxobject(lua_vm, 1))
 
 	lua_pushinteger( lua_vm, obj.ClearList() )
@@ -255,21 +259,21 @@ Function lugi_glue_LuaListType_ClearList_hd6HYk:Int( lua_vm:Byte Ptr )
 
 End Function
 
-Function lugi_p_lugi_initpre_N35cEu0kR5hGAWep(lua_vm:Byte Ptr, register_field(off%, typ%, name$, class@ Ptr), register_method(luafn:Int(state:Byte Ptr), name$, class@ Ptr))
+Function lugi_p_lugi_initpre_ipGLgw0fKqUZk9ij(lua_vm:Byte Ptr, register_field(off%, typ%, name$, class@ Ptr), register_method(luafn:Int(state:Byte Ptr), name$, class@ Ptr))
 	' Register instance method GameReadType#GetEXEPart
-	register_method( lugi_glue_GameReadType_GetEXEPart_CZBrJc, "GetEXEPart", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
+	register_method( lugi_glue_GameReadType_GetEXEPart_H1Zr3f, "GetEXEPart", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	' Register instance method GameReadType#NewGame
-	register_method( lugi_glue_GameReadType_NewGame_obJLb1, "NewGame", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
+	register_method( lugi_glue_GameReadType_NewGame_Yj6eL7, "NewGame", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	' Register instance method GameReadType#IntialiseFanartLists
-	register_method( lugi_glue_GameReadType_IntialiseFanartLists_cE1cXC, "IntialiseFanartLists", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
+	register_method( lugi_glue_GameReadType_IntialiseFanartLists_Estlp5, "IntialiseFanartLists", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	' Register instance method GameReadType#DeleteGame
-	register_method( lugi_glue_GameReadType_DeleteGame_TFj6dE, "DeleteGame", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
+	register_method( lugi_glue_GameReadType_DeleteGame_XgXJIn, "DeleteGame", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	' Register instance method GameReadType#AddToList
-	register_method( lugi_glue_GameReadType_AddToList_lpmmgT, "AddToList", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
+	register_method( lugi_glue_GameReadType_AddToList_2W7tlC, "AddToList", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	' Register instance method GameReadType#GetGame
-	register_method( lugi_glue_GameReadType_GetGame_AspQOi, "GetGame", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
+	register_method( lugi_glue_GameReadType_GetGame_2S2oo8, "GetGame", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	' Register instance method GameReadType#WriteUserData
-	register_method( lugi_glue_GameReadType_WriteUserData_v758zu, "WriteUserData", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
+	register_method( lugi_glue_GameReadType_WriteUserData_4jnmCJ, "WriteUserData", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	register_field( 8, LUGI_STRINGFIELD, "OrginalName", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	register_field( 12, LUGI_STRINGFIELD, "Name", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	register_field( 16, LUGI_STRINGFIELD, "Desc", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
@@ -317,36 +321,37 @@ Function lugi_p_lugi_initpre_N35cEu0kR5hGAWep(lua_vm:Byte Ptr, register_field(of
 	register_field( 184, LUGI_INTFIELD, "ScreenShotsAvailable", Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 
 	' Register instance method LuaInternetType#Create
-	register_method( lugi_glue_LuaInternetType_Create_nLO5uo, "Create", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
+	register_method( lugi_glue_LuaInternetType_Create_C0D6rn, "Create", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	' Register instance method LuaInternetType#Encode
-	register_method( lugi_glue_LuaInternetType_Encode_X3xscn, "Encode", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
+	register_method( lugi_glue_LuaInternetType_Encode_Nk14Ql, "Encode", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	' Register instance method LuaInternetType#Destroy
-	register_method( lugi_glue_LuaInternetType_Destroy_5mjEhP, "Destroy", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
+	register_method( lugi_glue_LuaInternetType_Destroy_jPzJrx, "Destroy", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	' Register instance method LuaInternetType#Reset
-	register_method( lugi_glue_LuaInternetType_Reset_BjGPuO, "Reset", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
+	register_method( lugi_glue_LuaInternetType_Reset_C8Kx3H, "Reset", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	' Register instance method LuaInternetType#GET
-	register_method( lugi_glue_LuaInternetType_GET_StD7cE, "GET", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
+	register_method( lugi_glue_LuaInternetType_GET_IwBG4r, "GET", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	' Register instance method LuaInternetType#POST
-	register_method( lugi_glue_LuaInternetType_POST_97P8k7, "POST", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
+	register_method( lugi_glue_LuaInternetType_POST_qUBYXR, "POST", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	register_field( 8, LUGI_OBJECTFIELD, "curl", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	register_field( 12, LUGI_STRINGFIELD, "LastError", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	register_field( 16, LUGI_INTFIELD, "Time", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	register_field( 20, LUGI_INTFIELD, "Timeout", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 	register_field( 24, LUGI_DOUBLEFIELD, "Currentdl", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
+	register_field( 32, LUGI_OBJECTFIELD, "Window", Byte Ptr(TTypeID.ForName("LuaInternetType")._class) )
 
 	' Register instance method LuaListType#Create
-	register_method( lugi_glue_LuaListType_Create_uO6xA5, "Create", Byte Ptr(TTypeID.ForName("LuaListType")._class) )
+	register_method( lugi_glue_LuaListType_Create_EPRJhP, "Create", Byte Ptr(TTypeID.ForName("LuaListType")._class) )
 	' Register instance method LuaListType#LuaListAddLast
-	register_method( lugi_glue_LuaListType_LuaListAddLast_qycAF9, "LuaListAddLast", Byte Ptr(TTypeID.ForName("LuaListType")._class) )
+	register_method( lugi_glue_LuaListType_LuaListAddLast_tcXmCi, "LuaListAddLast", Byte Ptr(TTypeID.ForName("LuaListType")._class) )
 	' Register instance method LuaListType#ClearList
-	register_method( lugi_glue_LuaListType_ClearList_hd6HYk, "ClearList", Byte Ptr(TTypeID.ForName("LuaListType")._class) )
+	register_method( lugi_glue_LuaListType_ClearList_TbxNe4, "ClearList", Byte Ptr(TTypeID.ForName("LuaListType")._class) )
 	register_field( 8, LUGI_OBJECTFIELD, "List", Byte Ptr(TTypeID.ForName("LuaListType")._class) )
 
 End Function
-New LuGIInitFunction.PreInit(lugi_p_lugi_initpre_N35cEu0kR5hGAWep, False)
+New LuGIInitFunction.PreInit(lugi_p_lugi_initpre_ipGLgw0fKqUZk9ij, False)
 
 
-Function lugi_p_lugi_initpost_kLDlDSRt1P7iow7M(lua_vm:Byte Ptr, constructor:Int(state:Byte Ptr))
+Function lugi_p_lugi_initpost_SEWZ8q8CRAkNm1uN(lua_vm:Byte Ptr, constructor:Int(state:Byte Ptr))
 	' Register constructor for GameReadType
 	lua_pushlightuserdata( lua_vm, Byte Ptr(TTypeID.ForName("GameReadType")._class) )
 	lua_pushcclosure( lua_vm, constructor, 1 )
@@ -360,7 +365,7 @@ Function lugi_p_lugi_initpost_kLDlDSRt1P7iow7M(lua_vm:Byte Ptr, constructor:Int(
 	lua_pushcclosure( lua_vm, constructor, 1 )
 	lua_setfield( lua_vm, LUA_GLOBALSINDEX, "" )
 End Function
-New LuGIInitFunction.PostInit(lugi_p_lugi_initpost_kLDlDSRt1P7iow7M)
+New LuGIInitFunction.PostInit(lugi_p_lugi_initpost_SEWZ8q8CRAkNm1uN)
 
 
 

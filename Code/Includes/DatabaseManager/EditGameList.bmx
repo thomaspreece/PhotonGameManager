@@ -2659,7 +2659,7 @@ EndRem
 		Local ExtractIconEXE:String = EditGameWin.EP_EXEPath.GetValue()
 		Local MessageBox:wxMessageDialog
 		
-		ExtractIconEXE = Replace(ExtractIconEXE,Chr(34),"")
+		ExtractIconEXE = Replace(ExtractIconEXE, Chr(34), "")
 		
 		Local info:wxListItem = New wxListItem.Create()
 		info.SetId(EditGameWin.Selection )
@@ -2692,7 +2692,7 @@ EndRem
 			MessageBox = New wxMessageDialog.Create(Null , "About to update Icons, it may take some time please be patient..."+Chr(10)+"Press Ok to continue" , "Info" , wxOK)
 			MessageBox.ShowModal()
 			MessageBox.Free()	
-			CopyIconsMain(ExtractDir(ExtractIconEXE),0)
+			ExtractSteamIcons(ExtractDir(ExtractIconEXE), 0)
 		EndIf
 		
 		Local SteamIconWindowField:SteamIconWindow = SteamIconWindow(New SteamIconWindow.Create(EditGameWin , wxID_ANY , "Choose Icon for: "+GameTitle , , , 700 , 500) )					
@@ -3075,7 +3075,7 @@ Type ImagePanel Extends wxPanel
 				Menu1:wxMenu = New wxMenu.Create("Front Art Menu")
 				Menu1.Append(IP_M1_I3 , "View")
 				Menu1.Append(IP_M1_I1 , "Browse computer")
-				Menu1.Append(IP_M1_I2 , "Delete")
+				MENU1.Append(IP_M1_I2 , "Delete")
 				EditGameWin.PopupMenu(MENU1)
 			Case 2
 				Menu2:wxMenu = New wxMenu.Create("Back Art Menu")
@@ -3102,8 +3102,8 @@ Type ImagePanel Extends wxPanel
 				Menu5.Append(IP_M5_I5 , "View")				
 				Menu5.Append(IP_M5_I1 , "Browse computer")
 				?Win32
-				Menu5.Append(IP_M5_I3, "Extract icon from steam folder")
-				Menu5.Append(IP_M5_I2 , "Extract icon from EXE")
+				MENU5.Append(IP_M5_I3, "Extract icon from steam folder")
+				MENU5.Append(IP_M5_I2 , "Extract icon from EXE")
 				?
 				Menu5.Append(IP_M5_I4 , "Delete")
 				EditGameWin.PopupMenu(Menu5)			

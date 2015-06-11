@@ -163,7 +163,7 @@ Type LuaInternetType {expose disablenew}
 			EndRem
 			
 			Self.LastError = ""
-			Return TEMPFOLDER + filename 'FullPathToFile
+			Return TEMPFOLDER + "Lua" + FolderSlash + filename 'FullPathToFile
 		EndIf
 	End Method
 	
@@ -205,7 +205,7 @@ Type LuaInternetType {expose disablenew}
 			Return "-1"
 		Else
 			Self.LastError = ""
-			Return TEMPFOLDER + filename 'FullPathToFile
+			Return TEMPFOLDER + "Lua" + FolderSlash + filename 'FullPathToFile
 		EndIf 
 	End Method	
 End Type
