@@ -473,22 +473,22 @@ Type MainWindow Extends wxFrame
 		
 		AGbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "AddButton.png" , wxBITMAP_TYPE_PNG)
 		AGButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_AGB , AGbitmap) )
-		AGButton.SetFields("Add new games to GameManager here.", HelpBox)
+		AGButton.SetFields("Add new games to Photon here.", HelpBox)
 		AGButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 	
 		EGbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"EditGames.png" , wxBITMAP_TYPE_PNG)
 		EGButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_EGB , EGbitmap) )
-		EGButton.SetFields("Edit games that you have already added to GameManager.", HelpBox)
+		EGButton.SetFields("Edit games that you have already added to Photon here.", HelpBox)
 		EGButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 		
 		Ebitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Emulators.png" , wxBITMAP_TYPE_PNG)
 		EButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_EB , Ebitmap) )
-		EButton.SetFields("Change the default emulator for all games of a certain platform that have already been added to GameManager.", HelpBox)
+		EButton.SetFields("Change the default emulator for each platform.", HelpBox)
 		EButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 		
 		GSbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Settings.png" , wxBITMAP_TYPE_PNG)
 		GSButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_GS , GSbitmap) )
-		GSButton.SetFields("Change settings for the whole of the GameManager suite. Also backup and restore your game database. Furthermore change plugin settings.", HelpBox)
+		GSButton.SetFields("Change settings for all the applications within the Photon program suite. Also backup and restore your game database.", HelpBox)
 		GSButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 		
 		'UGMButton = New wxButton.Create(Self , MW_UGM , "Update GameManager")
@@ -1532,39 +1532,45 @@ Type SettingsWindow Extends wxFrame
 		ParentWin = MainWindow(GetParent() )
 		
 		Local DefaultHelp:String = "Hover over text labels for more information on each item."
-		Local E1:String = "Date format"
-		Local E2:String = "Override save path"
-		Local E3:String = "Debug Log"
+		Local E1:String = "Date Format ~nDifferent countries prefer different date formats. UK: DD-MM-YYYY, US: MM-DD-YYYY, EU: YYYY-MM-DD"
+		Local E2:String = "Override Default Save Path ~nBy Default Photon will store games, settings and other files in a 'GameManagerV4' folder in My Documents. Use this option to change that location to somewhere else on your computer. Leaving the box blank will remove any overide and tell Photon to use the folder in My Documents. ~n~nRecommended Setting: (Empty text box)"
+		Local E3:String = "Enable Debug Log ~nThis turns on outputting of large amounts of debug information to log files. This slows down the application massively and should only be turned on when instructed to do so by Customer Support.~n~nRecommended Setting: No"
 		
-		Local E51:String = "Artwork Compression level"
-		Local E52:String = "Optimize Artwork"
-		Local E53:String = "Fetch all artwork from online sources~nSetting this option to true will cause Photon to fetch all available artwork from the online source instead of just the artwork Photon requires. The extra artwork may be used in future versions of Photon but has no use at present.~n~n<b>Recommended Setting: No</b>"
+		Local E51:String = "Artwork Compression Level ~nTwo different settings affects the quality of the Artwork shown in Photon. You may wish to change the quality as  lower quality artwork will make Photon work faster at the expense of it looking worse. The first setting that affects artwork quality is 'Graphics Resolution' (found under the FrontEnd tab), the second is Artwork Compression Level (found under the Artwork tab). It is recommended that you set Graphics Resolution to the same resolution as your desktop and it is recommended to set Artwork Compression Level to the default 85. You will have to click Optimize Artwork for changes in these settings to take effect on already added games. ~nChanging the Graphics Resolution will cause the resolution of the artwork to be changed in a constant ratio to the specified Graphics Resolution. Changing Artwork Compression Level changes the overall quality of the artwork so a low number will be much more pixelated and artifacted than a higher number but a higher number will cause the artwork to take up more hard disk space and cause slower performance.~n~nRecommended Setting: 85"
 		
-		Local E101:String = "Steam Path"
-		Local E102:String = "Steam ID"
 		
-		Local E151:String = "Keyboard Input"
-		Local E152:String = "Joystick Input"
-		Local E153:String = "Resolution"
-		Local E154:String = "Fullscreen"
-		Local E155:String = "Anti-Aliasing"
+		Local E52:String = "Optimize Artwork ~nArtwork is only optimized when first downloaded or after clicking on this button. If you have changed 'Graphics Resolution' (found under the FrontEnd tab) or Artwork Compression Level (found under the Artwork tab), it is highly recommended to click this button to reoptimize all your currently added game's artwork."
+		Local E53:String = "Fetch all artwork from online sources~nSetting this option to true will cause Photon to fetch all available artwork from the online source instead of just the artwork Photon requires. The extra artwork may be used in future versions of Photon but has no use at present.~n~nRecommended Setting: No"
+		
+		Local E101:String = "Steam Path ~nThe Steam import wizard requires the path to your Steam application folder. If you don't use steam you can leave this blank, otherwise it should point to the folder containing steam.exe. On a typical system that would be C:\Program Files (x86)\Steam"
+		Local E102:String = "Steam ID ~nEach Steam profile has a unique Steam ID associated with it. Photon requires that ID and also requires that your profile is public for it to be able to detect which games you have. Please note that this ID is NOT the same as your Steam username/gamertag, it is a unique 17 digit number. Click on the button to view more information on how to get your Steam ID."
+		
+		Local E151:String = "Keyboard Input ~nClick the button to change the default keyboard buttons used in FrontEnd"
+		Local E152:String = "Joystick Input ~nClick the button to change the default joystick buttons used in FrontEnd"
+		Local E153:String = "Graphics Resolution ~nThis is the resolution FrontEnd will load up at. If you run FrontEnd in full-screen (yes in option below) then you must select a valid resolution that your monitor supports, in other words you MUST select an option from this drop down box. If you run FrontEnd not in full-screen (no in option below) you can type in any resolution you want into this box. This option also affects artwork optimization (see Artwork Compression Level in Artwork tab for more information). ~n~nRecommended Setting: same resolution as your desktop"
+		Local E154:String = "Full-Screen ~nRun FrontEnd in Full Screen(Yes Option): taskbar and other applications will not be visible or run FrontEnd in Windowed mode(No Option): taskbar will be visible and FrontEnd will be in a Window allowing you to move it about and put other applications on top or below it.  ~n~nRecommended Setting: Yes"
+		Local E155:String = "Anti-Aliasing ~nSetting this higher should reduce jagged edges at the expense of performance.~n~nRecommended Setting: None"
+		
+		
 		Local E156:String = "Low memory mode"
 		Local E157:String = "Low processor mode"
 		Local E158:String = "game cache (The number of games around the selected game to keep artwork in memory, larger will be smoother but use more memory)"
-		Local E159:String = "touchscreen keyboard"
-		Local E160:String = "touchscreen info"
-		Local E161:String = "touchscreen screenshot"
 		
-		Local E201:String = "Runner (Disabling will stop the program from running in the background during games and also disable post batch and unmount functions)"
-		Local E202:String = "cabinet mode (After Runner closed Explorer or Frontend will load back up)"
-		Local E203:String = "runner stay open"
-		Local E204:String = "origin 30 sec wait (Waits 30 seconds when it detects Origin to allow game to load before PhotonRunner looks to see if game process is still running)"
 		
-		Local E251:String = "Colour Picker"
-		Local E252:String = "Maximize"
-		Local E253:String = "Default Game Search"
+		Local E159:String = "Show Touchscreen/JoyStick Keyboard ~nWhen searching games in FrontEnd if this option is Yes an onscreen keyboard will appear that you can use with a touchscreen or a controller/joystick. If you have a keyboard connected you probably won't want this hogging screen space."
+		Local E160:String = "Show Touchscreen Info Button ~nShows a round button with an 'i' in it that allows mouse/touchscreens to click it to bring up more information about a game"
+		Local E161:String = "Show Touchscreen Screenshot Button ~n~nShows a round button with a camera in it that allows mouse/touchscreens to click it to bring up a screenshot viewing window"
 		
-		Local E301:String = "Add extra EXEs"
+		Local E201:String = "Enable PhotonRunner ~nDisabling PhotonRunner will will stop Photon from running in the background during games and hence disable post batch, unmount, plugins and cabinet mode. We have tried to make PhotonRunner as resource light as possible so you shouldn't see any performance loss by enabling PhotonRunner but this option is left here for those power users. ~n~nRecommended Setting: Yes"
+		Local E202:String = "Enable Cabinet Mode ~nEnabling this option will cause PhotonFrontend or PhotonExplorer to load back up after you have finished with your game."
+		Local E203:String = "Runner Stays Open ~nSetting this to Yes will cause PhotonRunner to not automatically close when it has finished doing its designated tasks. ~n~nRecommended Setting: No"
+		Local E204:String = "Enable Origin 30 Second Wait ~nDetecting when an Origin game is finished can be difficult as Origin always stays open. Setting this option to Yes causes PhotonRunner to wait 30 seconds to allow origin and hence the game to load before PhotonRunner looks to see if game is still running ~n~nRecommended Setting: Yes"
+		
+		Local E251:String = "Colour Picker ~nHere you can change the two colours used on the interface of PhotonManager. Note you will need to restart PhotonManager to see these changes."
+		Local E252:String = "Maximize ~nSetting this to Yes will cause most PhotonManager windows to maximize when they become visible. ~n~nRecommended Setting: Yes"
+		Local E253:String = "Default Game Search ~nWhen searching online for game information you can use different online sources(websites) but the one selected here will automatically be selected and used first for online searching. ~n~nRecommended Setting: thegamesdb.net (Best site around and a brilliant resource)"
+		
+		Local E301:String = "Add Extra EXEs ~nWhen the wizard extracts Game Explorer games it usually extras multiple EXE's and other items such as manuals, website links and alternative programs bundled with each game. You have to select one of these as the main executable for the game but selecting 'Yes' here will mean any other items will be added as extra EXE's allowing you to view/open/run them from PhotonFrontEnd and PhotonExplorer. Selecting 'No' here will cause those extra links to be discarded. ~n~nRecommended Setting: No"
 		
 		
 		
@@ -2486,8 +2492,8 @@ Type SettingsMenu Extends wxFrame
 
 		DBbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"DatabaseBackup.png" , wxBITMAP_TYPE_PNG)
 		DRBbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"DatabaseRestore.png" , wxBITMAP_TYPE_PNG)
-		Pbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Plugins.png" , wxBITMAP_TYPE_PNG)
-		Gbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"GeneralSettings.png" , wxBITMAP_TYPE_PNG)
+		Pbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "Plugins.png" , wxBITMAP_TYPE_PNG)
+		Gbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources" + FolderSlash + "GeneralSettings.png" , wxBITMAP_TYPE_PNG)
 		
 		DBButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , SetM_DB , DBbitmap) )
 		DBButton.SetFields("Clicking this will allow you to save your entire database of games into a single file which you can use to restore the database later in time.", HelpBox)
@@ -2496,7 +2502,7 @@ Type SettingsMenu Extends wxFrame
 		PButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , SetM_PB , Pbitmap) )
 		PButton.SetFields("Here you can configure and enable plugins that allow you to do various things such as take screenshots and manage power plans.", HelpBox)
 		GButton = wxBitmapButtonExtended( New wxBitmapButtonExtended.Create(Self , SetM_GB , Gbitmap) )
-		GButton.SetFields("Here is where you can edit the settings of all of the applications in the GameManager suite. This includes PhotonManager, PhotonFrontend, PhotonExplorer and PhotonRunner", HelpBox)
+		GButton.SetFields("Here is where you can edit the settings of all of the applications in the Photon program suite. This includes PhotonManager, PhotonFrontend, PhotonExplorer and PhotonRunner", HelpBox)
 		
 		?Not Win32
 		PButton.Enable(0)

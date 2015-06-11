@@ -237,16 +237,25 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 	DownloadWindow:SetGauge(50)
 	
 	local header = htmlfile:match("<div class=\"body ffaq\">(.-)</div>")
+	local image = htmlfile:match("<div class=\"ffaq imgmain\">(.-)</div>")
+	
 	local titlehtml = htmlfile:match("<div class=\"body ffaq\">(.-)</div>")
 	local title1,title2,title3 = titlehtml:match("<h2 class=\"title\">(.-)<a href=\"(.-)\">(.-)</a></h2>")
 	local title = title1..title3
 	if header then 
 		DownloadWindow:AddText("Downloading file")
-		local filelink = header:match("| <a href=\"(.-)\">")
-		--ReturnedFile = Internet:GET(filelink,"Guide.txt")
-		ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide.txt"
+		local filelink = ""
+		if image then 
+			filelink = image:match("| <a href=\"(.-)\"")
+		else
+			filelink = header:match("| <a href=\"(.-)\">")
+		end 
+		fileextension = filelink:match("^.+%.(.-)$")
+
+		ReturnedFile = Internet:GET(filelink,"Guide."..fileextension)
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide.txt"
 		DownloadWindow:SetGauge(100)
-		FileList:LuaListAddLast(ReturnedFile,title..".txt")
+		FileList:LuaListAddLast(ReturnedFile,title.."."..fileextension)
 	end 
 	return 0,"",FileList
 end
