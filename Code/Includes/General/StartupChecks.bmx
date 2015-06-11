@@ -1,5 +1,20 @@
 'WindowsCheck is dependant on code file so is contained in each Photon*****.bmx master file
 
+Function TempFolderCleanup()
+	If FileType(TEMPFOLDER + "Lua") = 2 then
+		DeleteDir(TEMPFOLDER + "Lua", 1)
+	EndIf
+	If FileType(TEMPFOLDER + "ArtWork") = 2 then
+		DeleteDir(TEMPFOLDER + "ArtWork", 1)
+	EndIf
+	If FileType(TEMPFOLDER + "Thumbs") = 2 then
+		DeleteDir(TEMPFOLDER + "Thumbs", 1)
+	EndIf
+	If FileType(TEMPFOLDER + "GDFExtract") = 2 then
+		DeleteDir(TEMPFOLDER + "GDFExtract", 1)
+	EndIf
+End Function
+
 Function DebugCheck()
 	If FileType("DebugLog.txt") = 1 then
 		DebugLogEnabled = True
@@ -15,11 +30,11 @@ Function FolderCheck()
 		CreateDir(StripSlash(SETTINGSFOLDER),1 )
 		PrintF("Creating Settings Folder: " + SETTINGSFOLDER)
 	EndIf
-	If FileType(StripSlash(GAMEDATAFOLDER) ) = 0 Then
+	If FileType(StripSlash(GAMEDATAFOLDER) ) = 0 then
 		CreateDir(StripSlash(GAMEDATAFOLDER),1 )
 		PrintF("Creating Games Folder: " + GAMEDATAFOLDER)
 	EndIf
-	If FileType(StripSlash(TEMPFOLDER) ) = 0 Then
+	If FileType(StripSlash(TEMPFOLDER) ) = 0 then
 		CreateDir(StripSlash(TEMPFOLDER),1 )
 		PrintF("Creating Temp Folder: " + TEMPFOLDER)
 	EndIf

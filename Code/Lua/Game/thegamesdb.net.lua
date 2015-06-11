@@ -297,10 +297,10 @@ function SearchGame(SearchText,PreviousClientData,Platform,ListDepth,Internet,Li
 		wordList[word] = true 
 	end
 	
-	
 	ListDepth = tonumber(ListDepth)
 	if ListDepth==1 then 
 		ReturnedFile = Internet:GET("http://thegamesdb.net/api/GetGamesList.php?name="..Internet:Encode(SearchText).."&platform="..Internet:Encode(Platform),"SearchGame.xml")
+		print(ReturnedFile)
 		if ReturnedFile == "-1" then 
 			return 1,Internet.LastError,0,List
 		end

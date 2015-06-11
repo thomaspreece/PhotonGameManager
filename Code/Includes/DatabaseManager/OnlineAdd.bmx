@@ -53,17 +53,34 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 			Return
 		EndIf
 		
-		Error = luaL_checkint( LuaVM, 1 )
 		
+		If lua_isnumber(LuaVM, 1) = False then
+			Error = 198
+		Else		
+			Error = luaL_checkint( LuaVM, 1 )
+		EndIf
+			
 		If Error <> 0 then
-			ErrorMessage = luaL_checkstring(LuaVM , 2)
-			LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				ErrorMessage = "Lua code did not return int @1 or/and string @2"
+			Else
+				ErrorMessage = luaL_checkstring(LuaVM , 2)
+			EndIf 
+			LuaHelper_FunctionError(LuaVM, Error, ErrorMessage)
 			LuaMutexUnlock()
 			Log1.Show(0)
-			OnlineWin.Show()
+			OnlineWin.Show()		
 			Return
-		EndIf
-		
+		EndIf	
+
+		If lua_isstring(LuaVM, 3) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string @3")
+			LuaMutexUnlock()
+			Log1.Show(0)
+			OnlineWin.Show()			
+			Return		
+		EndIf	
+				
 		Local PlatformName:String = luaL_checkstring(LuaVM , 3)
 		Local PlatformData:String = ""
 		Local Platform:LuaListItemType
@@ -129,29 +146,44 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 					
 				If (Result <> 0) then
 					ErrorMessage = luaL_checkstring(LuaVM, - 1)
-					LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
 					Log1.AddText("Nothing Found")
+					Log1.AddText("(Lua Runtime error " + Result + ": " + ErrorMessage + ")")	
 					Log1.AddText("")	
 					PrintF("Lua Search pcall Error")
 					SkipRepeat = 1
 					Exit
 				EndIf
 				
-				Error = luaL_checkint( LuaVM, 1 )
-				
+				If lua_isnumber(LuaVM, 1) = False then
+					Error = 198
+				Else		
+					Error = luaL_checkint( LuaVM, 1 )
+				EndIf
+					
 				If Error <> 0 then
-					ErrorMessage = luaL_checkstring(LuaVM , 2)
-					LuaHelper_FunctionError(LuaVM, Error , ErrorMessage)
+					If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+						ErrorMessage = "Lua code did not return int @1 or/and string @2"
+					Else
+						ErrorMessage = luaL_checkstring(LuaVM , 2)
+					EndIf 
 					Log1.AddText("Nothing Found")
+					Log1.AddText("(Lua Error " + Error + ": " + ErrorMessage + ")")
 					Log1.AddText("")	
 					PrintF("Lua Search Error")
 					SkipRepeat = 1
-					Exit 
-				EndIf
-				
-				
-				
+					Exit
+				EndIf	
+
+				If lua_isnumber(LuaVM, 3) = False then
+					Log1.AddText("Nothing Found")
+					Log1.AddText("(Lua Error 199: Lua code did not return int @3)")				
+					Log1.AddText("")	
+					PrintF("Lua Search Error")
+					SkipRepeat = 1
+					Exit
+				EndIf				
 				NextDepth = luaL_checkint( LuaVM, 3 )
+					
 				LuaHelper_CleanStack(LuaVM)
 				
 				If LuaSearchList.List.Count() > 0 then

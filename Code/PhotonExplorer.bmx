@@ -1,5 +1,4 @@
 'TODO: Put filter into separate thread to increase smoothness and prevent wxwidgets debug message error
-'TODO: Fix lua script to be protected when lua script returns wrong types
 'TODO: Fix LuaInternet to check for meta refreshes
 
 
@@ -119,6 +118,7 @@ Print "OSubVersion = " + OSubVersion
 
 DebugCheck()
 FolderCheck()
+TempFolderCleanup()
 
 LogName = "Log-Explorer" + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
 CreateFile(LOGFOLDER + LogName)
@@ -1545,16 +1545,35 @@ Type GameExplorerFrame Extends wxFrame
 		Local Error:Int
 		
 		'Get Return status
-		Error = luaL_checkint( LuaVM, 1 )
+		If lua_isnumber(LuaVM, 1) = False then
+			Error = 198
+		Else		
+			Error = luaL_checkint( LuaVM, 1 )
+		EndIf
 		
 		If Error <> 0 then
-			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				ErrorString = "Lua code did not return int @1 or/and string @2"
+			Else
+				ErrorString = luaL_checkstring(LuaVM , 2)
+			EndIf 
 			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
 			LuaMutexUnlock()
 			Return
 		EndIf
-				
+		
+					
+		If lua_isnumber(LuaVM, 3) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return int @3")
+			LuaMutexUnlock()
+			Return		
+		EndIf
 		Self.DownloadListDepth = luaL_checkint( LuaVM , 3)
+		If lua_isbmaxobject(LuaVM, 4) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
+			LuaMutexUnlock()
+			Return		
+		EndIf	
 		Local LuaList:LuaListType = LuaListType(lua_tobmaxobject( LuaVM, 4 ) )
 		
 		LuaHelper_CleanStack(LuaVM)
@@ -1677,8 +1696,8 @@ Type GameExplorerFrame Extends wxFrame
 		EndIf
 		
 					
-		If lua_isstring(LuaVM, 3) = False then
-			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
+		If lua_isnumber(LuaVM, 3) = False then
+			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return int @3")
 			LuaMutexUnlock()
 			Return		
 		EndIf
@@ -4344,21 +4363,34 @@ Function Thread_Download:Object(Obj:Object)
 		Return
 	EndIf
 	
-	Error = luaL_checkint( LocalLuaVM, 1 )
-	
+	If lua_isnumber(LocalLuaVM, 1) = False then
+		Error = 198
+	Else		
+		Error = luaL_checkint( LocalLuaVM, 1 )
+	EndIf
+		
 	If Error <> 0 then
-		ErrorMessage = luaL_checkstring(LocalLuaVM , 2)
+		If lua_isstring(LocalLuaVM, 2) = False Or lua_isnumber(LocalLuaVM, 1) = False then
+			ErrorMessage = "Lua code did not return int @1 or/and string @2"
+		Else
+			ErrorMessage = luaL_checkstring(LocalLuaVM , 2)
+		EndIf 
 		If ErrorMessage = "Operation was aborted by an application callback" then ErrorMessage = "Internet operation timeout"
 		PrintF("Lua function returned error code: " + Error + " with message: " + ErrorMessage)
-		DownloadBox.AddText("Lua function returned error code: " + Error + " with message: " + ErrorMessage)
-		'MessageBox = New wxMessageDialog.Create(Null , "Error: " + ErrorMessage + "~nError Code: " + Error , "Error" , wxOK | wxICON_EXCLAMATION)
-		'MessageBox.ShowModal()
-		'MessageBox.Free()				
+		DownloadBox.AddText("Lua function returned error code: " + Error + " with message: " + ErrorMessage)			
 		LuaHelper_CleanStack(LocalLuaVM)
 		DownloadBox.Finish()
 		Return
 	EndIf
 		
+	If lua_isbmaxobject(LuaVM, 3) = False then
+		PrintF("Lua function returned error code: 199 with message: Lua code did not return correct object @3")
+		DownloadBox.AddText("Lua function returned error code: 199 with message: Lua code did not return correct object @3")			
+		LuaHelper_CleanStack(LocalLuaVM)
+		DownloadBox.Finish()
+		Return		
+	EndIf		
+
 	LuaHelper_CleanStack(LocalLuaVM)
 	lua_close(LocalLuaVM)
 	
