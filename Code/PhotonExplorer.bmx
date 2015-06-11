@@ -1542,7 +1542,7 @@ Type GameExplorerFrame Extends wxFrame
 	
 		LuaMutexLock()
 		PlaySound Beep
-		Local Error:Int
+		Local Error:Int, ErrorString:String
 		
 		'Get Return status
 		If lua_isnumber(LuaVM, 1) = False then
@@ -4383,7 +4383,7 @@ Function Thread_Download:Object(Obj:Object)
 		Return
 	EndIf
 		
-	If lua_isbmaxobject(LuaVM, 3) = False then
+	If lua_isbmaxobject(LocalLuaVM, 3) = False then
 		PrintF("Lua function returned error code: 199 with message: Lua code did not return correct object @3")
 		DownloadBox.AddText("Lua function returned error code: 199 with message: Lua code did not return correct object @3")			
 		LuaHelper_CleanStack(LocalLuaVM)
