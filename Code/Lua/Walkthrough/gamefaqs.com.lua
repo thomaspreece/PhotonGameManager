@@ -132,7 +132,7 @@ function GetPlatforms(PlatformID,List)
 	List:LuaListAddLast("Zeebo","115")
 	List:LuaListAddLast("Zodiac","103")	
 	
-	return 0,"","PC",List
+	return 0,"","All Platforms",List
 end 
 
 -- Description
