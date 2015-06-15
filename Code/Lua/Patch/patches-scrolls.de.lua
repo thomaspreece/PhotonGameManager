@@ -1,3 +1,9 @@
+local clock = os.clock
+function sleep(n)  -- seconds
+  local t0 = clock()
+  while clock() - t0 <= n do end
+end
+
 -- Description
 -- Takes 	1. ID of the Photon platform
 --		 	2: Takes List to add platforms to
@@ -37,9 +43,9 @@ function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
 	local ReturnedFile = ""
 	
 	if ListDepth==1 then 
-		--ReturnedFile = Internet:GET("http://www.patches-scrolls.de/","Patch.html")
+		ReturnedFile = Internet:GET("http://www.patches-scrolls.de/","Patch.html")
 
-		ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch.html"
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch.html"
 		local htmlread = io.open(ReturnedFile)
 		local htmlfile = htmlread:read('*all')
 		
@@ -52,8 +58,8 @@ function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
 			data = data.."&"..name.."="..value
 		end 
 		
-		--ReturnedFile = Internet:POST("http://www.patches-scrolls.de/","Patch2.html",data)
-		ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch2.html"
+		ReturnedFile = Internet:POST("http://www.patches-scrolls.de/","Patch2.html",data)
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch2.html"
 		
 		local htmlread = io.open(ReturnedFile)
 		local htmlfile = htmlread:read('*all')		
@@ -66,11 +72,59 @@ function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
 		
 		return 0,"",2,List
 	elseif ListDepth==2 then 
-	
-	
-	
-	
-	
+		ReturnedFile = Internet:GET(PreviousClientData,"Patch2P0.html")
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch2P0.html"
+		local htmlread = io.open(ReturnedFile)
+		local htmlfile = htmlread:read('*all')	
+
+		maxPage = htmlfile:match("<li class=\"pager%-last last\"><a href=\"/patch/.-%?page=(.-)\" title=\"Go to last page\" class=\"active\">last »</a></li>")
+		if maxPage then 
+			maxPage = tonumber(maxPage)
+		else
+			maxPage = 0
+		end 
+		currentPage = 0
+		
+		while true do 
+			noContent = htmlfile:match("<div style=\"text%-align:center;\">No content available</div>(.-)<div class=\"item%-list\">")
+			if noContent then 
+				break
+			else 
+				Content = htmlfile:match("<ul class=\"newlistingTable\">(.-)</ul>")
+				for href,name in Content:gmatch("<h4><img src=\".-\" style=\".-\" /><a href=\"(.-)\">(.-)</a></h4>") do
+					List:LuaListAddLast(name,href)
+				end 
+				--Extract Content 
+			end 
+			
+			
+			currentPage = currentPage + 1
+			if currentPage > maxPage then 
+				break 
+			else
+				ReturnedFile = Internet:GET(PreviousClientData.."?page="..currentPage,"Patch2P"..currentPage..".html")
+				--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch2P"..currentPage..".html"
+				htmlread = io.open(ReturnedFile)
+				htmlfile = htmlread:read('*all')	
+			end 
+		end 
+		
+		return 0,"",3,List
+	elseif ListDepth==3 then 
+		ReturnedFile = Internet:GET("http://www.patches-scrolls.de"..PreviousClientData,"Patch3.html")
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch3.html"
+		local htmlread = io.open(ReturnedFile)
+		local htmlfile = htmlread:read('*all')	
+
+		for patchSet in htmlfile:gmatch("<div class=\"availPatch\">(.-)</ul>.-</div>") do 
+			patchPlatform = patchSet:match("<h3>(.-)</h3>")
+			
+			for patchName,patchLink in patchSet:gmatch("<div class=\"flag\"><img.-src=\"http://www.patches%-scrolls.de/sites/default/files/(.-).png%?.-\" /></div>.-<a href=\"(.-)\">") do 
+				List:LuaListAddLast(patchName.." ("..patchPlatform..")",patchLink)
+			end 
+		
+		end 
+		
 		return 0,"",0,List
 	else
 		--Error
@@ -92,35 +146,36 @@ end
 function Get(FileList,Internet,LuaIDData,DownloadWindow)
 	local ReturnedFile = ""
 	
-	DownloadWindow:AddText("Getting manual link")
-	ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Manual2.html"
-	--ReturnedFile = Internet:GET("http://replacementdocs.com/"..LuaIDData,"Manual2.html")
-	
-	
+	DownloadWindow:AddText("Getting patch link")
+	--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Patch4.html"
+	ReturnedFile = Internet:GET("http://www.patches-scrolls.de"..LuaIDData,"Patch4.html")
 	local htmlread = io.open(ReturnedFile)
-	local htmlfile = htmlread:read('*all')
+	local htmlfile = htmlread:read('*all')		
 	
-	local link = htmlfile:match("<td style='width:80%%' class='forumheader3'><a href='(.-)'> <img src='e107_images/generic/lite/download.png' alt='' style='border:0' />")
-	DownloadWindow:AddText(link)
-	a = 1
-	local name = ""
-	local itemtype = ""
-	for row in htmlfile:gmatch("<td style='width:75%%' class='forumheader3'>(.-)</td>") do 
-		if a == 1 then
-			name = row
-		elseif a == 2 then 
-			itemtype = row
-			break 
-		end 
-		a = a + 1
-	end
+	link = htmlfile:match("<div id=\"game%-downlaod\">.-<div id=\"leftCol\">.-<ul>.-<a href=\"(.-)\".->")
+	link = link:gsub("&amp;","&")
+	filetype = link:match(".+%.(.-)$")
+	title = htmlfile:match("<div id=\"patch%-desp\">.-<h3>(.-)</h3>")
+	lang = htmlfile:match("<strong>Language:</strong> <img.-src=\"http://www.patches%-scrolls.de/sites/default/files/(.-).png?.-\"")
+	DownloadWindow:AddText("Downloading: "..title.."("..lang..")".."."..filetype)
+	ReturnedFile = Internet:GET("http://www.patches-scrolls.de"..link,"Patch5.html")
 	
-	htmlread:close()
-
 	DownloadWindow:SetGauge(50)
-	DownloadWindow:AddText("Downloading: "..name.." ("..itemtype..")")
-	ReturnedFile = Internet:GET("http://replacementdocs.com/"..link,"Manual.pdf")
-	FileList:LuaListAddLast(ReturnedFile,name.." ("..itemtype..").pdf")
+	DownloadWindow:AddText("Waiting 10 seconds for download link")
+	for i = 9,1,-1 do 
+		sleep(1)
+		if DownloadWindow.LogClosed == true then 
+			return 0,"",FileList
+		end 
+		DownloadWindow:AddText(i)
+	end 
+	
+	DownloadWindow:AddText("Downloading...")
+	
+	
+	ReturnedFile = Internet:GET("http://www.patches-scrolls.de/get.php",title.."("..lang..")".."."..filetype)
+	
+	FileList:LuaListAddLast(ReturnedFile,title.."("..lang..")".."."..filetype)
 	DownloadWindow:SetGauge(100)
 	return 0,"",FileList
 end

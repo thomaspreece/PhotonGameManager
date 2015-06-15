@@ -252,7 +252,7 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 		end 
 		fileextension = filelink:match("^.+%.(.-)$")
 
-		ReturnedFile = Internet:GET(filelink,"Guide."..fileextension)
+		ReturnedFile = Internet:GET(filelink,title.."."..fileextension)
 		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide.txt"
 		DownloadWindow:SetGauge(100)
 		FileList:LuaListAddLast(ReturnedFile,title.."."..fileextension)

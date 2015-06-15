@@ -98,9 +98,9 @@ function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
 	local ReturnedFile = ""
 	
 	if ListDepth==1 then 
-		--ReturnedFile = Internet:GET("http://replacementdocs.com/search.php?q="..Internet:Encode(SearchText).."&r=0&s=Search&in=&ex=&ep=&be=&t=downloads&adv=0&cat="..Platform.."&on=New&time=any&author=&match=0","Manual.html")
+		ReturnedFile = Internet:GET("http://replacementdocs.com/search.php?q="..Internet:Encode(SearchText).."&r=0&s=Search&in=&ex=&ep=&be=&t=downloads&adv=0&cat="..Platform.."&on=New&time=any&author=&match=0","Manual.html")
 
-		ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Manual.html"
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Manual.html"
 		local htmlread = io.open(ReturnedFile)
 		local htmlfile = htmlread:read('*all')
 		local results = ""
@@ -146,8 +146,8 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 	local ReturnedFile = ""
 	
 	DownloadWindow:AddText("Getting manual link")
-	ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Manual2.html"
-	--ReturnedFile = Internet:GET("http://replacementdocs.com/"..LuaIDData,"Manual2.html")
+	--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Manual2.html"
+	ReturnedFile = Internet:GET("http://replacementdocs.com/"..LuaIDData,"Manual2.html")
 	
 	
 	local htmlread = io.open(ReturnedFile)
@@ -172,7 +172,7 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 
 	DownloadWindow:SetGauge(50)
 	DownloadWindow:AddText("Downloading: "..name.." ("..itemtype..")")
-	ReturnedFile = Internet:GET("http://replacementdocs.com/"..link,"Manual.pdf")
+	ReturnedFile = Internet:GET("http://replacementdocs.com/"..link,name.." ("..itemtype..").pdf")
 	FileList:LuaListAddLast(ReturnedFile,name.." ("..itemtype..").pdf")
 	DownloadWindow:SetGauge(100)
 	return 0,"",FileList
