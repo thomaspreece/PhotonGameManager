@@ -2357,7 +2357,7 @@ Type GameExplorerFrame Extends wxFrame
 			curl.setWriteStream(File)
 			curl.setProgressCallback(TimeoutCallback) 
 			curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER+"cookie.txt") 
-			curl.setOptString(CURLOPT_URL, "http://replacementdocs.com/search.php?q="+Term+"&r="+ResultNum+"&s=Search&in=&ex=&ep=&be=&t=downloads&adv=0&cat=all&on=New&time=any&author=&match=0")
+			curl.setOptString(CURLOPT_URL, "http://replacementdocs.com/search.php?q=" + Term + "&r=" + ResultNum + "&s=Search&in=&ex=&ep=&be=&t=downloads&adv=0&cat=all&on=New&time=any&author=&match=0")
 			Error = curl.perform()
 			CloseFile(File)
 			If Error > 0 Then
@@ -2506,7 +2506,7 @@ Type GameExplorerFrame Extends wxFrame
 					Print ""
 					Guide = New DownloadListObject
 					Guide.URL = GameURL
-					Guide.Name = GameName+" - "+GamePlat
+					Guide.Name = GameName + " - " + GamePlat
 						
 					ListAddLast(GuideList,Guide)
 		
@@ -2520,7 +2520,7 @@ Type GameExplorerFrame Extends wxFrame
 		Return GuideList
 	End Function	
 	
-	Function SearchCheat_GFAQs:TList(Term:String,Plat:String)
+	Function SearchCheat_GFAQs:TList(Term:String, Plat:String)
 		
 		Local curl:TCurlEasy
 		Local ResultNum:Int = 0
@@ -3841,6 +3841,8 @@ Type DownloadWindow Extends wxFrame {expose disablenew}
 	Method Finish()
 		Self.DownloadFinished = True
 		If LogClosed = True then
+			Self.AddText("Operation aborted by user")
+			Delay(3000)
 			Self.Destroy()
 			Return
 		EndIf
@@ -4273,7 +4275,7 @@ Function WindowsCheck()
 	EndIf
 
 	Local OSMajor:Int
-	Local OSMinor:int
+	Local OSMinor:Int
 	wxGetOsVersion(OSMajor, OSMinor)
 
 	PrintF("Detected Win Version: "+OSMajor+"."+OSMinor)
