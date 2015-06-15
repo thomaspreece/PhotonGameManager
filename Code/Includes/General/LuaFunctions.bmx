@@ -59,9 +59,9 @@ Type LuaInternetType {expose disablenew}
 	Function progressCallback:Int(data:Object, dltotal:Double, dlnow:Double, ultotal:Double, ulnow:Double) {hidden}
 		Local LuaInternet:LuaInternetType = LuaInternetType(data)
 		If dlnow = 0 then
-			LuaInternetPulse(LuaInternet.Window)
+			If LuaInternetPulse(LuaInternet.Window) = 1 then Return 1
 		Else
-			LuaInternetSetProgress( (100 * dlnow) / dltotal, LuaInternet.Window)
+			If LuaInternetSetProgress( (100 * dlnow) / dltotal, LuaInternet.Window) = 1 then Return 1
 		EndIf
 		
 		If LuaInternet.Currentdl - dlnow = 0 then
@@ -110,12 +110,24 @@ Type LuaInternetType {expose disablenew}
 			CreateDir(TEMPFOLDER + "Lua", 1 )
 		EndIf
 		
+		Local a:Int = 1
+		Local Oldfilename:String = filename
+		Repeat
+			If FileType(TEMPFOLDER + "Lua" + FolderSlash + filename) = 1 then
+				filename = Oldfilename + "(" + a + ")"
+			Else
+				Exit
+			EndIf
+			a = a + 1
+		Forever
+		
 		Local TFile:TStream = WriteFile(TEMPFOLDER + "Lua" + FolderSlash + filename)
 
 		URL = URLEncode(URL)
 		
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
+		curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER + "Lua" + FolderSlash + "cookies.txt")
 		curl.setProgressCallback(Self.progressCallback, Object(Self) )
 		curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 		curl.setWriteStream(TFile)
@@ -162,6 +174,24 @@ Type LuaInternetType {expose disablenew}
 			CloseFile(HTMLStream)
 			EndRem
 			
+?Debug
+			Local info:TCurlInfo = curl.getInfo()
+
+			' retrieve the cookies, if there were any
+			Local cookies:String[] = info.cookieList()
+
+			If cookies Then
+				PrintF("cookie count = " + cookies.length)
+				
+				For Local i:Int = 0 Until cookies.length
+					PrintF(cookies[i])
+				Next
+			Else
+				PrintF("No cookies!")
+			End If	
+?
+
+			
 			Self.LastError = ""
 			Return TEMPFOLDER + "Lua" + FolderSlash + filename 'FullPathToFile
 		EndIf
@@ -180,11 +210,22 @@ Type LuaInternetType {expose disablenew}
 			CreateDir(TEMPFOLDER + "Lua", 1 )
 		EndIf
 				
+		Local a:Int = 1
+		Local Oldfilename:String = filename
+		Repeat
+			If FileType(TEMPFOLDER + "Lua" + FolderSlash + filename) = 1 then
+				filename = Oldfilename + "(" + a + ")"
+			Else
+				Exit
+			EndIf
+			a = a + 1
+		Forever				
 		
 		Local TFile:TStream = WriteFile(TEMPFOLDER + "Lua" + FolderSlash + filename)
 
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
+		curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER + "Lua" + FolderSlash + "cookies.txt")
 		curl.setProgressCallback(Self.progressCallback, Object(Self) )
 		curl.setOptString(CURLOPT_POSTFIELDS, data)		
 		curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
