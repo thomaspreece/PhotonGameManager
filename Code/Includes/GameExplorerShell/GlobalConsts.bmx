@@ -143,17 +143,17 @@ Const BannerFloat:Float = 5
 
 
 
-Global PERed:int = 185'190
-Global PEGreen:int = 210'190
+Global PERed:int = 190'190
+Global PEGreen:int = 190'190
 Global PEBlue:int = 255'255
 
-Global PERed2:int = 215
-Global PEGreen2:int = 230
-Global PEBlue2:int = 255
+Global PERed2:int = 215 '215
+Global PEGreen2:int = 230 '230
+Global PEBlue2:int = 255 '255
 
-Global PERed3:int = 215
-Global PEGreen3:int = 230
-Global PEBlue3:int = 255
+Global PERed3:int = 215 '215
+Global PEGreen3:int = 230 '230
+Global PEBlue3:int = 255 '255
 
 Const SizeOf_PE32 = 296
 Const TH32CS_SNAPHEAPLIST = $1

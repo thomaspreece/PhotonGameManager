@@ -2,15 +2,7 @@
 'TODO: Fix LuaInternet to check for meta refreshes
 
 
-'NOTHING IMPORTANT HERE
-'All subfiles checked, no pending fixes found
-
 'FIX: Steam ScreenShots!
-'FIX: Sort list by relavence (SearchPatch_PScrolls)
-'FIX: Sort list by relavence(SearchManual_RDocs)
-'FIX: Search in relievent category(SearchManual_RDocs)
-
-'END OF NOTHING IMPORTANT HERE
 
 Framework wx.wxApp
 Import wx.wxFrame
@@ -200,6 +192,35 @@ End
 
 
 Function LoadSettings()
+	
+	If SettingFile.GetSetting("Red1") <> "" then
+		PERed = Int(SettingFile.GetSetting("Red1") )
+	EndIf
+	If SettingFile.GetSetting("Green1") <> "" then
+		PEGreen = Int(SettingFile.GetSetting("Green1") )
+	EndIf	
+	If SettingFile.GetSetting("Blue1") <> "" then
+		PEBlue = Int(SettingFile.GetSetting("Blue1") )
+	EndIf		
+	If SettingFile.GetSetting("Red2") <> "" then
+		PERed2 = Int(SettingFile.GetSetting("Red2") )
+	EndIf
+	If SettingFile.GetSetting("Green2") <> "" then
+		PEGreen2 = Int(SettingFile.GetSetting("Green2") )
+	EndIf	
+	If SettingFile.GetSetting("Blue2") <> "" then
+		PEBlue2 = Int(SettingFile.GetSetting("Blue2") )
+	EndIf	
+	If SettingFile.GetSetting("Red3") <> "" then
+		PERed3 = Int(SettingFile.GetSetting("Red3") )
+	EndIf
+	If SettingFile.GetSetting("Green3") <> "" then
+		PEGreen3 = Int(SettingFile.GetSetting("Green3") )
+	EndIf	
+	If SettingFile.GetSetting("Blue3") <> "" then
+		PEBlue3 = Int(SettingFile.GetSetting("Blue3") )
+	EndIf
+
 	Select SettingFile.GetSetting("ListType")
 		Case "1"
 			GameListStyle = wxLC_ICON | wxLC_SINGLE_SEL | wxLC_AUTOARRANGE | wxBORDER_NONE

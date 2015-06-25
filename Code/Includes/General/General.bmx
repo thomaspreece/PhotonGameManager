@@ -24,6 +24,67 @@ Function StreamSize:Int(stream:TStream)
 	Return BRL.Stream.StreamSize(stream)
 End Function
 
+
+
+Function FolderSizeStringString:String(FolderPath:String)
+	Local Size:Int = FolderSize(FolderPath)
+	Local SizeF:Float
+	Local SizeString:String = ""
+	If Size > (1000000000) then
+		SizeF = Float(Size) / 1000000000
+		SizeString = Left(SizeF, Instr(SizeF, ".") + 2) + " GB"
+	ElseIf Size > (1000000) then
+		SizeF = Float(Size) / 1000000
+		SizeString = Left(SizeF, Instr(SizeF, ".") + 2) + " MB"
+	ElseIf Size > (1000) then
+		SizeF = Float(Size) / 1000
+		SizeString = Left(SizeF, Instr(SizeF, ".") + 2) + " KB"
+	Else
+		SizeString = Size + " bytes"
+	EndIf
+	
+	Return SizeString
+End Function
+
+'Returns size of folder in bytes or <0 if error
+Function FolderSize:Int(FolderPath:String)
+	If Right(FolderPath, 1) = "/" Or Right(FolderPath, 1) = "\" then
+		FolderPath = Left(FolderPath, Len(FolderPath) - 1)
+	EndIf
+	Local Size:Int = 0
+	Local Dir:Int
+	Local File:String, FileT:Int 
+	Local FolderReturn:Int
+	
+	If FileType(FolderPath) = 2 then
+		Dir = ReadDir(FolderPath)
+		Repeat
+			File = NextFile(Dir)
+			If File = "." Or File = ".." then Continue
+			If File = "" then Exit
+			FileT = FileType(FolderPath + FolderSlash + File)
+			If FileT = 2 then
+				FolderReturn = FolderSize(FolderPath + FolderSlash + File)
+				If FolderReturn >= 0 then
+					Size = Size + FolderReturn
+				Else
+					Return FolderReturn
+				EndIf
+			ElseIf FileT = 1 then
+				Size = Size + FileSize(FolderPath + FolderSlash + File)
+			Else
+				'Invalid File
+				PrintF("-2: " + FolderPath + FolderSlash + File)
+				Return - 2
+			EndIf
+		Forever
+	Else
+		PrintF("-1: " + FolderPath)
+		Return - 1
+	EndIf
+	Return Size 
+End Function
+
 Function ExtractSubVersion(Text:String , Part:Int)
 	Local SubVersions:Int[] = [0,0,0,0]
 	Local b:Int = 0
