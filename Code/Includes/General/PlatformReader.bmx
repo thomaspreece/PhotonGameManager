@@ -33,12 +33,16 @@ Type PlatformReader
 		Return NullPlatform
 	End Method	
 
-	Method ReadInPlatforms()
+	Method ReadInPlatforms(PlatformFile:String = Null)
+		If PlatformFile = Null then
+			PlatformFile = SETTINGSFOLDER + "Platforms.xml"
+		EndIf
+		
 		PlatformList = CreateList()
 		Local Platdoc:TxmlDoc		
 		Local RootNode:TxmlNode , PlatformNode:TxmlNode , TextNode:TxmlNode
 			
-		Platdoc = TxmlDoc.parseFile(SETTINGSFOLDER +"Platforms.xml")
+		Platdoc = TxmlDoc.parseFile(PlatformFile)
 	
 		If Platdoc = Null Then
 			CustomRuntimeError( "Error 36-2: XML Document not parsed successfully, ReadInPlatforms") 'MARK: Error 36-2
@@ -108,13 +112,17 @@ Type PlatformReader
 		
 	End Method 
 
-	Function PopulateDefaultPlatforms()
+	Function PopulateDefaultPlatforms(PlatformFile:String = Null)
+		If PlatformFile = Null then
+			PlatformFile = SETTINGSFOLDER + "Platforms.xml"
+		EndIf	
+		
 		Local Platdoc:TxmlDoc		
 		Local RootNode:TxmlNode , PlatformNode:TxmlNode 
 
-		PlatformReader.CreateEmptyXMLPlatform()
+		PlatformReader.CreateEmptyXMLPlatform(PlatformFile)
 			
-		Platdoc = TxmlDoc.parseFile(SETTINGSFOLDER +"Platforms.xml")
+		Platdoc = TxmlDoc.parseFile(PlatformFile)
 	
 		If Platdoc = Null Then
 			CustomRuntimeError( "Error 36-2: XML Document not parsed successfully, PopulateDefaultPlatforms") 'MARK: Error 36-2
@@ -442,7 +450,7 @@ Type PlatformReader
 	
 		
 		For b = 1 To 10
-			SaveStatus = Platdoc.saveFormatFile(SETTINGSFOLDER + "Platforms.xml" , False)
+			SaveStatus = Platdoc.saveFormatFile(PlatformFile , False)
 			PrintF("SaveXML Try: "+b+" Status: "+SaveStatus)
 			If SaveStatus <> - 1 then Exit
 			Delay 100
@@ -455,21 +463,27 @@ Type PlatformReader
 			
 	End Function
 
-	Function CreateEmptyXMLPlatform()
-		Local WriteXML:TStream = WriteFile(SETTINGSFOLDER +"Platforms.xml")
+	Function CreateEmptyXMLPlatform(PlatformFile:String = Null)
+		If PlatformFile = Null then
+			PlatformFile = SETTINGSFOLDER + "Platforms.xml"
+		EndIf	
+		Local WriteXML:TStream = WriteFile(PlatformFile)
 		WriteLine(WriteXML , "<?xml version=" + Chr(34) + "1.0" + Chr(34) + "?><Platforms></Platforms>")
 		CloseFile(WriteXML)
 	End Function
 	
 	
-	Method SavePlatforms()
+	Method SavePlatforms(PlatformFile:String = Null)
+		If PlatformFile = Null then
+			PlatformFile = SETTINGSFOLDER + "Platforms.xml"
+		EndIf	
 		Local Platdoc:TxmlDoc		
 		Local RootNode:TxmlNode , PlatformNode:TxmlNode 
 		Local Platform:PlatformType
 
-		PlatformReader.CreateEmptyXMLPlatform()
+		PlatformReader.CreateEmptyXMLPlatform(PlatformFile)
 			
-		Platdoc = TxmlDoc.parseFile(SETTINGSFOLDER +"Platforms.xml")
+		Platdoc = TxmlDoc.parseFile(PlatformFile)
 	
 		If Platdoc = Null Then
 			CustomRuntimeError( "Error 36-3: XML Document not parsed successfully, SavePlatforms") 'MARK: Error 36-3
@@ -500,9 +514,9 @@ Type PlatformReader
 		Next
 		
 		For b = 1 To 10
-			SaveStatus = Platdoc.saveFormatFile(SETTINGSFOLDER +"Platforms.xml" , False)
+			SaveStatus = Platdoc.saveFormatFile(PlatformFile , False)
 			PrintF("SaveXML Try: "+b+" Status: "+SaveStatus)
-			If SaveStatus <> - 1 Then Exit
+			If SaveStatus <> - 1 then Exit
 			Delay 100
 		Next
 		If b = 10 Then
@@ -523,7 +537,7 @@ Type PlatformType
 	Field PlatType:String
 	Field Emulator:String
 	
-	Function Init:PlatformType(PID:Int,PName:String,PPlatType:String,PEmulator:String)
+	Function Init:PlatformType(PID:Int, PName:String, PPlatType:String, PEmulator:String)
 		PT:PlatformType = New PlatformType
 		PT.ID = PID
 		PT.Name = PName

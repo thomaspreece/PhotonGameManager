@@ -122,7 +122,13 @@ Type LuaInternetType {expose disablenew}
 		Forever
 		
 		Local TFile:TStream = WriteFile(TEMPFOLDER + "Lua" + FolderSlash + filename)
-
+		If TFile then
+		
+		Else
+			PrintF("LuaInternet GET Error: Cannot write to filename, may be invalid filename or user doesn't have permissions to write. ~nFilename: "+TEMPFOLDER + "Lua" + FolderSlash + filename )
+			Self.LastError = "Cannot write to filename, may be invalid filename or user doesn't have permissions to write. ~nFilename: "+TEMPFOLDER + "Lua" + FolderSlash + filename
+			Return "-1"
+		EndIf	
 		URL = URLEncode(URL)
 		
 		curl.setOptString(CURLOPT_URL, URL)
@@ -139,7 +145,7 @@ Type LuaInternetType {expose disablenew}
 
 		
 		Local res:Int = curl.perform()
-		
+				
 		Local HTMLStream:TStream, HTML:String, Line:String
 		Local FinishSearch:Int = 0
 		Local MetaHeader:String = "<meta http-equiv=" + Chr(34) + "refresh" + Chr(34) + " content=" + Chr(34) + "0" + Chr(34) + ">"
@@ -222,7 +228,13 @@ Type LuaInternetType {expose disablenew}
 		Forever				
 		
 		Local TFile:TStream = WriteFile(TEMPFOLDER + "Lua" + FolderSlash + filename)
-
+		If TFile then
+		
+		Else
+			PrintF("LuaInternet GET Error: Cannot write to filename, may be invalid filename or user doesn't have permissions to write. ~nFilename: "+TEMPFOLDER + "Lua" + FolderSlash + filename )
+			Self.LastError = "Cannot write to filename, may be invalid filename or user doesn't have permissions to write. ~nFilename: "+TEMPFOLDER + "Lua" + FolderSlash + filename
+			Return "-1"
+		EndIf	
 		curl.setOptString(CURLOPT_URL, URL)
 		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
 		curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER + "Lua" + FolderSlash + "cookies.txt")

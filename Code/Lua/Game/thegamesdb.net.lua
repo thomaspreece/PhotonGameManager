@@ -423,7 +423,6 @@ function GetGame(GameContainer,Internet,LuaIDData)
 	local SLAXML = require 'Lua\\Includes\\slaxdom' -- also requires slaxml.lua; be sure to copy both files
 	local doc = SLAXML:dom(myxml)
 	
-	local TrailerString
 	local BaseURL
 
 	for i, v in ipairs(doc.root.kids) do
@@ -433,7 +432,7 @@ function GetGame(GameContainer,Internet,LuaIDData)
 		if v.name == "Game" then
 			for i2, v2 in ipairs(v.kids) do
 				if v2.name == "Youtube" then
-					TrailerString = elementText(v2)
+					GameContainer.Trailer = elementText(v2):match("youtube%.com/watch%?v=(.+)$")
 				elseif v2.name == "GameTitle" then 
 					GameContainer.Name = elementText(v2)
 				elseif v2.name == "Overview" then 

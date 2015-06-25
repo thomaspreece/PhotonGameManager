@@ -141,7 +141,7 @@ end
 --			2. The text to be displayed at bottom of search window
 --			3. The text URL link
 function GetText()
-	return 0,"Hello","http://blob.com"
+	return 0,"Content provided by gamefaqs.com","http://gamefaqs.com"
 end
 
 -- Description

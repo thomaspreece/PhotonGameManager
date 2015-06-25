@@ -23,6 +23,7 @@ Global LuaEvent:String = ""
 
 
 Global GlobalPlatforms:PlatformReader
+Global DefaultPlatforms:PlatformReader
 
 
 ?Threaded

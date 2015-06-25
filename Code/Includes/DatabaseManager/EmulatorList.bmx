@@ -263,7 +263,7 @@ Type EmulatorsList Extends wxFrame
 	
 	Method Finish()
 		Local StaticTextListArray:wxStaticText[]
-		Local TextCtrlListArray:wxTextCtrl[] 
+		Local TextCtrlListArray:wxTextCtrl[]
 		Local Platform:PlatformType
 		StaticTextListArray = wxStaticText[](ListToArray(StaticTextList))
 		TextCtrlListArray = wxTextCtrl[](ListToArray(TextCtrlList))

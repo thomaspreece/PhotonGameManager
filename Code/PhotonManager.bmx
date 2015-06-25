@@ -1,18 +1,11 @@
 'TODO: Update Artwork BrowseOnline Function
 'TODO: add clear cache to Settings
 'TODO: Hover over online game choice and show artwork thumb / More info button: downloads lua and displays the info
-'TODO: Platform Window for adding/restoring/deleting platforms
 'TODO: Add in version information into configuration files to allow for easy updates
 'TODO: Add in settings for Explorer colour options
 'TODO: Add in Explorer settings tab to tell you that to alter settings go to explorer and use menus
+'TODO: Fix artwork online browse
 
-'TODO: Fix platform list not sorting alphabetically: (puts capitals before lower case)
-
-'SUPER IMPORTANT
-
-'TODO: Fix the way platforms are done...
-
-'END OF SUPER IMPORTANT
 
 'TODO: OnlineAdd and SteamOnlineImport2 - scan for already added games and add to spreadsheet
 'TODO: Find a way to check if icon is compatable with wxwidgets
@@ -83,6 +76,7 @@ Import BaH.libcurlssl
 Import Bah.libxml
 Import Bah.Volumes
 Import bah.regex
+Import bah.libarchive
 
 Import BAH.FreeImage
 'Import BRL.JPGLoader
@@ -186,14 +180,14 @@ CheckEXEDatabaseStatus()
 
 StartupLuaVM()
 
-Local PastArgument:String 
+Local PastArgument:String
 For Argument$ = EachIn AppArgs$
 	Select PastArgument
 		Case "-EditGame", "EditGame"
 			EditGameName = Argument
 			PastArgument = ""
 		Case "-Debug","Debug"
-			If Int(Argument) = 1 Then 
+			If int(Argument) = 1 then
 				DebugLogEnabled = True
 			EndIf 
 			PastArgument = ""
@@ -423,7 +417,8 @@ Type MainWindow Extends wxFrame
 	'Field ManualAddField:ManualAdd
 	Field OnlineAddField:OnlineAdd
 	Field SteamCustomAddField:SteamCustomAdd	
-	Field EmulatorsListField:EmulatorsList
+	'Field EmulatorsListField:EmulatorsList
+	Field PlatformsListField:PlatformsList
 	Field SettingsWindowField:SettingsWindow
 	Field SettingsMenuField:SettingsMenu
 	Field PluginsWindowField:PluginsWindow
@@ -483,7 +478,7 @@ Type MainWindow Extends wxFrame
 		
 		Ebitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Emulators.png" , wxBITMAP_TYPE_PNG)
 		EButton = wxBitmapButtonExtended(New wxBitmapButtonExtended.Create(Self , MW_EB , Ebitmap) )
-		EButton.SetFields("Change the default emulator for each platform.", HelpBox)
+		EButton.SetFields("From here you can change, add and remove Platforms as well as change their details such as name, default emulator and type.", HelpBox)
 		EButton.SetForegroundColour(New wxColour.Create(100 , 100 , 255) )
 		
 		GSbitmap:wxBitmap = New wxBitmap.CreateFromFile("Resources"+FolderSlash+"Settings.png" , wxBITMAP_TYPE_PNG)
@@ -546,8 +541,11 @@ Type MainWindow Extends wxFrame
 		AddGamesMenuField = AddGamesMenu(New AddGamesMenu.Create(Self, wxID_ANY, "Add Games Select", , , 600, 400) )
 		SettingsMenuField = SettingsMenu(New SettingsMenu.Create(Self , wxID_ANY , "Settings Select" , , , 600 , 400) )	
 		ActivateMenuField = ActivateMenu(New ActivateMenu.Create(Self , wxID_ANY , "Activate" , , , 300 , 200) )
-						
-		'OnlineAddField Now loaded on demand
+					
+											
+
+		
+		'OnlineAddField Now loaded ON demand
 		'OnlineAddField = OnlineAdd(New OnlineAdd.Create(Self, wxID_ANY, "Add Games via Online Database", , , 800, 600))	
 		
 					
@@ -605,10 +603,13 @@ Type MainWindow Extends wxFrame
 		Local MainWin:MainWindow = MainWindow(event.parent)
 		PrintF("----------------------------Show Emulator List----------------------------")
 		
-		MainWin.EmulatorsListField = EmulatorsList(New EmulatorsList.Create(MainWin , wxID_ANY , "Emulator List" , , , 800 , 600) )	
-		MainWin.EmulatorsListField.Show(True)
+		'MainWin.EmulatorsListField = EmulatorsList(New EmulatorsList.Create(MainWin , wxID_ANY , "Emulator List" , , , 800 , 600) )	
+		MainWin.PlatformsListField = PlatformsList(New PlatformsList.Create(MainWin , wxID_ANY , "Platform List" , , , 800 , 600) )	
+		'MainWin.EmulatorsListField.Show(True)
+		MainWin.PlatformsListField.Show(True)
 		MainWin.Hide()
-		MainWin.EmulatorsListField.Raise()
+		'MainWin.EmulatorsListField.Raise()
+		MainWin.PlatformsListField.Raise()
 	End Function		
 	
 	Function ShowGamesList(event:wxEvent)
@@ -1247,8 +1248,10 @@ Include "Includes\DatabaseManager\OnlineImport2.bmx"
 Include "Includes\DatabaseManager\SteamOnlineImport2.bmx"
 '----------------------------------------------------------------------------------------------------------
 '-----------------------------------EMULATORS LIST---------------------------------------------------------
-Include "Includes\DatabaseManager\EmulatorList.bmx"
-
+'Include "Includes\DatabaseManager\EmulatorList.bmx"
+'----------------------------------------------------------------------------------------------------------
+'-----------------------------------PLATFORMS LIST---------------------------------------------------------
+Include "Includes\DatabaseManager\PlatformList.bmx"
 
 Type PluginsWindow Extends wxFrame
 	Field ScrollBox:wxScrolledWindow
@@ -2593,8 +2596,8 @@ Type SettingsMenu Extends wxFrame
 		If IsntNull(BakFilename) = False Then
 			Return
 		EndIf
-		If Check7zip() = True Then
-			If FileType(BakFilename)=1 Then DeleteFile(BakFilename)
+		If Check7zip() = True then
+			If FileType(BakFilename) = 1 then DeleteFile(BakFilename)
 			'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Database Backup" , , , 300 , 400) )
 			Log1.Show(1)
 			Local tempdir:String = CurrentDir()
@@ -3496,5 +3499,5 @@ Include "Includes\DatabaseManager\InputSettings.bmx"
 Include "Includes\General\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\DatabaseSearchPanelType.bmx"
-
+Include "Includes\General\Compress.bmx"
 

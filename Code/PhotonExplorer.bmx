@@ -33,6 +33,8 @@ Import wx.wxBitmap
 Import wx.wxStaticLine
 Import wx.wxHyperlinkCtrl
 
+Import wx.wxWebView
+
 'Media Control Requires Ubunutu Restricted Access To Compile, libgstreamer-plugins-base0.10-dev, libgstreamer0.10-dev
 ?Win32
 Import wx.wxMediaCtrl
@@ -47,6 +49,7 @@ Import Bah.libxml
 Import Bah.libcurlssl
 Import Bah.Volumes
 Import Bah.Regex
+Import Bah.libarchive
 
 'Important for these to be in THIS ORDER
 Import BRL.JPGLoader
@@ -314,9 +317,9 @@ Type GameExplorerFrame Extends wxFrame
 	Field GCoopText:wxStaticText
 	Field GPlayersText:wxStaticText
 	Field GPlatText:wxStaticText
-	?Win32
-	Field TrailerCtrl:wxMediaCtrl
-	?
+
+	Field TrailerWeb:wxWebView
+
 	Field GCompletedCombo:wxComboBox
 	Field GRatingCombo:wxComboBox	
 	
@@ -330,25 +333,15 @@ Type GameExplorerFrame Extends wxFrame
 
 	Field GDPvbox:wxBoxSizer
 	
-	Field PatchSearchBox:wxTextCtrl
-	Field PatchList:wxListBox
 	Field LocalPatchList:wxListBox
 	Field LocalPatchFileList:wxListBox
 	
 	Field LocalManualList:wxListBox
-	Field ManualSearchBox:wxTextCtrl
-	Field ManualList:wxListBox	
 	
 	Field LocalWalkList:wxListBox
 	Field LocalWalkFileList:wxListBox
-	Field WalkSearchBox:wxTextCtrl
-	Field WalkList:wxListBox	
-	Field WalkSearchCatBox:wxComboBox
 	
 	Field LocalCheatList:wxListBox
-	Field CheatSearchCatBox:wxComboBox
-	Field CheatSearchBox:wxTextCtrl
-	Field CheatList:wxListBox	
 		
 	Field SubMenu1:wxMenu
 	Field SubMenu2:wxMenu
@@ -378,7 +371,7 @@ Type GameExplorerFrame Extends wxFrame
 	
 	Method OnInit()
 	
-		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
+		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON, wxBITMAP_TYPE_ICO)
 		Self.SetIcon( Icon )
 		
 		Self.Maximize(Int(SettingFile.GetSetting("WindowMaximized") ) )
@@ -546,7 +539,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local FilterText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Filter:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		FilterTextBox = New wxTextCtrl.Create(FilPlatPanel, GES_FTB , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 		Local PlatformText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Platform:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
-		PlatformCombo = New wxComboBox.Create(FilPlatPanel , GES_PL , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY)		
+		PlatformCombo = New wxComboBox.Create(FilPlatPanel , GES_PL , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY | wxCB_SORT)		
 		
 		Local UsedPlatformList:TList = CreateList()
 		Local GameNode:GameReadType
@@ -728,19 +721,12 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameTrailerPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		Local GameTrailerPanelvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		GameTrailerPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
-		?Win32
-		TrailerCtrl = New wxMediaCtrl.Create(GameTrailerPanel , wxID_ANY , "" , -1 , -1 , -1 , -1 , 0 , BackEnd )
-		
-		If ShowPlayerCtrls = True Then 
-			TrailerCtrl.ShowPlayerControls()
-		EndIf 	
-		?	
+				
+		TrailerWeb = New wxWebView.Create(GameTrailerPanel, wxID_ANY, "http://photongamemanager.com", - 1, - 1, - 1, - 1)
 			
 		TrailerButton = New wxButton.Create(GameTrailerPanel , GES_TB ,"Watch in browser")
 		
-		?Win32
-		GameTrailerPanelvbox.Add(TrailerCtrl , 1 , wxEXPAND | wxALL , 5)
-		?
+		GameTrailerPanelvbox.Add(TrailerWeb , 1 , wxEXPAND | wxALL , 5)
 		
 		GameTrailerPanelvbox.Add(TrailerButton , 0 , wxEXPAND | wxALL , 5)
 		GameTrailerPanel.SetSizer(GameTrailerPanelvbox)
@@ -772,100 +758,40 @@ Type GameExplorerFrame Extends wxFrame
 		'--------------------------------------------Patch Panel------------------------------------
 		
 		Local GamePatchNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
-		Local GamePatchNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local GPL_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		GamePatchNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
-		Local GamePatchNotebook:wxNotebook = New wxNotebook.Create(GamePatchNotebookPanel , GP_GPN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GamePatchNotebook.SetBackgroundColour(New wxColour.Create(PERed, PEGreen, PEBlue) )
-		GamePatchNotebookPanelhbox.Add(GamePatchNotebook , 1 ,  wxEXPAND | wxALL , 5)
-		GamePatchNotebookPanel.SetSizer(GamePatchNotebookPanelhbox)
-
-		Local GamePatchLocalPanel:wxPanel = New wxPanel.Create(GamePatchNotebook , - 1)
-		GPL_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		LocalPatchText = New wxStaticText.Create(GamePatchLocalPanel , wxID_ANY , "Patch:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )
-		LocalPatchList = New wxListBox.Create(GamePatchLocalPanel , GLP_PL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
-		LocalPatchFilesText = New wxStaticText.Create(GamePatchLocalPanel , wxID_ANY , "Patch Files:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )		
-		LocalPatchFileList = New wxListBox.Create(GamePatchLocalPanel , GLP_PFL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
+		
+		
+		LocalPatchText = New wxStaticText.Create(GamePatchNotebookPanel , wxID_ANY , "Patch:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )
+		LocalPatchList = New wxListBox.Create(GamePatchNotebookPanel , GLP_PL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
+		LocalPatchFilesText = New wxStaticText.Create(GamePatchNotebookPanel , wxID_ANY , "Patch Files:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )		
+		LocalPatchFileList = New wxListBox.Create(GamePatchNotebookPanel , GLP_PFL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
 		
 		GPL_vbox.Add(LocalPatchText , 0 , wxEXPAND | wxALL , 5)
 		GPL_vbox.Add(LocalPatchList , 1 , wxEXPAND | wxALL , 5)
 		GPL_vbox.Add(LocalPatchFilesText  , 0 , wxEXPAND | wxALL , 5)
 		GPL_vbox.Add(LocalPatchFileList , 1 , wxEXPAND | wxALL  , 5)
-		GamePatchLocalPanel.SetSizer(GPL_vbox)
+		GamePatchNotebookPanel.SetSizer(GPL_vbox)
 
-
-		Local GamePatchPanel:wxPanel = New wxPanel.Create(GamePatchNotebook , - 1)
-		Local GP_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
-		GP_SP_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Local PatchText:wxStaticText = New wxStaticText.Create(GamePatchPanel , wxID_ANY , "Search:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		PatchSearchBox = New wxTextCtrl.Create(GamePatchPanel, GP_SP_ST , "" , -1 , -1 , -1 , -1 , 0 )
-		Local PatchSearchButton:wxButton = New wxButton.Create(GamePatchPanel , GP_SP_SB ,"Go")
-		GP_SP_hbox.Add(PatchText , 0 , wxEXPAND | wxTOP | wxBOTTOM , 4)
-		GP_SP_hbox.Add(PatchSearchBox , 1 , wxEXPAND | wxLEFT | wxRIGHT , 5)
-		GP_SP_hbox.Add(PatchSearchButton , 0 , wxEXPAND  , 5)
-		
-		PatchList = New wxListBox.Create(GamePatchPanel , GP_PL , Null , -1 , -1 , -1 , -1 , wxLB_SINGLE) 
-		Local PatchDownloadButton:wxButton = New wxButton.Create(GamePatchPanel , GP_DP , "Download")
-		
-		GP_vbox.AddSizer(GP_SP_hbox , 0 , wxEXPAND | wxALL , 5)
-		GP_vbox.Add(PatchList , 1 , wxEXPAND | wxALL , 5)
-		GP_vbox.Add(PatchDownloadButton , 0 , wxEXPAND | wxALL , 5)
-		GamePatchPanel.SetSizer(GP_vbox)
-		
-		
-		GamePatchNotebook.AddPage(GamePatchLocalPanel , "Local" )
-		GamePatchNotebook.AddPage(GamePatchPanel , "Download" )		
 		
 		'--------------------------------------------Cheat Panel-----------------------------------
 	
 
 		Local GameCheatNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		GameCheatNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
-		Local GameCheatNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Local GameCheatNotebook:wxNotebook = New wxNotebook.Create(GameCheatNotebookPanel , GC_GCN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GameCheatNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
-		GameCheatNotebookPanelhbox.Add(GameCheatNotebook , 1 ,  wxEXPAND | wxALL , 5)
+		Local GameCheatNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+
+
+		
+		LocalCheatList = New wxListBox.Create(GameCheatNotebookPanel , GLC_CL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
+		
+		GameCheatNotebookPanelhbox.Add(LocalCheatList , 1 , wxEXPAND | wxALL , 5)
+		
+
+
 		GameCheatNotebookPanel.SetSizer(GameCheatNotebookPanelhbox)
 		
-
-
-		Local GameCheatLocalPanel:wxPanel = New wxPanel.Create(GameCheatNotebook , - 1)
-		Local GCL_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Local LocalCheatText = New wxStaticText.Create(GameCheatLocalPanel , wxID_ANY , "Cheats:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )
-		LocalCheatList = New wxListBox.Create(GameCheatLocalPanel , GLC_CL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
-		
-
-		
-		GCL_vbox.Add(LocalCheatText , 0 , wxEXPAND | wxALL , 5)
-		GCL_vbox.Add(LocalCheatList , 1 , wxEXPAND | wxALL , 5)
-		GameCheatLocalPanel.SetSizer(GCL_vbox)
-
-
-		Local GameCheatPanel:wxPanel = New wxPanel.Create(GameCheatNotebook , - 1)
-		Local GC_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
-		CheatSearchCatBox = New wxComboBox.Create(GameCheatPanel, GC_SC_SC , "All Platforms" , GAMEFAQPLATFORMS , -1 , -1 , -1 , -1 , wxCB_READONLY )
-		
-		Local GC_SC_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)		
-		Local CheatText:wxStaticText = New wxStaticText.Create(GameCheatPanel , wxID_ANY , "Search:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		CheatSearchBox = New wxTextCtrl.Create(GameCheatPanel, GC_SC_ST , "" , -1 , -1 , -1 , -1 , 0 )
-		Local CheatSearchButton:wxButton = New wxButton.Create(GameCheatPanel , GC_SC_SB ,"Go")
-		GC_SC_hbox.Add(CheatText , 0 , wxEXPAND | wxTOP | wxBOTTOM , 4)
-		GC_SC_hbox.Add(CheatSearchBox , 1 , wxEXPAND | wxLEFT | wxRIGHT , 5)
-		GC_SC_hbox.Add(CheatSearchButton , 0 , wxEXPAND  , 5)
-		
-		CheatList = New wxListBox.Create(GameCheatPanel , GC_CL , Null , -1 , -1 , -1 , -1 , wxLB_SINGLE) 
-		Local CheatDownloadButton:wxButton = New wxButton.Create(GameCheatPanel , GC_DC , "Download")
-		
-		GC_vbox.Add(CheatSearchCatBox, 0 , wxEXPAND | wxALL , 5)
-		GC_vbox.AddSizer(GC_SC_hbox , 0 , wxEXPAND | wxALL , 5)
-		GC_vbox.Add(CheatList , 1 , wxEXPAND | wxALL , 5)
-		GC_vbox.Add(CheatDownloadButton , 0 , wxEXPAND | wxALL , 5)
-		GameCheatPanel.SetSizer(GC_vbox)
-		
-		
-		GameCheatNotebook.AddPage(GameCheatLocalPanel , "Local" )
-		GameCheatNotebook.AddPage(GameCheatPanel , "Download" )	
 
 		
 		
@@ -875,100 +801,37 @@ Type GameExplorerFrame Extends wxFrame
 		
 		Local GameWalkNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		GameWalkNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
-		Local GameWalkNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Local GameWalkNotebook:wxNotebook = New wxNotebook.Create(GameWalkNotebookPanel , GW_GWN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GameWalkNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
-		GameWalkNotebookPanelhbox.Add(GameWalkNotebook , 1 ,  wxEXPAND | wxALL , 5)
+		Local GameWalkNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+	
+
+				
+		
+		LocalWalkList = New wxListBox.Create(GameWalkNotebookPanel , GLW_WL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
+		
+
+		
+		
+		GameWalkNotebookPanelhbox.Add(LocalWalkList , 1 , wxEXPAND | wxALL , 5)
+		
 		GameWalkNotebookPanel.SetSizer(GameWalkNotebookPanelhbox)
-		
-
-		Local GameWalkLocalPanel:wxPanel = New wxPanel.Create(GameWalkNotebook , - 1)
-		Local GWL_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Local LocalWalkText = New wxStaticText.Create(GameWalkLocalPanel , wxID_ANY , "Walkthrough Set:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )
-		LocalWalkList = New wxListBox.Create(GameWalkLocalPanel , GLW_WL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
-		Local LocalWalkFilesText = New wxStaticText.Create(GameWalkLocalPanel , wxID_ANY , "Walkthrough Files:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )		
-		LocalWalkFileList = New wxListBox.Create(GameWalkLocalPanel , GLW_WFL , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
-		
-
-		
-		GWL_vbox.Add(LocalWalkText , 0 , wxEXPAND | wxALL , 5)
-		GWL_vbox.Add(LocalWalkList , 1 , wxEXPAND | wxALL , 5)
-		GWL_vbox.Add(LocalWalkFilesText  , 0 , wxEXPAND | wxALL , 5)
-		GWL_vbox.Add(LocalWalkFileList , 1 , wxEXPAND | wxALL  , 5)
-		GameWalkLocalPanel.SetSizer(GWL_vbox)
-
-
-		Local GameWalkPanel:wxPanel = New wxPanel.Create(GameWalkNotebook , - 1)
-		Local GW_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		
-		WalkSearchCatBox = New wxComboBox.Create(GameWalkPanel, GW_SP_SC , "All Platforms" , GAMEFAQPLATFORMS , - 1 , - 1 , - 1 , - 1 , wxCB_READONLY )
-		
-		GP_SP_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)		
-		Local WalkText:wxStaticText = New wxStaticText.Create(GameWalkPanel , wxID_ANY , "Search:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		WalkSearchBox = New wxTextCtrl.Create(GameWalkPanel, GW_SP_ST , "" , - 1 , - 1 , - 1 , - 1 , 0 )
-		Local WalkSearchButton:wxButton = New wxButton.Create(GameWalkPanel , GW_SP_SB ,"Go")
-		GP_SP_hbox.Add(WalkText , 0 , wxEXPAND | wxTOP | wxBOTTOM , 4)
-		GP_SP_hbox.Add(WalkSearchBox , 1 , wxEXPAND | wxLEFT | wxRIGHT , 5)
-		GP_SP_hbox.Add(WalkSearchButton , 0 , wxEXPAND , 5)
-		
-		WalkList = New wxListBox.Create(GameWalkPanel , GW_WL , Null , -1 , -1 , -1 , -1 , wxLB_SINGLE) 
-		Local WalkDownloadButton:wxButton = New wxButton.Create(GameWalkPanel , GW_DW , "Download")
-		
-		GW_vbox.Add(WalkSearchCatBox, 0 , wxEXPAND | wxALL , 5)
-		GW_vbox.AddSizer(GP_SP_hbox , 0 , wxEXPAND | wxALL , 5)
-		GW_vbox.Add(WalkList , 1 , wxEXPAND | wxALL , 5)
-		GW_vbox.Add(WalkDownloadButton , 0 , wxEXPAND | wxALL , 5)
-		GameWalkPanel.SetSizer(GW_vbox)
-		
-		
-		GameWalkNotebook.AddPage(GameWalkLocalPanel , "Local" )
-		GameWalkNotebook.AddPage(GameWalkPanel , "Download" )		
 				
 		
 		'--------------------------------------------Manual Panel----------------------------------
 	
 		Local GameManualNotebookPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		GameManualNotebookPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
-		Local GameManualNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Local GameManualNotebook:wxNotebook = New wxNotebook.Create(GameManualNotebookPanel , GM_GPN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP | wxNB_FLAT )
-		GameManualNotebook.SetBackgroundColour(New wxColour.Create(PERed,PEGreen,PEBlue))
-		GameManualNotebookPanelhbox.Add(GameManualNotebook , 1 ,  wxEXPAND | wxALL , 5)
+		Local GameManualNotebookPanelhbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+		
+		LocalManualList = New wxListBox.Create(GameManualNotebookPanel , GLM_ML , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
+
+
+
+		
+		GameManualNotebookPanelhbox.Add(LocalManualList , 1 , wxEXPAND | wxALL , 5)
+		
 		GameManualNotebookPanel.SetSizer(GameManualNotebookPanelhbox)
-
-		Local GameManualLocalPanel:wxPanel = New wxPanel.Create(GameManualNotebook , - 1)
-		GML_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Local LocalManualText = New wxStaticText.Create(GameManualLocalPanel , wxID_ANY , "Manual:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT )
-		LocalManualList = New wxListBox.Create(GameManualLocalPanel , GLM_ML , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
-
-
-
-		GML_vbox.Add(LocalManualText , 0 , wxEXPAND | wxALL , 5)
-		GML_vbox.Add(LocalManualList , 1 , wxEXPAND | wxALL , 5)
-		GameManualLocalPanel.SetSizer(GML_vbox)
-
-
-		Local GameManualPanel:wxPanel = New wxPanel.Create(GameManualNotebook , - 1)
-		Local GM_vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
-		GM_SP_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
-		Local ManualText:wxStaticText = New wxStaticText.Create(GameManualPanel , wxID_ANY , "Search:" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
-		ManualSearchBox = New wxTextCtrl.Create(GameManualPanel, GM_SP_ST , "" , - 1 , - 1 , - 1 , - 1 , 0 )
-		Local ManualSearchButton:wxButton = New wxButton.Create(GameManualPanel , GM_SP_SB , "Go")
-		GM_SP_hbox.Add(ManualText , 0 , wxEXPAND | wxTOP | wxBOTTOM , 4)
-		GM_SP_hbox.Add(ManualSearchBox , 1 , wxEXPAND | wxLEFT | wxRIGHT , 5)
-		GM_SP_hbox.Add(ManualSearchButton , 0 , wxEXPAND  , 5)
-		
-		ManualList = New wxListBox.Create(GameManualPanel , GM_ML , Null , - 1 , - 1 , - 1 , - 1 , wxLB_SINGLE)
-		Local ManualDownloadButton:wxButton = New wxButton.Create(GameManualPanel , GM_DM , "Download")
-		
-		GM_vbox.AddSizer(GM_SP_hbox , 0 , wxEXPAND | wxALL , 5)
-		GM_vbox.Add(ManualList , 1 , wxEXPAND | wxALL , 5)
-		GM_vbox.Add(ManualDownloadButton , 0 , wxEXPAND | wxALL , 5)
-		GameManualPanel.SetSizer(GM_vbox)
-		
-		
-		GameManualNotebook.AddPage(GameManualLocalPanel , "Local" )
-		GameManualNotebook.AddPage(GameManualPanel , "Download" )		
 
 		'--------------------------------------------Download Panel----------------------------------
 
@@ -1104,30 +967,13 @@ Type GameExplorerFrame Extends wxFrame
 		
 		Connect(GES_TB , wxEVT_COMMAND_BUTTON_CLICKED , OpenTrailer)
 		Connect(GS_OSB , wxEVT_COMMAND_BUTTON_CLICKED , OpenScreenShots)
-		
-		Connect(GP_SP_SB , wxEVT_COMMAND_BUTTON_CLICKED , PatchSearchFun)
-		Connect(GM_SP_SB , wxEVT_COMMAND_BUTTON_CLICKED , ManualSearchFun)
-		Connect(GW_SP_SB , wxEVT_COMMAND_BUTTON_CLICKED , WalkSearchFun)
-		Connect(GC_SC_SB , wxEVT_COMMAND_BUTTON_CLICKED , CheatSearchFun)
-		
-		Connect(GP_DP , wxEVT_COMMAND_BUTTON_CLICKED , PatchDownloadFun)
-		Connect(GM_DM , wxEVT_COMMAND_BUTTON_CLICKED , ManualDownloadFun)
-		Connect(GW_DW , wxEVT_COMMAND_BUTTON_CLICKED , WalkDownloadFun)
-		Connect(GC_DC , wxEVT_COMMAND_BUTTON_CLICKED , CheatDownloadFun)
-		
-		Connect(GP_PL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , PatchDownloadFun)
-		Connect(GM_ML , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , ManualDownloadFun)		
-		Connect(GW_WL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , WalkDownloadFun)
-		Connect(GC_CL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , CheatDownloadFun)
-
-		
+				
 		Connect(GLP_PL , wxEVT_COMMAND_LISTBOX_SELECTED , PatchClickedFun)
-		Connect(GLW_WL , wxEVT_COMMAND_LISTBOX_SELECTED , WalkClickedFun)
 		
 		Connect(GLP_PFL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , PatchItemSelectedFun)
 		Connect(GLM_ML , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , ManualItemSelectedFun)
 		Connect(GLC_CL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED ,CheatItemSelectedFun)
-		Connect(GLW_WFL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , WalkItemSelectedFun)
+		Connect(GLW_WL , wxEVT_COMMAND_LISTBOX_DOUBLECLICKED , WalkItemSelectedFun)
 		
 		Connect(GP_GPN , wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED , UpdateSelectionFun)
 		Connect(GM_GPN , wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED , UpdateSelectionFun)
@@ -1426,7 +1272,7 @@ Type GameExplorerFrame Extends wxFrame
 		If Self.DownloadListDepth = 0 then
 			'Send Event			
 			'Self.SearchList.Clear()
-			If Self.DownloadList.GetStringSelection() = "No Search Results Returned" then
+			If Self.DownloadList.GetStringSelection() = "No Search Results Returned" Or Self.DownloadList.GetStringSelection() = "Searching..." then
 				PrintF("Invalid search selection")
 				MessageBox = New wxMessageDialog.Create(Null , "Not a valid selection!" , "Error" , wxOK | wxICON_EXCLAMATION)
 				MessageBox.ShowModal()
@@ -1482,6 +1328,7 @@ Type GameExplorerFrame Extends wxFrame
 		LuaMutexLock()
 		
 		Self.DownloadList.Clear()
+		Self.DownloadList.Append("Searching...")
 		
 		Local PlatformData:String = String(Self.DownloadPlatformBox.GetItemClientData(Self.DownloadPlatformBox.GetSelection() ) )
 		Local LuaList:LuaListType = New LuaListType.Create()
@@ -1578,11 +1425,18 @@ Type GameExplorerFrame Extends wxFrame
 		
 		LuaHelper_CleanStack(LuaVM)
 		
-		Local LuaListItem:LuaListItemType
-		For LuaListItem = EachIn LuaList.List
-			Self.DownloadList.Append(LuaListItem.ItemName, LuaListItem.ClientData)
-		Next
-		
+		Self.DownloadList.Clear()
+			
+		If CountList(LuaList.List) > 0 then
+			Local LuaListItem:LuaListItemType
+			For LuaListItem = EachIn LuaList.List
+				Self.DownloadList.Append(LuaListItem.ItemName, LuaListItem.ClientData)
+			Next
+			Self.DownloadDisableEnable(1, 1, 1, 1)
+		Else
+			Self.DownloadList.Append("No Search Results Returned", "")
+		EndIf
+				
 		LuaHelper_LoadString(LuaVM, LuaBlank)
 		
 		LuaMutexUnlock()
@@ -1600,6 +1454,7 @@ Type GameExplorerFrame Extends wxFrame
 		Self.DownloadListDepth = 1
 		Self.DownloadDisableEnable(0, 1, 1, 1)
 		Self.DownloadList.Clear()
+		Self.DownloadList.Append("Searching...")
 		
 		LuaInternet.Reset()
 		
@@ -1711,7 +1566,7 @@ Type GameExplorerFrame Extends wxFrame
 		
 		LuaHelper_CleanStack(LuaVM)
 		
-		
+		Self.DownloadList.Clear()
 		If CountList(LuaList.List) > 0 then
 			Local LuaListItem:LuaListItemType
 			For LuaListItem = EachIn LuaList.List
@@ -1781,8 +1636,10 @@ Type GameExplorerFrame Extends wxFrame
 		Local w:Int, h:Int
 		GameExploreWin.GetSize(w, h)
 		
-		SettingFile.SaveSetting("WindowWidth" , String(w) )
-		SettingFile.SaveSetting("WindowHeight" , String(h) )
+		If GameExploreWin.IsMaximized() = 0 then
+			SettingFile.SaveSetting("WindowWidth" , String(w) )
+			SettingFile.SaveSetting("WindowHeight" , String(h) )
+		EndIf
 		SettingFile.SaveSetting("WindowMaximized" , String(GameExploreWin.IsMaximized() ) )
 		SettingFile.SaveFile()
 	End Function
@@ -1924,10 +1781,9 @@ Type GameExplorerFrame Extends wxFrame
 	Function WalkItemSelectedFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local Selection:String = GameExploreWin.LocalWalkList.GetStringSelection()
-		Local Selection2:String = GameExploreWin.LocalWalkFileList.GetStringSelection()
 		Local CDir:String = CurrentDir()
-		ChangeDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides" + FolderSlash + Selection)
-		OpenURL(Selection2)
+		ChangeDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides")
+		OpenURL(Selection)
 		ChangeDir(CDir)
 	End Function	
 
@@ -1969,6 +1825,7 @@ Type GameExplorerFrame Extends wxFrame
 
 	End Function
 	
+	Rem
 	Function WalkClickedFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local Selection:String = GameExploreWin.LocalWalkList.GetStringSelection()
@@ -1988,6 +1845,7 @@ Type GameExplorerFrame Extends wxFrame
 		CloseDir(ReadWalks)
 
 	End Function	
+	EndRem
 
 	Function ExitFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
@@ -2020,601 +1878,6 @@ Type GameExplorerFrame Extends wxFrame
 		?
 	End Function
 	
-	Function PatchDownloadFun(event:wxEvent)
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local MessageBox:wxMessageDialog
-		Local Patch:DownloadListObject		
-		Local Selection:String = GameExploreWin.PatchList.GetStringSelection()
-		'Local DownloadFile:String = ""
-		'Local GameName:String = ""
-		If Selection = "" Or Selection = "No Results Returned" Or Selection = "Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search." Then
-			MessageBox = New wxMessageDialog.Create(Null , "Please select a patch" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return		
-		Else
-			For Patch = EachIn GameExploreWin.PatchTList
-				If Selection = Patch.Name Then
-					'DownloadFile = Patch.URL
-					Exit 
-				EndIf 
-			Next			
-		EndIf
-		'GameName = 
-		PrintF("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Patch.URL+Chr(34)+" -DownloadType PScrolls -DownloadName "+Chr(34)+Patch.Name+Chr(34))
-		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Patch.URL+Chr(34)+" -DownloadType PScrolls -DownloadName "+Chr(34)+Patch.Name+Chr(34) , 1)
-		
-	End Function
-
-	Function CheatDownloadFun(event:wxEvent)
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local MessageBox:wxMessageDialog
-		Local Cheat:DownloadListObject		
-		Local Selection:String = GameExploreWin.CheatList.GetStringSelection()
-		If Selection = "" Or Selection = "No Results Returned" Or Selection = "Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search." Then
-			MessageBox = New wxMessageDialog.Create(Null , "Please select a manual" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return		
-		Else
-			For Cheat = EachIn GameExploreWin.CheatTList
-				If Selection = Cheat.Name then
-					Exit 
-				EndIf 
-			Next			
-		EndIf
-		Print "PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Cheat.URL+Chr(34)+" -DownloadType GFAQs-Cheat -DownloadName "+Chr(34)+Cheat.Name+Chr(34)
-		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Cheat.URL+Chr(34)+" -DownloadType GFAQs-Cheat -DownloadName "+Chr(34)+Cheat.Name+Chr(34) , 1)
-		
-	End Function
-
-	Function WalkDownloadFun(event:wxEvent)
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local MessageBox:wxMessageDialog
-		Local Walk:DownloadListObject		
-		Local Selection:String = GameExploreWin.WalkList.GetStringSelection()
-		If Selection = "" Or Selection = "No Results Returned" Or Selection = "Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search." then
-			MessageBox = New wxMessageDialog.Create(Null , "Please select a manual" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return		
-		Else
-			For Walk = EachIn GameExploreWin.WalkTList
-				If Selection = Walk.Name Then
-					Exit 
-				EndIf 
-			Next			
-		EndIf
-		Print "PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Walk.URL+Chr(34)+" -DownloadType GFAQs -DownloadName "+Chr(34)+Walk.Name+Chr(34)
-		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Walk.URL+Chr(34)+" -DownloadType GFAQs -DownloadName "+Chr(34)+Walk.Name+Chr(34) , 1)
-		
-	End Function
-
-	Function ManualDownloadFun(event:wxEvent)
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local MessageBox:wxMessageDialog
-		Local Manual:DownloadListObject		
-		Local Selection:String = GameExploreWin.ManualList.GetStringSelection()
-		'Local DownloadFile:String = ""
-		'Local GameName:String = ""
-		If Selection = "" Or Selection = "No Results Returned" Or Selection = "Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search." Then
-			MessageBox = New wxMessageDialog.Create(Null , "Please select a manual" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return		
-		Else
-			For Manual = EachIn GameExploreWin.ManualTList
-				If Selection = Manual.Name Then
-					'DownloadFile = Patch.URL
-					Exit 
-				EndIf 
-			Next			
-		EndIf
-		'GameName = 
-		Print "PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Manual.URL+Chr(34)+" -DownloadType PDocs -DownloadName "+Chr(34)+Manual.Name+Chr(34)
-		RunProcess("PhotonDownloader.exe -Mode 1 -DownloadGame "+Chr(34)+GameNode.OrginalName+Chr(34)+" -DownloadFile "+Chr(34)+Manual.URL+Chr(34)+" -DownloadType RDocs -DownloadName "+Chr(34)+Manual.Name+Chr(34) , 1)
-		
-	End Function
-
-	Function WalkSearchFun(event:wxEvent)
-		Local MessageBox:wxMessageDialog
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local Walk:DownloadListObject
-		
-		If CheckInternet() = 1 then
-			If SettingFile.GetSetting("DownloadsAccepted") = "" then
-				OpenURL("http://photongamemanager.com/GameManagerPages/DownloadsToS.html")
-				MessageBox = New wxMessageDialog.Create(Null , "Before you can download anything you must accept the ToS opened in your browser (http://photongamemanager.com/GameManagerPages/DownloadsToS.html). Do you accept them?" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-				If MessageBox.ShowModal() = wxID_YES Then
-					SettingFile.SaveSetting("DownloadsAccepted" , "1")
-					SettingFile.SaveFile()
-				Else
-					Return
-				EndIf 
-			EndIf 
-			
-			Rem
-			If SettingFile.GetSetting("WalkthroughAccepted") = "" Then
-				OpenURL("")
-				MessageBox = New wxMessageDialog.Create(Null , "Before you can download walkthroughs you must accept the ToS opened in your browser (). Do you accept them?" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-				If MessageBox.ShowModal() = wxID_YES Then
-					SettingFile.SaveSetting("WalkthroughAccepted" , "1")
-					SettingFile.SaveFile()
-				Else
-					Return
-				EndIf 
-			EndIf 		
-			EndRem 
-			
-			GameExploreWin.WalkTList = SearchGuide_GFAQs(GameExploreWin.WalkSearchBox.GetValue(),GetGFAQsCode(GameExploreWin.WalkSearchCatBox.GetCurrentSelection()))
-			GameExploreWin.WalkList.Clear()
-			
-			For Walk = EachIn GameExploreWin.WalkTList
-				GameExploreWin.WalkList.Append(Walk.Name)
-			Next
-			If GameExploreWin.WalkTList.Count() < 1 Then
-				GameExploreWin.WalkList.Append("No Results Returned")
-				GameExploreWin.WalkList.Append("Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search.")
-			EndIf
-		Else
-			MessageBox = New wxMessageDialog.Create(Null , "You are not connected to the internet" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return			
-		EndIf 
-	End Function
-
-	Function CheatSearchFun(event:wxEvent)
-		Local MessageBox:wxMessageDialog
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local Cheat:DownloadListObject
-		
-		If CheckInternet() = 1 Then
-			If SettingFile.GetSetting("DownloadsAccepted") = "" Then
-				OpenURL("http://photongamemanager.com/GameManagerPages/DownloadsToS.html")
-				MessageBox = New wxMessageDialog.Create(Null , "Before you can download anything you must accept the ToS opened in your browser (http://photongamemanager.com/GameManagerPages/DownloadsToS.html). Do you accept them?" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-				If MessageBox.ShowModal() = wxID_YES Then
-					SettingFile.SaveSetting("DownloadsAccepted" , "1")
-					SettingFile.SaveFile()
-				Else
-					Return
-				EndIf 
-			EndIf 
-			Rem
-			If SettingFile.GetSetting("WalkthroughAccepted") = "" Then
-				OpenURL("")
-				MessageBox = New wxMessageDialog.Create(Null , "Before you can download cheats you must accept the ToS opened in your browser (). Do you accept them?" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-				If MessageBox.ShowModal() = wxID_YES Then
-					SettingFile.SaveSetting("WalkthroughAccepted" , "1")
-					SettingFile.SaveFile()
-				Else
-					Return
-				EndIf 
-			EndIf 		
-			EndRem 
-			
-			GameExploreWin.CheatTList = SearchCheat_GFAQs(GameExploreWin.CheatSearchBox.GetValue(),GetGFAQsCode(GameExploreWin.WalkSearchCatBox.GetCurrentSelection()))
-			GameExploreWin.CheatList.Clear() 
-			
-			For Cheat = EachIn GameExploreWin.CheatTList
-				GameExploreWin.CheatList.Append(Cheat.Name)
-			Next
-			If GameExploreWin.CheatTList.Count() < 1 Then
-				GameExploreWin.CheatList.Append("No Results Returned")
-				GameExploreWin.CheatList.Append("Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search.")
-			EndIf
-		Else
-			MessageBox = New wxMessageDialog.Create(Null , "You are not connected to the internet" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return			
-		EndIf 
-	End Function
-
-	Function ManualSearchFun(event:wxEvent)
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local Manual:DownloadListObject
-		Local MessageBox:wxMessageDialog		
-		If CheckInternet() = 1 Then
-			If SettingFile.GetSetting("DownloadsAccepted") = "" Then
-				OpenURL("http://photongamemanager.com/GameManagerPages/DownloadsToS.html")
-				MessageBox = New wxMessageDialog.Create(Null , "Before you can download anything you must accept the ToS opened in your browser (http://photongamemanager.com/GameManagerPages/DownloadsToS.html). Do you accept them?" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-				If MessageBox.ShowModal() = wxID_YES Then
-					SettingFile.SaveSetting("DownloadsAccepted" , "1")
-					SettingFile.SaveFile()
-				Else
-					Return
-				EndIf 
-			EndIf 		
-			GameExploreWin.ManualTList = SearchManual_RDocs(GameExploreWin.ManualSearchBox.GetValue() )
-			GameExploreWin.ManualList.Clear() 
-			
-			For Manual = EachIn GameExploreWin.ManualTList
-				GameExploreWin.ManualList.Append(Manual.Name)
-			Next
-			If GameExploreWin.ManualTList.Count() < 1 Then
-				GameExploreWin.ManualList.Append("No Results Returned")
-				GameExploreWin.ManualList.Append("Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search.")
-			EndIf
-		Else
-			MessageBox = New wxMessageDialog.Create(Null , "You are not connected to the internet" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return			
-		EndIf 
-	End Function
-
-	Function PatchSearchFun(event:wxEvent)
-		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
-		Local Patch:DownloadListObject
-		Local MessageBox:wxMessageDialog	
-		If CheckInternet() = 1 Then
-			If SettingFile.GetSetting("DownloadsAccepted") = "" Then
-				OpenURL("http://photongamemanager.com/GameManagerPages/DownloadsToS.html")
-				MessageBox = New wxMessageDialog.Create(Null , "Before you can download anything you must accept the ToS opened in your browser (http://photongamemanager.com/GameManagerPages/DownloadsToS.html). Do you accept them?" , "Question" , wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-				If MessageBox.ShowModal() = wxID_YES Then
-					SettingFile.SaveSetting("DownloadsAccepted" , "1")
-					SettingFile.SaveFile()
-				Else
-					Return
-				EndIf 
-			EndIf 			
-			GameExploreWin.PatchTList = SearchPatch_PScrolls("lang=eng&sys=pc&ref=ps&search=" + GameExploreWin.PatchSearchBox.GetValue() )
-			GameExploreWin.PatchList.Clear() 
-			
-			For Patch = EachIn GameExploreWin.PatchTList
-				GameExploreWin.PatchList.Append(Patch.Name)
-			Next
-			If GameExploreWin.PatchTList.Count() < 1 Then
-				GameExploreWin.PatchList.Append("No Results Returned")
-				GameExploreWin.PatchList.Append("Tip: Try removing numbers, II could be indexed as 2 or vice versa. Also try removing terms to widen your search.")
-			EndIf
-		Else
-			MessageBox = New wxMessageDialog.Create(Null , "You are not connected to the internet" , "Error" , wxOK | wxICON_EXCLAMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()	
-			Return			
-		EndIf 
-	End Function
-
-
-
-	Function SearchPatch_PScrolls:TList(Term:String)
-		Local File:TStream
-		Local RawPatch:String
-		Local URL:String
-		Local Name:String
-		Local curl:TCurlEasy
-		Local Patch:DownloadListObject
-		Local PatchList:TList = CreateList()
-			
-		InternetTimeout = MilliSecs()
-		File=WriteFile(TEMPFOLDER+"PatchHTML.txt")
-		curl = TCurlEasy.Create()
-		curl.setOptString(CURLOPT_POSTFIELDS, Term)
-		curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
-		curl.setOptInt(CURLOPT_HEADER, 0)
-		curl.setWriteStream(File)
-		curl.setProgressCallback(TimeoutCallback) 
-		curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER+"cookie.txt") 
-		curl.setOptString(CURLOPT_URL, "http://dlh.net/cgi-bin/dp.cgi")
-		Error = curl.perform()
-		CloseFile(File)
-		If Error > 0 Then
-			Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null , "Website Timed Out" , "Info" , wxOK | wxICON_INFORMATION)
-			MessageBox.ShowModal()
-			MessageBox.Free()					
-			Return PatchList	
-		EndIf 			
-	
-		ReadHTML=ReadFile(TEMPFOLDER+"PatchHTML.txt")
-		CurrentSearchLine=""
-		Repeat
-			CurrentSearchLine=CurrentSearchLine+ReadLine(ReadHTML)
-			If Eof(ReadHTML) Then Exit
-		Forever
-		CloseFile(ReadHTML)
-		
-		
-		Repeat
-			RawPatch=ReturnTagInfo(CurrentSearchLine,"<a href="+Chr(34)+"dlp.cgi?","</A>")
-			If RawPatch="" Then Exit
-			For a=1 To Len(RawPatch)
-				If Mid(RawPatch,a,1)=">" Then
-					URL$=Left(RawPatch,a-2)
-					Name$=Right(RawPatch,Len(RawPatch)-a)
-					Exit
-				EndIf
-			Next
-			Patch = New DownloadListObject
-			Patch.URL = URL
-			Patch.Name = Name
-		
-			ListAddLast(PatchList,Patch)
-		Forever
-		
-		Return PatchList
-	End Function
-	
-
-	Function SearchManual_RDocs:TList(Term:String)
-		
-		Local curl:TCurlEasy
-		Local ResultNum:Int = 1
-		Local ManualList:TList = CreateList()
-		Local Manual:DownloadListObject
-		
-		Term = Replace(Replace(Term , " " , "+") , "&" , "")
-		
-		'For ResultNum = 1 To 51 Step 10
-		
-			InternetTimeout = MilliSecs()
-			File=WriteFile(TEMPFOLDER+"PatchHTML.txt")
-			curl = TCurlEasy.Create()
-			'curl.setOptString(CURLOPT_POSTFIELDS, "")
-			curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
-			curl.setOptInt(CURLOPT_HEADER, 0)
-			curl.setWriteStream(File)
-			curl.setProgressCallback(TimeoutCallback) 
-			curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER+"cookie.txt") 
-			curl.setOptString(CURLOPT_URL, "http://replacementdocs.com/search.php?q=" + Term + "&r=" + ResultNum + "&s=Search&in=&ex=&ep=&be=&t=downloads&adv=0&cat=all&on=New&time=any&author=&match=0")
-			Error = curl.perform()
-			CloseFile(File)
-			If Error > 0 Then
-				Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null , "Website Timed Out" , "Info" , wxOK | wxICON_INFORMATION)
-				MessageBox.ShowModal()
-				MessageBox.Free()					
-				Return ManualList	
-			EndIf 			
-			
-			
-			ReadHTML=ReadFile(TEMPFOLDER+"PatchHTML.txt")
-			CurrentSearchLine=""
-			Repeat
-				CurrentSearchLine=CurrentSearchLine+ReadLine(ReadHTML)
-				If Eof(ReadHTML) Then Exit
-			Forever
-			CloseFile(ReadHTML)
-			
-			Local RawManualHTML:String
-			Local RawManualHTML2:String
-			Local RawManualName:String
-			Local RawManualURL:String
-			Local RawManualType:String
-			Local RawManualPlat:String
-			Local TempCurrentSearchLine:String
-			
-			Repeat
-				RawManualHTML = ReturnTagInfo(CurrentSearchLine , "<b>" , "</b>")
-				If RawManualHTML = "" Then Exit
-				
-				If Instr(RawManualHTML , "class='visit'") > 0 Then
-				
-					RawManualHTML2 = ReturnTagInfo(CurrentSearchLine , "<div class='smalltext'>" , "<span class='smalltext'>")
-					TempCurrentSearchLine = CurrentSearchLine
-					
-					RawManualURL = ReturnTagInfo(RawManualHTML , "<a" , ">")
-					RawManualURL = ReturnTagInfo(RawManualURL , "href='", "'")
-					
-					RawManualName = ReturnTagInfo(RawManualHTML , ">" , "</a>")
-					For a = 1 To Len(RawManualName)
-						If Mid(RawManualName , a , 2) = " |" Then
-							RawManualPlat = Left(RawManualName,a-1)
-							Exit
-						EndIf
-					Next
-					
-					RawManualName = ReturnTagInfo(RawManualName , "| " , "dfjadkgfdfjigfaogjfovmckvfjnfc")
-					RawManualName = Replace(RawManualName,"<span class='searchhighlight'>","")
-					RawManualName = Replace(RawManualName , "</span>" , "")
-					
-					RawManualType = ReturnTagInfo(RawManualHTML2 , "</div>" , "<br />")
-
-					
-					Manual = New DownloadListObject
-					Manual.URL = RawManualURL
-					Manual.Name = RawManualName + " - " + RawManualType + " - " + RawManualPlat
-				
-					ListAddLast(ManualList,Manual)
-					
-					CurrentSearchLine = TempCurrentSearchLine
-				EndIf 
-				
-			Forever
-		'Next
-		
-		Return ManualList
-	End Function
-
-	Function SearchGuide_GFAQs:TList(Term:String,Plat:String)
-		
-		Local curl:TCurlEasy
-		Local ResultNum:Int = 0
-		Local GuideList:TList = CreateList()
-		Local Guide:DownloadListObject
-		
-		Term = Replace(Replace(Term , " " , "+") , "&" , "and")
-	
-		For ResultNum = 0 To 1
-			InternetTimeout = MilliSecs()
-			File=WriteFile(TEMPFOLDER+"PatchHTML.txt")
-			curl = TCurlEasy.Create()
-			'curl.setOptString(CURLOPT_POSTFIELDS, "")
-			curl.setOptInt(CURLOPT_FOLLOWLOCATION , 1)
-			curl.setProgressCallback(TimeoutCallback) 
-			curl.setOptInt(CURLOPT_HEADER, 0)
-			curl.setWriteStream(File)
-			curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER+"cookie.txt") 
-			curl.setOptString(CURLOPT_URL, "http://www.gamefaqs.com/search/index.html?game="+Term+"&page="+ResultNum+"&platform="+Plat)
-			Error = curl.perform()
-			CloseFile(File) 
-			If Error > 0 Then
-				Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null , "Website Timed Out" , "Info" , wxOK | wxICON_INFORMATION)
-				MessageBox.ShowModal()
-				MessageBox.Free()					
-				Return GuideList	
-			EndIf 
-	
-			
-			ReadHTML=ReadFile(TEMPFOLDER+"PatchHTML.txt")
-			CurrentSearchLine=""
-			Repeat
-				CurrentSearchLine=CurrentSearchLine+ReadLine(ReadHTML)
-				If Eof(ReadHTML) Then Exit
-			Forever
-			CloseFile(ReadHTML)
-			
-			Local RawWalkHTML:String
-			Local TempCurrentSearchLine:String
-			Local Line1:String , Line2:String , Line3:String
-			Local PrevPlat:String
-			
-			Local GameName:String , GameURL:String , GamePlat:String
-			
-			Local TableResults:String = ""
-			TableResults = TableResults + ReturnTagInfo(CurrentSearchLine , "<table class="+Chr(34)+"results"+Chr(34)+">" , "</table>")
-			TableResults = TableResults + ReturnTagInfo(CurrentSearchLine , "<table class="+Chr(34)+"results"+Chr(34)+">" , "</table>")
-			TableResults = TableResults + ReturnTagInfo(CurrentSearchLine , "<table class="+Chr(34)+"results"+Chr(34)+">" , "</table>")
-			
-			CurrentSearchLine = TableResults
-
-			Repeat
-				RawWalkHTML = ReturnTagInfo(CurrentSearchLine , "<tr>" , "</tr>")
-				If RawWalkHTML = "" Then Exit
-				TempCurrentSearchLine = CurrentSearchLine
-				CurrentSearchLine = RawWalkHTML
-				Line1 = ReturnTagInfo(CurrentSearchLine , "<td class="+Chr(34)+"rmain"+Chr(34)+">" , "</td>")
-				Line1 = Replace(Line1 , "	" , "")
-				Line1 = Replace(Line1 , " " , "")
-				If Instr(Line1 , "&nbsp;") > 0 Then
-					Line1 = PrevPlat
-				Else
-					PrevPlat = Line1
-				EndIf
-				
-				Line2 = ReturnTagInfo(CurrentSearchLine , "<td class="+Chr(34)+"rtitle"+Chr(34)+">" , "</td>")
-				Line3 = ReturnTagInfo(CurrentSearchLine , "<td class="+Chr(34)+"rmain"+Chr(34)+">" , "</td>")
-		
-				
-				If Instr(Line3 , "---") < 1 Then
-					GameName = ReturnTagInfo(Line2 , ">" , "</a>")
-					GameName = Replace(GameName,"&amp;","&")
-					GameURL = ReturnTagInfo(Line3 , "<a href=" + Chr(34) , Chr(34) + ">")
-					GamePlat = Line1
-					Print GameName+" - "+GamePlat
-					Print GameURL
-					Print ""
-					Guide = New DownloadListObject
-					Guide.URL = GameURL
-					Guide.Name = GameName + " - " + GamePlat
-						
-					ListAddLast(GuideList,Guide)
-		
-					
-				EndIf 
-				'Print RawWalkHTML
-				CurrentSearchLine = TempCurrentSearchLine
-			Forever
-		
-		Next
-		Return GuideList
-	End Function	
-	
-	Function SearchCheat_GFAQs:TList(Term:String, Plat:String)
-		
-		Local curl:TCurlEasy
-		Local ResultNum:Int = 0
-		Local GuideList:TList = CreateList()
-		Local Guide:DownloadListObject
-		
-		Term = Replace(Replace(Term , " " , "+") , "&" , "and")
-	
-		For ResultNum = 0 To 1
-			InternetTimeout = MilliSecs()
-			File=WriteFile(TEMPFOLDER+"PatchHTML.txt")
-			curl = TCurlEasy.Create()
-			'curl.setOptString(CURLOPT_POSTFIELDS, "")
-			curl.setOptInt(CURLOPT_FOLLOWLOCATION , 1)
-			curl.setProgressCallback(TimeoutCallback) 
-			curl.setOptInt(CURLOPT_HEADER, 0)
-			curl.setWriteStream(File)
-			curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER+"cookie.txt") 
-			curl.setOptString(CURLOPT_URL, "http://www.gamefaqs.com/search/index.html?game="+Term+"&page="+ResultNum+"&platform="+Plat)
-			Error = curl.perform()
-			CloseFile(File) 
-			If Error > 0 Then
-				Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null , "Website Timed Out" , "Info" , wxOK | wxICON_INFORMATION)
-				MessageBox.ShowModal()
-				MessageBox.Free()					
-				Return GuideList	
-			EndIf 
-	
-			
-			ReadHTML=ReadFile(TEMPFOLDER+"PatchHTML.txt")
-			CurrentSearchLine=""
-			Repeat
-				CurrentSearchLine=CurrentSearchLine+ReadLine(ReadHTML)
-				If Eof(ReadHTML) Then Exit
-			Forever
-			CloseFile(ReadHTML)
-			
-			Local RawWalkHTML:String
-			Local TempCurrentSearchLine:String
-			Local Line1:String , Line2:String , Line3:String
-			Local PrevPlat:String
-			
-			Local GameName:String , GameURL:String , GamePlat:String
-			
-			Local TableResults:String = ""
-			TableResults = TableResults + ReturnTagInfo(CurrentSearchLine , "<table class="+Chr(34)+"results"+Chr(34)+">" , "</table>")
-			TableResults = TableResults + ReturnTagInfo(CurrentSearchLine , "<table class="+Chr(34)+"results"+Chr(34)+">" , "</table>")
-			TableResults = TableResults + ReturnTagInfo(CurrentSearchLine , "<table class="+Chr(34)+"results"+Chr(34)+">" , "</table>")
-			
-			CurrentSearchLine = TableResults
-			
-			Repeat
-				RawWalkHTML = ReturnTagInfo(CurrentSearchLine , "<tr>" , "</tr>")
-				If RawWalkHTML = "" Then Exit
-				TempCurrentSearchLine = CurrentSearchLine
-				CurrentSearchLine = RawWalkHTML
-				Line1 = ReturnTagInfo(CurrentSearchLine , "<td class="+Chr(34)+"rmain"+Chr(34)+">" , "</td>")
-				Line1 = Replace(Line1 , "	" , "")
-				Line1 = Replace(Line1 , " " , "")
-				If Instr(Line1 , "&nbsp;") > 0 Then
-					Line1 = PrevPlat
-				Else
-					PrevPlat = Line1
-				EndIf
-				
-				Line2 = ReturnTagInfo(CurrentSearchLine , "<td class="+Chr(34)+"rtitle"+Chr(34)+">" , "</td>")
-				Line3 = ReturnTagInfo(CurrentSearchLine , "<td class="+Chr(34)+"rmain"+Chr(34)+">" , "</td>")
-				Line3 = ReturnTagInfo(CurrentSearchLine , "<td class="+Chr(34)+"rmain"+Chr(34)+">" , "</td>")
-				
-				If Instr(Line3 , "---") < 1 Then
-					GameName = ReturnTagInfo(Line2 , ">" , "</a>")
-					GameName = Replace(GameName,"&amp;","&")
-					GameURL = ReturnTagInfo(Line3 , "<a href=" + Chr(34) , Chr(34) + ">")
-					GamePlat = Line1
-					Print GameName+" - "+GamePlat
-					Print GameURL
-					Print ""
-					Guide = New DownloadListObject
-					Guide.URL = GameURL
-					Guide.Name = GameName+" - "+GamePlat
-						
-					ListAddLast(GuideList,Guide)
-		
-					
-				EndIf 
-				'Print RawWalkHTML
-				CurrentSearchLine = TempCurrentSearchLine
-			Forever
-		
-		Next
-		Return GuideList
-	End Function	
-	
-
 	Function ChangeListTypeFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local data:Object = event.userData
@@ -2923,16 +2186,11 @@ Type GameExplorerFrame Extends wxFrame
 			Next
 			GenreList = Left(GenreList , Len(GenreList) - 2)
 			
-			Self.PatchList.Clear()
+			
 			Self.LocalPatchList.Clear()		
 			Self.LocalPatchFileList.Clear()
-			Self.WalkList.Clear()
-			Self.LocalWalkList.Clear()		
-			Self.LocalWalkFileList.Clear()			
-			Self.ManualList.Clear()
+			Self.LocalWalkList.Clear()					
 			Self.LocalManualList.Clear()	
-			Self.WalkSearchCatBox.SetSelection(0)		
-			Self.CheatList.Clear()
 			Self.LocalCheatList.Clear()	
 			
 			If FileType(GAMEDATAFOLDER+GameNode.OrginalName+FolderSlash+"Patches") = 2 Then
@@ -2968,7 +2226,7 @@ Type GameExplorerFrame Extends wxFrame
 					File = NextFile(ReadWalks)
 					If File = "" Then Exit
 					If File="." Or File=".." Then Continue
-					If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides" + FolderSlash + File) = 2 Then
+					If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides" + FolderSlash + File) = 1 then
 						Self.LocalWalkList.Append(File)
 					EndIf
 				Forever
@@ -3006,26 +2264,23 @@ Type GameExplorerFrame Extends wxFrame
 				Self.GCompletedCombo.SetValue("Yes")			
 			Else
 				Self.GCompletedCombo.SetValue("No")
-			EndIf 
-			If GameNode.Trailer = "" Then
-				If Self.GameNotebook.GetPageText(Self.GameNotebook.GetSelection())="Trailer" Then
-					If Connected = 1 Then
-						Local Vid:String = GetYoutube()
-						Print Vid
-						If Vid = "" Then
-						
-						Else
-							?Win32	
-							Self.TrailerCtrl.Load("http://www.youtube.com/v/" + Vid)
-							?
-						EndIf
-					EndIf
-				EndIf 
+			EndIf
+			
+			
+			If GameNode.Trailer = "" then
+				If Self.TrailerWeb.GetCurrentURL() = "https://photongamemanager.com/GameManagerPages/NoVideo.php" then
+				
+				Else
+					Self.TrailerWeb.LoadURL("https://photongamemanager.com/GameManagerPages/NoVideo.php")
+				EndIf
 			Else
-				?Win32
-				Self.TrailerCtrl.Load("http://www.youtube.com/v/" + GameNode.Trailer)
-				?
-			EndIf 
+				If Self.TrailerWeb.GetCurrentURL() = "https://www.youtube.com/embed/" + GameNode.Trailer then
+				
+				Else
+					Self.TrailerWeb.LoadURL("https://www.youtube.com/embed/" + GameNode.Trailer)
+				EndIf
+			EndIf
+			
 			Self.GDPvbox.RecalcSizes()
 			FBAPanel.Refresh()
 			GS_SC1_Panel.Refresh()
@@ -3034,70 +2289,7 @@ Type GameExplorerFrame Extends wxFrame
 		EndIf
 
 	End Method
-	
-	Function GetYoutube:String()
-		Local TFile:TStream
-		Trailercurl = TCurlEasy.Create()
-		TFile=WriteFile(TEMPFOLDER+"YoutubeHTML.xml")
-		Trailercurl.setOptInt(CURLOPT_FOLLOWLOCATION , 1)
-		Trailercurl.setOptInt(CURLOPT_HEADER, 0)
-		Trailercurl.setOptString(CURLOPT_CAINFO, "ca-bundle.crt")
-		Trailercurl.setWriteStream(TFile)
-		Trailercurl.setOptString(CURLOPT_URL, "https://gdata.youtube.com/feeds/api/videos?q="+Replace(Replace(GameNode.Name," ","+"),"&","")+"+Trailer&max-results=1&v=2")
-		Error=Trailercurl.perform()
-		CloseFile(TFile)	
-	
-		Local Gamedoc:TxmlDoc
-		Local RootNode:TxmlNode , node:TxmlNode 
 		
-		Gamedoc = TxmlDoc.parseFile(TEMPFOLDER+"YoutubeHTML.xml")
-	
-		If Gamedoc = Null Then
-			PrintF("XML Document not parsed successfully")
-			Return ""				
-		End If
-		
-		RootNode = Gamedoc.getRootElement()
-		
-		If RootNode = Null Then
-			Gamedoc.free()
-			PrintF("Empty document")
-			Return ""	
-			'CustomRuntimeError( "Error 40: Empty document, GetGameXML. "+ GName) 'MARK: Error 40
-		End If		
-
-		If RootNode.getName() <> "feed" Then
-			Gamedoc.free()
-			PrintF("Document of the wrong type, root node <> feed")
-			Return ""
-		End If
-		
-		Local ChildrenList:TList = RootNode.getChildren()
-		If ChildrenList = Null Or ChildrenList.IsEmpty() Then
-			Gamedoc.free()
-			PrintF("Document error, no data contained within")
-			Return ""
-		EndIf
-		For node = EachIn ChildrenList
-			If node.getName() = "entry"
-				ChildrenList = node.getChildren()
-				For node = EachIn ChildrenList
-					If node.getName() = "group" Then
-						ChildrenList:TList = node.getChildren()
-						For node = EachIn ChildrenList
-							If node.getName() = "videoid" Then
-								Return node.getText()
-							EndIf 
-						Next
-						Exit
-					EndIf 
-				Next
-				Exit
-			EndIf 
-		Next
-		Return ""
-	End Function 
-	
 	Function CorrectText:String(Text:String)
 		Text = Replace(Text , "&" , "&&")
 		Return Text
@@ -3847,6 +3039,7 @@ Type DownloadWindow Extends wxFrame {expose disablenew}
 			Return
 		EndIf
 		Self.AddText("Finished")
+		Self.AddText("~nYou may now close this window and you will find your download in the relevant tab")
 		Self.Raise()
 		Self.SetFocus()
 	End Method
@@ -4278,7 +3471,7 @@ Function WindowsCheck()
 	Local OSMinor:Int
 	wxGetOsVersion(OSMajor, OSMinor)
 
-	PrintF("Detected Win Version: "+OSMajor+"."+OSMinor)
+	PrintF("Detected Win Version: " + OSMajor + "." + OSMinor)
 
 	If OSMajor => 6 Then
 		WinExplorer = True
@@ -4406,7 +3599,7 @@ Function Thread_Download:Object(Obj:Object)
 				FileName = StripDir(LuaFile.ItemName)
 			EndIf
 		Else
-			FileName = StripDir(GameReadType.GameNameDirFilter(LuaFile.ClientData, False) )
+			FileName = StripDir(FileNameFilter(LuaFile.ClientData, False) )
 		EndIf
 		If LuaFile.ItemName = "" Or LuaFile.ItemName = Null Or FileType(LuaFile.ItemName) = 0 then
 			PrintF("Lua returned invalid download item ~nItem: "+LuaFile.ItemName+" ~nData:"+LuaFile.ClientData)
@@ -4417,21 +3610,41 @@ Function Thread_Download:Object(Obj:Object)
 		
 		Local FileName2:String = ""
 		Local a:Int = 2
-		'Check game doesnt already have file with same name
-		If FileType(DownloadBox.GameFolderDownloadName + FileName) = 1 then
-			FileName2 = FileName
-			FileName = StripExt(FileName2) + "(" + String(a) + ")." + ExtractExt(FileName2)
-		EndIf
-		Repeat
-			If FileType(DownloadBox.GameFolderDownloadName + FileName) = 1 then
-				a = a + 1
-				FileName = StripExt(FileName2) + "(" + String(a) + ")." + ExtractExt(FileName2)
-			Else
-				CopyFile(LuaFile.ItemName, DownloadBox.GameFolderDownloadName + FileName)
-				DownloadBox.AddText("Moving: " + FileName)
-				Exit
+		
+		If Right(DownloadBox.GameFolderDownloadName, Len("Patches" + FolderSlash) ) = "Patches" + FolderSlash then
+			'Check game doesnt already have folder with same name
+			FileName = StripExt(FileName)
+			If FileType(DownloadBox.GameFolderDownloadName + FileName) = 2 then
+				FileName2 = FileName
+				FileName = FileName2 + "(" + String(a) + ")"
 			EndIf
-		Forever
+			Repeat
+				If FileType(DownloadBox.GameFolderDownloadName + FileName) = 2 then
+					a = a + 1
+					FileName = FileName2 + "(" + String(a) + ")"
+				Else
+					DownloadBox.AddText("Extracting: " + FileName)
+					Extract(LuaFile.ItemName, DownloadBox.GameFolderDownloadName + FileName + FolderSlash)
+					Exit
+				EndIf
+			Forever
+		Else
+			'Check game doesnt already have file with same name
+			If FileType(DownloadBox.GameFolderDownloadName + FileName) = 1 then
+				FileName2 = FileName
+				FileName = StripExt(FileName2) + "(" + String(a) + ")." + ExtractExt(FileName2)
+			EndIf
+			Repeat
+				If FileType(DownloadBox.GameFolderDownloadName + FileName) = 1 then
+					a = a + 1
+					FileName = StripExt(FileName2) + "(" + String(a) + ")." + ExtractExt(FileName2)
+				Else
+					DownloadBox.AddText("Moving: " + FileName)
+					CopyFile(LuaFile.ItemName, DownloadBox.GameFolderDownloadName + FileName)
+					Exit
+				EndIf
+			Forever
+		EndIf
 	Next
 		
 	DownloadBox.Finish()
@@ -4442,3 +3655,4 @@ Include "Includes\General\ValidationFunctions.bmx"
 Include "Includes\General\General.bmx"
 Include "Includes\General\LuaFunctions.bmx"
 Include "Includes\GameExplorerShell\LuaFunctions.bmx"
+Include "Includes\General\Compress.bmx"

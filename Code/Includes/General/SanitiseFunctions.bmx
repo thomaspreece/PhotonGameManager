@@ -1,3 +1,31 @@
+Function DirNameFilter:String(Text:String, StripSpaces:Int)
+	Local Regfilter:TRegEx = New TRegEx.Create("&(amp;|)")
+	Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\.\- _]")
+	Local Regfilter3:TRegEx = New TRegEx.Create(" ")
+
+	Text = Regfilter.ReplaceAll(Text, "and")
+	Text = Regfilter2.ReplaceAll(Text, "")
+	If StripSpaces = True then
+		Text = Regfilter3.ReplaceAll(Text, "_")
+	EndIf
+
+	Return Text
+End Function
+
+Function FileNameFilter:String(Text:String, StripSpaces:Int)
+	Local Regfilter:TRegEx = New TRegEx.Create("&(amp;|)")
+	Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\.\- _()\[\]]")
+	Local Regfilter3:TRegEx = New TRegEx.Create(" ")
+
+	Text = Regfilter.ReplaceAll(Text, "and")
+	Text = Regfilter2.ReplaceAll(Text, "")
+	If StripSpaces = True then
+		Text = Regfilter3.ReplaceAll(Text, "_")
+	EndIf
+
+	Return Text
+End Function
+
 Function URLEncode:String(value:String)
 	'Encodes URLs
 	value = Replace(value, " ", "%20")
