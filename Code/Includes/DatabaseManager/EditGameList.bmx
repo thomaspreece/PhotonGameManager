@@ -135,7 +135,7 @@ Type EditGameList Extends wxFrame
 		Local FilterText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Filter:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		FilterTextBox = New wxTextCtrl.Create(FilPlatPanel, EGL_FTB , "" , -1 , -1 , -1 , -1 , 0 )
 		Local PlatformText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Platform:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		PlatformCombo = New wxComboBox.Create(FilPlatPanel , EGL_PL , "All" , ["All"] + GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY)		
+		PlatformCombo = New wxComboBox.Create(FilPlatPanel , EGL_PL , "All" , ["All"] + GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY | wxCB_SORT)		
 		
 		FilPlatHbox.Add(SortText , 0 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM | wxALIGN_CENTER , 10 )
 		FilPlatHbox.Add(SortCombo , 2 , wxEXPAND | wxALL  , 10)
@@ -222,7 +222,7 @@ Type EditGameList Extends wxFrame
 		DP_GamePub = New wxTextCtrl.Create(SubGDPanel1 , EGL_DP_GPub , "" , - 1 , - 1 , - 1 , - 1 , 0 )							
 		Local DP_GPlay_Text:wxStaticText = New wxStaticText.Create(SubGDPanel1 , wxID_ANY , "Players" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		DP_GamePlayers = New wxComboBox.Create(SubGDPanel1, EGL_DP_GPlay , "Select..." , ["Select..." , "1", "2" , "3" , "4+"] , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )					
-		Local DP_GVid_Text:wxStaticText = New wxStaticText.Create(SubGDPanel1 , wxID_ANY , "Youtube Video Code" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local DP_GVid_Text:wxStaticText = New wxStaticText.Create(SubGDPanel1 , wxID_ANY , "Youtube Video Code" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		DP_GameVid = New wxTextCtrl.Create(SubGDPanel1 , EGL_DP_GVid , "" , - 1 , - 1 , - 1 , - 1 , 0 )	
 
 		
@@ -262,20 +262,26 @@ Type EditGameList Extends wxFrame
 		DP_GamePlat = New wxComboBox.Create(SubGDPanel2, EGL_DP_GP , "" , GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		Local DP_GCO_Text:wxStaticText = New wxStaticText.Create(SubGDPanel2 , wxID_ANY , "Co-Op" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		DP_GameCoop = New wxComboBox.Create(SubGDPanel2 , EGL_DP_GCO , "Select..." , ["Select..." , "Yes" , "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
-		Local DP_NO_Text:wxStaticText = New wxStaticText.Create(SubGDPanel2 , wxID_ANY , "" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local SubGDPanel2VboxHbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local DP_NO_Text:wxStaticText = New wxStaticText.Create(SubGDPanel2 , wxID_ANY , "" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		Local DP_TrailerButton:wxButton = New wxButton.Create(SubGDPanel2 , EGL_DP_TB , "View Trailer" )
+		Local DP_AutoTrailerButton:wxButton = New wxButton.Create(SubGDPanel2 , EGL_DP_ATB , "Auto Find Trailer" )
 
+		SubGDPanel2VboxHbox.Add(DP_TrailerButton , 1 , wxEXPAND | wxALL , 4 )
+		SubGDPanel2VboxHbox.Add(DP_AutoTrailerButton , 1 , wxEXPAND | wxALL , 4 )
 				
 		SubGDPanel2Vbox.Add(DP_GRD_Text , GNTextH ,  wxALL , 4 )
 		SubGDPanel2Vbox.Add(DP_GameRel , 0 , wxEXPAND | wxALL , 4 )	
-		SubGDPanel2Vbox.Add(DP_GR_Text , GNTextH ,  wxALL , 4 )
+		SubGDPanel2Vbox.Add(DP_GR_Text , GNTextH , wxALL , 4 )
 		SubGDPanel2Vbox.Add(DP_GameRate , 0 , wxEXPAND | wxALL , 4 )
 		SubGDPanel2Vbox.Add(DP_GP_Text , GNTextH ,  wxALL , 4 )
 		SubGDPanel2Vbox.Add(DP_GamePlat , 0 , wxEXPAND | wxALL , 4 )	
 		SubGDPanel2Vbox.Add(DP_GCO_Text , GNTextH ,  wxALL , 4 )
 		SubGDPanel2Vbox.Add(DP_GameCoop , 0 , wxEXPAND | wxALL , 4 )		
-		SubGDPanel2Vbox.Add(DP_NO_Text , GNTextH ,  wxALL , 4 )
-		SubGDPanel2Vbox.Add(DP_TrailerButton , 0 , wxEXPAND | wxALL , 4 )							
+		SubGDPanel2Vbox.Add(DP_NO_Text , GNTextH , wxALL , 4 )
+		
+		SubGDPanel2Vbox.AddSizer(SubGDPanel2VboxHbox, 0, wxEXPAND, 0)
+		
 			
 		SubGDPanel2.SetSizer(SubGDPanel2Vbox)	
 				
@@ -806,6 +812,7 @@ Type EditGameList Extends wxFrame
 		Self.Hide()
 		'wxframe
 		
+		Connect(EGL_DP_ATB, wxEVT_COMMAND_BUTTON_CLICKED , FindTrailer)
 		Connect(EGL_DP_TB , wxEVT_COMMAND_BUTTON_CLICKED , ShowTrailer)
 		Connect(EGL_EXIT , wxEVT_COMMAND_BUTTON_CLICKED , ShowMainMenu)
 		Connect(EGL_PL , wxEVT_COMMAND_COMBOBOX_SELECTED , GameListUpdate )
@@ -1646,6 +1653,63 @@ EndRem
 		PrintF("--------------Finish UpdateSelection--------------")
 	End Function
 	
+	Function FindTrailer(event:wxEvent)
+		Local EGW:EditGameList = EditGameList(event.parent)
+		Local MessageBox:wxMessageDialog
+		Local Trailer:String = EGW.GetYoutube(EGW.DP_GameName.GetValue() )
+		If Trailer = "" then
+			MessageBox = New wxMessageDialog.Create(Null , "Could not find a video" , "Error" , wxOK | wxICON_EXCLAMATION)
+			MessageBox.ShowModal()
+			MessageBox.Free()
+		Else
+			EGW.DP_GameVid.SetValue( Trailer)
+		EndIf
+	End Function
+	
+	Function GetYoutube:String(Text:String)
+		Local TFile:TStream
+		Local Trailercurl:TCurlEasy
+		Local Line:String
+		Local Error:Int
+		
+		Trailercurl = TCurlEasy.Create()
+		TFile = WriteFile(TEMPFOLDER + "YoutubeHTML.json")
+		Trailercurl.setOptInt(CURLOPT_FOLLOWLOCATION , 1)
+		Trailercurl.setOptInt(CURLOPT_HEADER, 0)
+		Trailercurl.setOptString(CURLOPT_CAINFO, "ca-bundle.crt")
+		Trailercurl.setWriteStream(TFile)
+		Trailercurl.setOptInt(CURLOPT_SSL_VERIFYPEER, 0)
+		PrintF("https://photongamemanager.com/GameManagerPages/Youtube.php?q=" + Replace(Replace(Text, " ", "+"), "&", "") + "+Trailer")
+		Trailercurl.setOptString(CURLOPT_URL, "https://photongamemanager.com/GameManagerPages/Youtube.php?q=" + Replace(Replace(Text, " ", "+"), "&", "") + "+Trailer" )
+		Error = Trailercurl.perform()
+		CloseFile(TFile)	
+		If Error then
+			PrintF("CurlError: " + CurlError(Error) )
+			Return ""
+		EndIf
+	
+		Local ReadYoutube:TStream = ReadFile(TEMPFOLDER + "YoutubeHTML.json")
+		Local RegEx:TRegEx = TRegEx.Create(Chr(34) + "videoId" + Chr(34) + ": " + Chr(34) + "(.+)" + Chr(34) )
+		Local match:TRegExMatch
+		
+		Repeat
+			Line = ReadLine(ReadYoutube)
+			
+
+			match = RegEx.Find(Line)
+
+			If match And match.SubCount() > 0 then
+				PrintF("Youtube:" + match.SubExp(1) )
+				Return match.SubExp(1)
+			EndIf
+			
+			If Eof(ReadYoutube) then Exit
+		Forever
+		CloseFile(ReadYoutube)
+		Return ""
+	End Function 
+		
+	
 	Function ShowTrailer(event:wxEvent)
 		Local EGW:EditGameList = EditGameList(event.parent)
 		Local Trailer:String = EGW.DP_GameVid.GetValue()
@@ -1690,6 +1754,13 @@ EndRem
 			EndIf
 				
 		EndIf 
+		
+		If EGW.DP_GameVid.GetValue().length > 0 And EGW.DP_GameVid.GetValue().length <> 11 then
+			MessageBox = New wxMessageDialog.Create(Null , "Invalid Trailer code: it should be 11 characters and can be found by taking the youtube video link and copying the 11 characters after the 'v=' part of the link. So for 'youtube.com/watch?v=nfWlot6h_JM' you would enter 'nfWlot6h_JM'. Leave blank to not have a trailer." , "Error" , wxOK | wxICON_EXCLAMATION)
+			MessageBox.ShowModal()
+			MessageBox.Free()
+			Return				
+		EndIf
 		
 		'Local info:wxListItem = New wxListItem.Create()
 		Local ReadInfo:TStream , WriteInfo:TStream
@@ -1869,6 +1940,8 @@ EndRem
 		
 		GameNode.Coop = GCoop
 		GameNode.Players = GPlayers
+		
+		
 		GameNode.Trailer = EGW.DP_GameVid.GetValue()	
 		GameNode.PreBF =	EGW.PreBFEXEPath.GetValue()
 		GameNode.PreBFWait = PreWait
@@ -2854,8 +2927,8 @@ EndRem
 				GameNode = Null
 				
 				'EditGameWin.Enable()
-				EditGameWin.ParentWin.ResetEditGameWindow()
-				
+				'EditGameWin.ParentWin.ResetEditGameWindow()
+				EditGameWin.UpdateSelection(event)
 
 			EndIf					
 		EndIf

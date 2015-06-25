@@ -79,7 +79,7 @@ end
 --			2. The text to be displayed at bottom of search window
 --			3. The text URL link
 function GetText()
-	return 0,"Hello","http://blob.com"
+	return 0,"Content provided by replacementdocs.com","http://replacementdocs.com"
 end
 
 -- Description
@@ -163,6 +163,7 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 			name = row
 		elseif a == 2 then 
 			itemtype = row
+			itemtype = itemtype:gsub("<(.-)>","")
 			break 
 		end 
 		a = a + 1
@@ -172,8 +173,8 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 
 	DownloadWindow:SetGauge(50)
 	DownloadWindow:AddText("Downloading: "..name.." ("..itemtype..")")
-	ReturnedFile = Internet:GET("http://replacementdocs.com/"..link,name.." ("..itemtype..").pdf")
-	FileList:LuaListAddLast(ReturnedFile,name.." ("..itemtype..").pdf")
+	ReturnedFile = Internet:GET("http://replacementdocs.com/"..link,"Manual.pdf")
+	FileList:LuaListAddLast(ReturnedFile,name.." ["..itemtype.."].pdf")
 	DownloadWindow:SetGauge(100)
 	return 0,"",FileList
 end

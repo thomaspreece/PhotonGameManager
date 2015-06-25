@@ -141,7 +141,7 @@ end
 --			2. The text to be displayed at bottom of search window
 --			3. The text URL link
 function GetText()
-	return 0,"Hello","http://blob.com"
+	return 0,"Content provided by gamefaqs.com","http://gamefaqs.com"
 end
 
 -- Description
@@ -160,9 +160,9 @@ function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
 	local ReturnedFile = ""
 	
 	if ListDepth==1 then 
-		--ReturnedFile = Internet:GET("http://www.gamefaqs.com/search/index.html?game="..Internet:Encode(SearchText).."&page=0&platform="..Platform,"Guide.html")
+		ReturnedFile = Internet:GET("http://www.gamefaqs.com/search/index.html?game="..Internet:Encode(SearchText).."&page=0&platform="..Platform,"Guide.html")
 
-		ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide.html"
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide.html"
 		local htmlfile = io.open(ReturnedFile):read('*all')
 		local results = ""
 		for word in htmlfile:gmatch("<table class=\"results\">(.-)</table>") do
@@ -198,9 +198,9 @@ function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
 		
 		return 0,"",2,List
 	elseif ListDepth==2 then 
-		--ReturnedFile = Internet:GET("http://www.gamefaqs.com"..PreviousClientData,"Guide2.html")
+		ReturnedFile = Internet:GET("http://www.gamefaqs.com"..PreviousClientData,"Guide2.html")
 		
-		ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide2.html"
+		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide2.html"
 		local htmlfile = io.open(ReturnedFile):read('*all')
 		for tablecontainer in htmlfile:gmatch("<div class=\"pod\">(.-)</table>(.-)</div>") do
 			category = tablecontainer:match("<h2 class=\"title\">(.-)</h2>")
@@ -231,8 +231,8 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 	local ReturnedFile = ""
 	
 	DownloadWindow:AddText("Getting link to file")
-	ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide3.html"
-	--ReturnedFile = Internet:GET("http://www.gamefaqs.com"..LuaIDData,"Guide3.html")
+	--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide3.html"
+	ReturnedFile = Internet:GET("http://www.gamefaqs.com"..LuaIDData,"Guide3.html")
 	local htmlfile = io.open(ReturnedFile):read('*all')
 	DownloadWindow:SetGauge(50)
 	
@@ -252,7 +252,7 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 		end 
 		fileextension = filelink:match("^.+%.(.-)$")
 
-		ReturnedFile = Internet:GET(filelink,title.."."..fileextension)
+		ReturnedFile = Internet:GET(filelink,"Walkthrough."..fileextension)
 		--ReturnedFile = "C:\\Users\\tom\\Documents\\GameManagerV4\\Temp\\Guide.txt"
 		DownloadWindow:SetGauge(100)
 		FileList:LuaListAddLast(ReturnedFile,title.."."..fileextension)

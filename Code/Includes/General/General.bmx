@@ -3,6 +3,27 @@ Include "SanitiseFunctions.bmx"
 Include "StartupChecks.bmx"
 Include "DBUpdates.bmx"
 
+
+Function ReadLine:String(stream:TStream)
+	Return BRL.Stream.ReadLine(stream)
+End Function
+
+Function Eof:Int(stream:TStream)
+	Return BRL.Stream.Eof(stream)
+End Function
+
+Function WriteLine:Int(stream:TStream, str:String)
+	Return BRL.Stream.WriteLine(stream, str)
+End Function
+
+Function SeekStream:Int(stream:TStream, pos:Int)
+	Return BRL.Stream.SeekStream(stream, pos)
+End Function
+
+Function StreamSize:Int(stream:TStream)
+	Return BRL.Stream.StreamSize(stream)
+End Function
+
 Function ExtractSubVersion(Text:String , Part:Int)
 	Local SubVersions:Int[] = [0,0,0,0]
 	Local b:Int = 0
@@ -354,6 +375,14 @@ Function SetupPlatforms()
 		GlobalPlatforms.PopulateDefaultPlatforms()
 		GlobalPlatforms.ReadInPlatforms()
 	EndIf
+	
+	DefaultPlatforms = New PlatformReader
+	If FileType(TEMPFOLDER + "DefaultPlatforms.xml") = 1 then
+		DefaultPlatforms.ReadInPlatforms(TEMPFOLDER + "DefaultPlatforms.xml")	
+	Else
+		DefaultPlatforms.PopulateDefaultPlatforms(TEMPFOLDER + "DefaultPlatforms.xml")
+		DefaultPlatforms.ReadInPlatforms(TEMPFOLDER + "DefaultPlatforms.xml")	
+	EndIf
 End Function
 
 Function OldPlatformListChecks()
@@ -583,19 +612,10 @@ Type GameReadType {expose}
 	End Function
 
 
-	Function GameNameDirFilter:String(Text:String, StripSpaces:Int = True)
+	Function GameNameDirFilter:String(Text:String)
 		'Strips out all characters not allowed in filesystems
+		Text = DirNameFilter(Text, True)
 		
-		Local Regfilter:TRegEx = New TRegEx.Create("&(amp;|)")
-		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\.\- _]")
-		Local Regfilter3:TRegEx = New TRegEx.Create(" ")
-
-		Text = Regfilter.ReplaceAll(Text, "and")
-		Text = Regfilter2.ReplaceAll(Text, "")
-		If StripSpaces = True then
-			Text = Regfilter3.ReplaceAll(Text, "_")
-		EndIf
-
 		Return Text
 	End Function	
 	
@@ -988,14 +1008,14 @@ Function PrintF(Tex:String, File:String = "")
 		File = LogName
 	EndIf
 	If Debug = True Then
-		LockMutex(mutex_Print)
+		LockMutex(Mutex_Print)
 		Print Tex
 		UnlockMutex(mutex_Print)
 	Else
 		If DebugLogEnabled = True Then 
 			LockMutex(Mutex_DebugLog)
 			WriteLog = OpenFile(LOGFOLDER + File)
-			SeekStream(WriteLog,StreamSize(WriteLog))
+			SeekStream(WriteLog, StreamSize(WriteLog) )
 			WriteLog.WriteLine(Tex)
 			CloseFile(WriteLog)
 			UnlockMutex(Mutex_DebugLog)

@@ -17,7 +17,7 @@ Function CheckEXEDatabaseStatus:Int()
 	
 	Local testEXEStatus:TStream	
 	If FileType(TEMPFOLDER+"TempEXEStatus.txt")=1 Then 
-		testEXEStatus = ReadFile(TEMPFOLDER+"TempEXEStatus.txt")
+		testEXEStatus = ReadFile(TEMPFOLDER + "TempEXEStatus.txt")
 	Else
 		Return 0
 	EndIf 
@@ -27,22 +27,22 @@ Function CheckEXEDatabaseStatus:Int()
 		EXEDatabaseOff = True 
 		Return 0
 	Else
-		Line$=ReadLine(testEXEStatus)
+		Line$ = ReadLine(testEXEStatus)
 		PrintF("PGM Status: "+Line)
 		If Line="OFF" Then
 			EXEDatabaseOff = True 
-			CloseStream testEXEStatus
+			CloseFile(testEXEStatus)
 			Return 0
 		EndIf
 		If Line = "ON" Then
 			PrintF("Connected to PGM")
 			EXEDatabaseOff = False 
-			CloseStream testEXEStatus
+			CloseFile testEXEStatus
 			Return 1
 		EndIf	
 		
 		EXEDatabaseOff = True 
-		CloseStream testEXEStatus
+		CloseFile testEXEStatus
 		Return 0	
 	EndIf
 End Function

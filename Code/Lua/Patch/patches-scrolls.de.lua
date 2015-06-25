@@ -24,7 +24,7 @@ end
 --			2. The text to be displayed at bottom of search window
 --			3. The text URL link
 function GetText()
-	return 0,"Hello","http://blob.com"
+	return 0,"Content provided by patches-scrolls.de","http://www.patches-scrolls.de"
 end
 
 -- Description
@@ -165,7 +165,7 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 	for i = 9,1,-1 do 
 		sleep(1)
 		if DownloadWindow.LogClosed == true then 
-			return 0,"",FileList
+			return 3,"",FileList
 		end 
 		DownloadWindow:AddText(i)
 	end 
@@ -173,9 +173,9 @@ function Get(FileList,Internet,LuaIDData,DownloadWindow)
 	DownloadWindow:AddText("Downloading...")
 	
 	
-	ReturnedFile = Internet:GET("http://www.patches-scrolls.de/get.php",title.."("..lang..")".."."..filetype)
+	ReturnedFile = Internet:GET("http://www.patches-scrolls.de/get.php","Patch."..filetype)
 	
-	FileList:LuaListAddLast(ReturnedFile,title.."("..lang..")".."."..filetype)
+	FileList:LuaListAddLast(ReturnedFile,title.." ("..lang..")."..filetype)
 	DownloadWindow:SetGauge(100)
 	return 0,"",FileList
 end

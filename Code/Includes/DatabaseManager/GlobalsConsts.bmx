@@ -6,6 +6,9 @@ Global wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED:Int = wxNewEventType()
 Global wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH:Int = wxNewEventType()
 
 
+Const DEFAULTPLATFORMNUM:int = 200
+
+
 ?Threaded
 Global LogWinListMutex:TMutex = CreateMutex()
 ?
@@ -278,6 +281,7 @@ Const SOI2_P3_SCB = 804
 Const SOI2_EXIT = 805
 
 Const EGL_OPT = 850
+Const EGL_DP_ATB = 851
 
 Const KIW_BB = 900
 Const KIW_OB = 901
@@ -309,6 +313,21 @@ Const MS_DSP = 1350
 
 Const LW_T = 1400
 Const LW_T2 = 1401
+
+'Const 1510-1599 reserved
+
+Const PL_ADD = 1601
+Const PL_OK = 1602
+Const PL_BB = 1603
+Const PL_ED = 1604
+Const PL_DEL = 1605
+Const PL_PLC = 1606
+Const PL_RD = 1607
+
+Const AEPL_BB = 1701
+Const AEPL_SA = 1702
+Const AEPL_EB = 1703
+Const AEPL_TDD = 1704
 
 Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back", "Menu", "Search", "Rotate Platforms", "View ScreenShots", "End" ]
 Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info", "Rotate Platforms", "View ScreenShots", "End" ]
