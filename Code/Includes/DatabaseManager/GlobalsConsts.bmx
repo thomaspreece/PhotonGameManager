@@ -3,7 +3,7 @@ Global PROGRAMICON:String = RESFOLDER + "Database.ico"
 
 Global wxEVT_COMMAND_SEARCHPANEL_SELECTED:Int = wxNewEventType()
 Global wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED:Int = wxNewEventType()
-Global wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH:Int = wxNewEventType()
+Global wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH:int = wxNewEventType()
 
 
 Const DEFAULTPLATFORMNUM:int = 200
@@ -48,11 +48,23 @@ Global PMBlue:Int = 255'255
 
 Global PMRed2:Int = 215
 Global PMGreen2:Int = 230
-Global PMBlue2:Int = 255
+Global PMBlue2:int = 255
 
-Global PMRedF:Int = 0
-Global PMGreenF:Int = 0
-Global PMBlueF:Int = 0
+Global PMRedF:int = 0
+Global PMGreenF:int = 0
+Global PMBlueF:int = 0
+
+Global PERed:int = 190'190
+Global PEGreen:int = 190'190
+Global PEBlue:int = 255'255
+
+Global PERed2:int = 215 '215
+Global PEGreen2:int = 230 '230
+Global PEBlue2:int = 255 '255
+
+Global PERed3:int = 215 '215
+Global PEGreen3:int = 230 '230
+Global PEBlue3:int = 255 '255
 
 Global PMFont:wxFont = New wxFont.CreateFontWithAttributes(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL)
 
@@ -262,6 +274,10 @@ Const SW_MZ = 526
 Const SW_DGL = 527
 Const SW_DAA = 528
 Const SW_DL = 529
+Const SW_TFB = 530
+Const SW_LFB = 531
+Const SW_SFB = 532
+Const SW_GFB = 533
 
 Const PW_BB = 600
 Const PW_OB = 601
