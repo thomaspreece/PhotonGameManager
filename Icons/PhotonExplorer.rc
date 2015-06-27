@@ -1,4 +1,59 @@
-101 ICON "Controller.ico"
+#include <windows.h>
+#if defined(_WIN32_WCE)
+    #include "C:/BlitzMax/mod/wx.mod/include/wx/msw/wince/wince.rc"
+#endif
+#include "C:/BlitzMax/mod/wx.mod/include/wx/msw/rcdefs.h"
+wxWindowMenu MENU DISCARDABLE
+BEGIN
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    4002
+        MENUITEM "Tile &Horizontally",          4001
+        MENUITEM "Tile &Vertically",            4005
+	MENUITEM "", -1
+        MENUITEM "&Arrange Icons",              4003
+        MENUITEM "&Next",                       4004
+    END
+END
+WXCURSOR_HAND           CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/hand.cur"
+WXCURSOR_BULLSEYE       CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/bullseye.cur"
+WXCURSOR_PENCIL         CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/pencil.cur"
+WXCURSOR_MAGNIFIER      CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/magnif1.cur"
+WXCURSOR_ROLLER         CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/roller.cur"
+WXCURSOR_PBRUSH         CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/pbrush.cur"
+WXCURSOR_PLEFT          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/pntleft.cur"
+WXCURSOR_PRIGHT         CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/pntright.cur"
+WXCURSOR_BLANK          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/blank.cur"
+WXCURSOR_CROSS          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/cross.cur"
+wxICON_AAA                      ICON "Controller.ico"
+wxICON_SMALL_CLOSED_FOLDER      ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/folder1.ico"
+wxICON_SMALL_OPEN_FOLDER        ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/folder2.ico"
+wxICON_SMALL_FILE               ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/file1.ico"
+wxICON_SMALL_COMPUTER           ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/computer.ico"
+wxICON_SMALL_DRIVE              ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/drive.ico"
+wxICON_SMALL_CDROM              ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/cdrom.ico"
+wxICON_SMALL_FLOPPY             ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/floppy.ico"
+wxICON_SMALL_REMOVEABLE         ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/removble.ico"
+csquery                 BITMAP "C:/BlitzMax/mod/wx.mod/include/wx/msw/csquery.bmp"
+wxBITMAP_STD_COLOURS    BITMAP "C:/BlitzMax/mod/wx.mod/include/wx/msw/colours.bmp"
+#if !defined(wxUSE_NO_MANIFEST) || (wxUSE_NO_MANIFEST == 0)
+#if defined(wxUSE_RC_MANIFEST) && wxUSE_RC_MANIFEST
+#ifdef ISOLATION_AWARE_ENABLED
+#define wxMANIFEST_ID 2
+#else
+#define wxMANIFEST_ID 1
+#endif
+#if defined(WX_CPU_AMD64)
+wxMANIFEST_ID 24 "C:/BlitzMax/mod/wx.mod/include/wx/msw/amd64.manifest"
+#elif defined(WX_CPU_IA64)
+wxMANIFEST_ID 24 "C:/BlitzMax/mod/wx.mod/include/wx/msw/ia64.manifest"
+#elif defined(WX_CPU_X86)
+wxMANIFEST_ID 24 "C:/BlitzMax/mod/wx.mod/include/wx/msw/wx.manifest"
+#else
+#error "One of WX_CPU_XXX constants must be defined. See comment above."
+#endif
+#endif
+#endif
 
 1 VERSIONINFO 
 FILEVERSION 4,1,2,0 
