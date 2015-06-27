@@ -39,10 +39,6 @@ EndIf
 
 Include "ProgramPaths.bmx"
 
-
-Global SkipBatchWait:int = 0
-Global FinishProgramRunning:int = 0
-
 Global CurrentVersion:String = "V4.12"
 
 Global WinDir:String = ""

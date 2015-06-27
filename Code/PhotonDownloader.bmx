@@ -307,7 +307,7 @@ Function Download_GFAQs_Cheat:String(File:String)
 	File = Replace(Replace(File , " " , "%20") , "&" , "and")
 
 
-	TFile=WriteFile(TEMPFOLDER+"PatchHTML.txt")
+	TFile = WriteFile(TEMPFOLDER + "PatchHTML.txt")
 	curl = TCurlEasy.Create()
 	'curl.setOptString(CURLOPT_POSTFIELDS, "")
 	curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)

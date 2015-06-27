@@ -17,7 +17,7 @@ End Type
 
 Function CreatePE32:PE32 ()
 	p:PE32 = New PE32
-	ListAddLast PE32List, p
+	ListAddLast PE32List, P
 	p.bank = CreateBank (SizeOf_PE32)
 	If p.bank
 		PokeInt p.bank, 0, SizeOf_PE32
@@ -171,12 +171,12 @@ Function ListProcesses:TList ()
 
 	If GetProcesses (snap)
 	
-		For p:PE32 = EachIn PE32List
-			pid = PeekInt (p.bank, 8)
+		For P:PE32 = EachIn PE32List
+			pid = PeekInt (P.bank, 8)
 			parent = PeekInt (p.bank, 24)
-			proc$ = ProcessName$ (p.bank)
+			proc$ = ProcessName$ (P.bank)
 			'Print proc
-			ListAddLast(ProcessList,proc)
+			ListAddLast(ProcessList, proc)
 			'CompareProcs (p , 0 , ProcessList)
 		Next
 	
@@ -194,13 +194,13 @@ Function ListChildProcesses:TList(Child:String)
 
 	If GetProcesses (snap)
 	
-		For p:PE32 = EachIn PE32List
+		For P:PE32 = EachIn PE32List
 			'pid = PeekInt (p.bank, 8)
 			'parent = PeekInt (p.bank, 24)
 			proc$ = ProcessName$ (p.bank)
 			
-			If proc=Child Then
-				ProcessList = CompareProcs (p , ProcessList)
+			If proc = Child then
+				ProcessList = CompareProcs (P , ProcessList)
 				Return ProcessList
 			EndIf
 		Next
@@ -262,7 +262,7 @@ EndRem
 'Const TH32CS_SNAPPROCESS:Int = $2
 'Const INVALID_HANDLE_VALUE:Int = -1
 
-Type TWinProc 
+Type TWinProc
 
 	Global _list:TList = New TList
 

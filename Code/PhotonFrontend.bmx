@@ -40,6 +40,8 @@ Import "Icons\PhotonFrontEnd.o"
 Global FolderSlash:String ="\"
 ?
 
+AppTitle = "PhotonFrontEnd"
+
 Include "Includes\General\StartupOverrideCheck.bmx"
 Local TempFolderPath:String = OverrideCheck(FolderSlash)
 
@@ -1119,7 +1121,12 @@ Function LoadGlobalSettings()
 		
 	If ReadSettings.GetSetting("AntiAlias") <> "" Then		
 		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
-	EndIf				
+	EndIf	
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+			DebugLogEnabled = 1
+		EndIf
+	EndIf			
 	ReadSettings.CloseFile()
 End Function
 

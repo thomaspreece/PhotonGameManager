@@ -112,6 +112,7 @@ Const LT1 = 1851
 Const WS = 1852
 Const RT1 = 1853
 Const MT1 = 1854
+Const FT1 = 1855
 
 Global PROGRAMICON:String = RESFOLDER + "Controller.ico"
 Global PROGRAMICON2:String = RESFOLDER + "Runner.ico"
@@ -143,8 +144,8 @@ Const BannerFloat:Float = 5
 
 
 
-Global PERed:int = 190'190
-Global PEGreen:int = 190'190
+Global PERed:int = 185'190
+Global PEGreen:int = 210'190
 Global PEBlue:int = 255'255
 
 Global PERed2:int = 215 '215

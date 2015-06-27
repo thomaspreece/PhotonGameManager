@@ -95,10 +95,10 @@ Type EditGameList Extends wxFrame
 	
 	Field A_RunnerON:wxComboBox
 	Field A_StartWaitEnabled:wxComboBox 
-	Field A_EXEList:wxListCtrl 
+	Field A_EXEList:wxListCtrl
 	
 	Field BF_Pre_WTF:wxComboBox 
-	Field BF_Post_WTF:wxComboBox 
+	Field BF_Post_WTF:wxComboBox
 	
 	Field UpdateListTimer:wxTimer 
 	
@@ -703,7 +703,7 @@ Type EditGameList Extends wxFrame
 		Local Asubhbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
 		Local A_SWE_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "Wait 30 seconds after starting game before checking if it has closed? (this game only): " , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		A_StartWaitEnabled = New wxComboBox.Create(AdvancedPanel, EGL_A_SWE , "No" , ["Yes","No"] , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		A_StartWaitEnabled = New wxComboBox.Create(AdvancedPanel, EGL_A_SWE , "No" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		
 		
 		Local Asubhbox3:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
@@ -711,7 +711,7 @@ Type EditGameList Extends wxFrame
 		Local SL1:wxStaticLine = New wxStaticLine.Create(AdvancedPanel , wxID_ANY)
 		Local A_ET_ST2:wxStaticText = New wxStaticText.CreateStaticText(AdvancedPanel , wxID_ANY , A_ET_Text2 , - 1 , - 1 , - 1 , - 1 ,wxALIGN_LEFT)	
 		
-		A_EXEList = New wxListCtrl.Create(AdvancedPanel , EGL_A_EXEL , - 1 , - 1 , - 1 , - 1 , wxLC_REPORT|wxLC_EDIT_LABELS|wxLC_SORT_ASCENDING)
+		A_EXEList = New wxListCtrl.Create(AdvancedPanel , EGL_A_EXEL , - 1 , - 1 , - 1 , - 1 , wxLC_REPORT | wxLC_EDIT_LABELS | wxLC_SORT_ASCENDING)
 		Local A_AddFolderButton:wxButton = New wxButton.Create(AdvancedPanel , EGL_A_AddF , "Add Folder")
 		Local A_AddExecutableButton:wxButton = New wxButton.Create(AdvancedPanel , EGL_A_AddE , "Add Executable")
 		Local A_DeleteButton:wxButton = New wxButton.Create(AdvancedPanel , EGL_A_Del , "Delete")

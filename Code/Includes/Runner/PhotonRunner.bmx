@@ -1,39 +1,407 @@
-Type PhotonRunner Extends wxApp
-	Field Runner:RunnerWindow
-	Field GameNode:String 
-	Field EXENum:Int 
+'Disabled Timer1
+
+Function Thread_StartGame:Object(obj:Object)
+	Local Runner:RunnerWindow = RunnerWindow(obj)
+	PrintF("Start of StartGame Thread")
 	
-	Method OnInit:Int()		
-		wxImage.AddHandler( New wxICOHandler)
-		Runner = RunnerWindow(New RunnerWindow.Create(Null , wxID_ANY , "PhotonRunner" , - 1 , - 1 , 300 , 300) )
-		Runner.SetGame(GameNode, EXENum)
-		Return True
+	Runner.TextCtrl.Clear()
+	Runner.TextCtrl.AppendText("Loading...~n")
+	If RunnerButtonCloseOnly = True then
+		PrintF("Always ON Active (Global)")
+		Runner.TextCtrl.AppendText("Auto Detect Game Closing: OFF (Global):~n")
+	EndIf
+	If Runner.GameNode.GameRunnerAlwaysOn = True
+		PrintF("Always ON Active (This Game Only)")
+		Runner.TextCtrl.AppendText("Auto Detect Game Closing: OFF (This Game Only):~n")
+	EndIf
+	Runner.EndButton.Disable()
+	
+	Local ExeProcess:TProcess
+	
+	Local CDir:String = StandardSlashes(CurrentDir() )
+	PrintF("CWD: " + CDir)
+	
+	?Win32
+	If Runner.PowerPlanPlugin.Enabled = True then
+		Runner.TextCtrl.AppendText("Activating Power Plan~n")
+		Runner.PowerPlanPlugin.ActivatePlugin("Start")
+		PrintF("PowerPlan Started")
+	EndIf
+	?
+		
+	?Win32	
+	If Runner.PreBatchOFF = False then
+		PrintF("BF: " + Runner.PreBatchFolder )
+		PrintF("Batching: " + Runner.PreBatch )
+		ChangeDir(Runner.PreBatchFolder )
+		If Runner.PreBatchWait = True then
+			PrintF("Waiting for Batch to Complete")
+			Runner.TextCtrl.AppendText("Activating Start Batch File And Waiting For It To Finish...~n")	
+			ExeProcess = RunProcess(Runner.PreBatch, 0)
+			
+			Runner.EndButton.Enable()
+			Runner.EndButton.SetLabel("Skip")			
+			If ExeProcess = Null then
+				PrintF("Batch Process NULL")
+			Else
+				Repeat
+					If ProcessStatus(ExeProcess) = 0 then Exit
+					Delay 100
+					If SkipBatchWait = 1 then
+						ProcessDetach(ExeProcess)
+						Exit
+					EndIf
+				Forever
+			EndIf
+			SkipBatchWait = 0
+			Runner.EndButton.Disable()
+			Runner.EndButton.SetLabel("Close PhotonRunner")
+		Else
+			Runner.TextCtrl.AppendText("Activating Start Batch File...~n")	
+			RunProcess(Runner.PreBatch, 1)
+		EndIf
+		
+		ChangeDir(CDir)
+		PrintF("Batch Complete")
+	EndIf
+	
+	If Runner.MounterOFF = False then
+		Runner.TextCtrl.AppendText("Mounting Disc Image...~n")	
+		PrintF("MF: " + Runner.MountCommandFolder )
+		PrintF("Mounting: " + Runner.MountCommand )
+		ChangeDir(Runner.MountCommandFolder )
+		RunProcess(Runner.MountCommand , 1)
+		ChangeDir(CDir)
+		Delay Runner.MountDelay
+		PrintF("Mounter Complete")
+	EndIf	
+	?
+	
+	Rem
+	Local hWnd:Byte Ptr = Self.GetHandle()
+	OurThreadID = GetCurrentThreadId()
+	
+	Local ahwnd:Byte Ptr 
+	CurrentThreadID = GetWindowThreadProcessId(GetForegroundWindow(), ahwnd)
+	
+	PrintF("Our Thread: "+OurThreadID)
+	PrintF("Current Thread: "+CurrentThreadID)
+	PrintF("Win: "+Int(hWnd))
+	
+	If OurThreadID<>CurrentThreadID Then 
+		AttachThreadInput(OurThreadID,CurrentThreadID,True)
+	EndIf
+	
+	SetForegroundWindow(Int(hWnd) )
+	BringWindowToTop(Int(hWnd))
+	'SetActiveWindow(hWnd)
+	
+	If OurThreadID<>CurrentThreadID Then 
+		AttachThreadInput(OurThreadID,CurrentThreadID,False)
+	EndIf 
+	Delay(1000)
+	EndRem	
+	
+	Delay(1000)
+	
+	PrintF("EF: " + Runner.RunEXEFolder )
+	ChangeDir(Runner.RunEXEFolder )
+	Runner.TextCtrl.AppendText("Running Program...~n")		
+	PrintF("Running: " + Runner.RunEXE)
+	RunProcess(Runner.RunEXE , 1)
+	ChangeDir(CDir)
+	Runner.EndButton.Enable()
+	
+	'If Low(Runner.EXEOnly) <> "steam.exe" then
+	'	PrintF("Steam Program")
+	'	Runner.ProgramStarted = True
+	'EndIf
+	
+	If SilentRunnerEnabled = False then
+		PrintF("SilentRunner not enabled. Closing...")
+		End
+	EndIf
+	
+	
+	'Delay(5000)
+	Local ProcessString:String
+	Local Process:ProcessType
+	
+	Rem
+	If OriginWaitEnabled = True then
+		PrintF("Looking for origin")
+		'Detect Origin and delay by half a miniute
+		ListProcesses()
+		For Process = EachIn MainProcessList.ProcessListHierarchical
+			ProcessString = Process.Name
+			If Low(ProcessString) = "origin.exe" then
+				Runner.TextCtrl.AppendText("~n~n")	
+				Runner.TextCtrl.AppendText("Detected Origin Running. Waiting extra 30 seconds for origin to start.~n")
+				For k = 1 To 30
+					Runner.TextCtrl.AppendText(k + "  ")	
+					Delay(1000)
+				Next
+				Exit
+			EndIf 
+		Next	
+	Else
+		If Runner.GameNode.StartWaitEnabled = True then
+			Runner.TextCtrl.AppendText("~n~n")	
+			Runner.TextCtrl.AppendText("Waiting for 30 seconds (Advanced setting for this game)~n")
+			For k=1 To 30
+				Runner.TextCtrl.AppendText(k + "  ")	
+				Delay(1000)
+			Next
+		EndIf
+	EndIf 
+	EndRem
+	
+	Runner.TextCtrl.AppendText("~n~n~n~n~n")	
+	Runner.TextCtrl.AppendText("If you are seeing this window after your game has ended Then Photon has failed To detect the game finishing properly. ~n" + ..
+	"Click 'Close PhotonRunner' to close Photon, run any post-batch scripts set and unmount any game images if required.")
+	Runner.TextCtrl.AppendText("~n~n~n")
+	
+	PrintF("StartGame Thread End")	
+End Function
+
+Function Thread_FinishGame:Object(obj:Object)
+	Local Runner:RunnerWindow = RunnerWindow(obj)
+	If FinishProgramRunning = 0 then
+		FinishProgramRunning = 1
+		Runner.TextCtrl.AppendText("~n~n~n~n~n")
+		Runner.TextCtrl.AppendText("Program Closing...~n")
+		Runner.EndButton.Disable()
+							
+		Local Process:Tprocess 
+		PrintF("FinishGame Thread")
+		?Win32 
+		If Runner.PowerPlanPlugin.Enabled = True then
+			Runner.PowerPlanPlugin.ActivatePlugin("End")
+			Runner.TextCtrl.AppendText("Activating End PowerPlan...~n")
+		EndIf 	
+		Local CDir:String = StandardSlashes(CurrentDir() )
+		PrintF("CWD: " + CDir)	
+					
+		If Runner.PostBatchOFF = False then
+			PrintF("BF: " + Runner.PostBatchFolder )
+			PrintF("Batching: " + Runner.PostBatch )
+			ChangeDir(Runner.PostBatchFolder)			
+	
+			If Runner.PostBatchWait = True then
+				Process = RunProcess(Runner.PostBatch, 0)
+				Runner.TextCtrl.AppendText("Activating End Batch File And Waiting For It To Finish...~n")	
+				
+				If Process = Null then
+					PrintF("Batch Process NULL")
+				Else
+					PrintF("Waiting for Batch to Complete")
+					Runner.EndButton.Enable()
+					Runner.EndButton.SetLabel("Skip")
+					Repeat 
+	 
+						If ProcessStatus(Process)=0 Then Exit 
+						Delay 100
+						If SkipBatchWait = 1 Then 
+							ProcessDetach(Process)
+							Exit 
+						EndIf 
+					Forever
+				EndIf
+				SkipBatchWait = 0
+				Runner.EndButton.Disable()
+				Runner.EndButton.SetLabel("Close PhotonRunner")							
+			Else
+				Runner.TextCtrl.AppendText("Activating End Batch File...~n")
+				RunProcess(Runner.PostBatch, 1)
+			EndIf
+			ChangeDir(CDir)
+			PrintF("Batch Complete")
+		EndIf
+		If Runner.MounterOFF = False And Runner.UnMountOFF = False then
+			Runner.TextCtrl.AppendText("Unmounting Disc Images...~n")
+			PrintF("MF: " + Runner.UnMountCommandFolder)
+			PrintF("Mounting: " + Runner.UnMountCommand)
+			ChangeDir(Runner.UnMountCommandFolder)
+			RunProcess(Runner.UnMountCommand , 1)
+			ChangeDir(CDir)
+			PrintF("Mounter Complete")
+		EndIf
+		?
+		
+		If CabinateEnable then
+			Select CmdLineCabinate
+				Case 0
+					PrintF("No Cabinate")
+				Case 1
+					PrintF("FrontEnd Cabinate")
+					Runner.TextCtrl.AppendText("Loading FrontEnd~n")
+					RunProcess(FRONTENDPROGRAM + " -Wait 1000 -ForceFront 1", 1)
+				Case 2
+					PrintF("Explorer Cabinate")
+					Runner.TextCtrl.AppendText("Loading Explorer~n")
+					RunProcess(EXPLORERPROGRAM, 1)	
+				Default 
+					CustomRuntimeError("Error: Incorrect Cabinate mode in Photon Runner")
+			End Select
+		Else
+			PrintF("CabinateEnabled = false")
+		EndIf
+		
+		PrintF("FinishGame Thread End")
+	EndIf
+End Function
+
+
+Type RunnerDebugWindow Extends wxFrame
+	Field ProcessList:wxTreeListCtrl
+	Field LogList:wxTextCtrl
+	Field WatchEXEList:wxListCtrl
+	Field MainWin:RunnerWindow
+	Field EXEList:TList
+	
+	Field InactiveEXEList:TList
+	
+	Field GreenColour:wxColour
+	Field RedColour:wxColour
+	
+	Method OnInit()	
+		MainWin = RunnerWindow(GetParent() )
+		
+		Self.GreenColour = New wxColour.Create(190, 255, 190)
+		Self.RedColour = New wxColour.Create(255, 190, 190)
+		
+		Local hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		Local subvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Self.SetBackgroundColour(New wxColour.Create(PRRed, PRGreen, PRBlue) )
+		
+		ProcessList = New wxTreeListCtrl.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxTR_HAS_BUTTONS | wxTR_FULL_ROW_HIGHLIGHT | wxTR_HIDE_ROOT)
+		Self.ProcessList.AddColumn("Processes", 350, wxALIGN_LEFT)
+		Self.ProcessList.SetColumnEditable(0, True)
+		Local Root:wxTreeItemId = Self.ProcessList.AddRoot("Processes")
+		
+		LogList = New wxTextCtrl.Create(Self, wxID_ANY, "", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY)
+		LogList.AppendText("This window is open because you are in debug mode. Turn debug mode off to stop this window appearing~n")
+		LogList.AppendText("Logging debug information...~n~n")		
+		
+		WatchEXEList = New wxListCtrl.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxLC_REPORT)
+		WatchEXEList.InsertColumn(0, "Watch List")
+		WatchEXEList.SetColumnWidth(0, 350)
+
+		subvbox.Add(ProcessList, 2, wxEXPAND, 0)
+		subvbox.Add(WatchEXEList, 1, wxEXPAND, 0)
+		
+		hbox.AddSizer(subvbox, 1, wxEXPAND, 0)
+		hbox.Add(LogList, 1, wxEXPAND, 0)
+		
+		Local item:Int
+		
+		'item = WatchEXEList.InsertStringItem(WatchEXEList.GetItemCount(), "Steam.exe")
+		'item = WatchEXEList.InsertStringItem(WatchEXEList.GetItemCount(), "ASSASSIN.exe")
+		'WatchEXEList.SetItemBackgroundColour(item, New wxColour.Create(255, 0, 0) )
+		
+		Self.SetSizer(hbox)
+		Self.Show(1)
+		
 	End Method
 	
-	Method SetGame(GN:String , EN:Int)
-		PrintF(GN + " " + EN)
-		GameNode = GN
-		EXENum = EN
-	End Method 
+	Method LoadInEXEs()
+		Self.EXEList = CreateList()
+		If MainWin.EXEOnly = "steam.exe" then
+		
+		Else
+			ListAddLast(Self.EXEList, MainWin.EXEOnly )
+		EndIf
+		Local EXE:String
+		For EXE = EachIn MainWin.ExtraWatchEXEs
+			ListAddLast(Self.EXEList, Low(EXE) )
+		Next
+	End Method
+	
+	Method UpdateEXEs()
+		Local EXE:String	
+		For EXE = EachIn MainWin.ExtraWatchEXEs
+			If ListContains(Self.EXEList, Low(EXE) ) then
+			
+			Else
+				ListAddLast(Self.EXEList, Low(EXE) )
+			EndIf
+		Next		
+	End Method
+	
+	Method UpdateTreeMain()
+		UpdateEXEs()
+		Local EXE:String, Item:Int
+		Self.ProcessList.Disable()
+		Self.ProcessList.DeleteRoot()
+		Local Root:wxTreeItemId = Self.ProcessList.AddRoot("Processes")
+		Self.InactiveEXEList = EXEList.Copy()
+		Self.UpdateTree(Self.ProcessList, Root, MainProcessList.ProcessListHierarchical)
+		Self.ProcessList.ExpandAll(Root)
+		
+		Self.WatchEXEList.DeleteAllItems()
+		For EXE = EachIn Self.EXEList
+			Item = Self.WatchEXEList.InsertStringItem(WatchEXEList.GetItemCount(), EXE)
+			If ListContains(Self.InactiveEXEList, EXE ) then
+				Self.WatchEXEList.SetItemBackgroundColour(Item, Self.RedColour )
+			Else
+				Self.WatchEXEList.SetItemBackgroundColour(Item, Self.GreenColour )
+			EndIf
+		Next
+		Self.ProcessList.Enable()
+	End Method
+	
+	Method UpdateTree(Tree:wxTreeListCtrl, Node:wxTreeItemId, List:TList)
+		Local P:ProcessType
+		Local Item:wxTreeItemId
+		
+		For P = EachIn List
+			Item = Tree.AppendItem(Node, P.Name)
+			If ListContains(Self.EXEList, Low(P.Name) ) then
+				Tree.SetItemBackgroundColour(Item, Self.GreenColour)
+				If ListContains(Self.InactiveEXEList, Low(P.Name) ) then
+					ListRemove(Self.InactiveEXEList, Low(P.Name) )
+				EndIf
+			EndIf
+			Self.UpdateTree(Tree, Item, P.Children)
+		Next
+	End Method 	
+	
 End Type
+
+
+
 
 Type RunnerWindow Extends wxFrame
 	Field GameNode:GameReadType
-	Field EXENum:Int
+	Field EXENum:int
 	Field Mounter:MounterReadType
 	
-	Field MounterOFF:Int
-	Field BatchOFF:Int 
-	Field UnMountOFF:Int
+
 	
 	Field RunEXE:String
-	Field EXEOnly:String 
+	Field RunEXEFolder:String
+	Field EXEOnly:String
+	
+	
+	Field PreBatchOFF:int
 	Field PreBatch:String
-	Field PreBatchWait:Int 
+	Field PreBatchFolder:String
+	Field PreBatchWait:int
+	
+	Field PostBatchOFF:int 
 	Field PostBatch:String
-	Field PostBatchWait:Int 	
+	Field PostBatchFolder:String
+	Field PostBatchWait:int
+
+	Field MounterOFF:int
+	Field UnMountOFF:int
 	Field MountCommand:String
+	Field MountCommandFolder:String
 	Field UnMountCommand:String
+	Field UnMountCommandFolder:String
+	Field MountDelay:int
+	
+	
 	
 	Global ScreenShotPlugin:ScreenShotPluginType
 	Global PowerPlanPlugin:PowerPlanPluginType
@@ -41,24 +409,43 @@ Type RunnerWindow Extends wxFrame
 	
 	Field Timer:wxTimer
 	Field Timer2:wxTimer
+	
+	Field StartProgramTimer:wxTimer
 	'Field KeyTimer:wxTimer
-	Field ProgramStarted:Int = False
+	Field ProgramStarted:int = - 1
 	
 	Field SteamProcessList:TList 
-	Field ExtraWatchEXEs:TList 
+	Field ExtraWatchEXEs:TList
 	
 	Field TextCtrl:wxTextCtrl
 	Field EndButton:wxButton
 	
+	Field RunnerDebug:RunnerDebugWindow
+	Field RunnerDebugEnabled:int = False
+	
 	Method OnInit()
+		If DebugLogEnabled = True then
+			RunnerDebugEnabled = True
+		EndIf
+		?Debug
+			RunnerDebugEnabled = True
+		?
+	
+		If RunnerDebugEnabled = True
+			RunnerDebug = RunnerDebugWindow(New RunnerDebugWindow.Create(Self , wxID_ANY , "PhotonRunnerDebug" , - 1 , - 1 , 800 , 500) )
+		EndIf
+	
+		Self.SetBackgroundColour(New wxColour.Create(PRRed, PRGreen, PRBlue) )	
 		FinishProgramRunning = 0
 		Local Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON2,wxBITMAP_TYPE_ICO)
 		Self.SetIcon(Icon)
-		Timer = New wxTimer.Create(Self,PR_T)
-		Timer2 = New wxTimer.Create(Self,PR_T2)
+		Timer = New wxTimer.Create(Self, PR_T)
+		Timer2 = New wxTimer.Create(Self, PR_T2)
+		StartProgramTimer = New wxTimer.Create(Self, PR_SPT)
 		'KeyTimer = New wxTimer.Create(Self,PR_KT)
-		Timer.Start(100)
+		
+		'Timer.Start(100)
 
 		'KeyTimer.Start(10)
 		TextCtrl = New wxTextCtrl.Create(Self,wxID_ANY,"(Initialising)" , -1, -1 ,-1 , -1 , wxTE_WORDWRAP | wxTE_MULTILINE | wxTE_READONLY)
@@ -73,9 +460,11 @@ Type RunnerWindow Extends wxFrame
 		Self.Show()	
 		Connect(PR_EB , wxEVT_COMMAND_BUTTON_CLICKED , ManualClose)
 		?Win32
-		Connect(PR_T , wxEVT_TIMER , TimerUpdate)	
+		Connect(PR_T , wxEVT_TIMER , PluginUpdateFun)	
 		?
-		Connect(PR_T2 , wxEVT_TIMER , TimerUpdate2)		
+		Connect(PR_T2 , wxEVT_TIMER , StatusUpdateFun)	
+					
+		Connect(PR_SPT, wxEVT_TIMER, StartProgramFun)
 		'Connect(PR_KT , wxEVT_TIMER, KeyTimerUpdate)
 	End Method 
 
@@ -92,15 +481,15 @@ Type RunnerWindow Extends wxFrame
 		End Select
 	End Function
 	
-	Function TimerUpdate(event:wxEvent)	
+	Function PluginUpdateFun(event:wxEvent)	
 		PhotonRunnerApp.Yield()
-		If ScreenShotPlugin.Enabled = True Then 
+		If ScreenShotPlugin.Enabled = True then
 			HotKey.SetKeyNumber(ScreenShotPlugin.Key)
-			If HotKey.KeyHit() Then 
+			If HotKey.KeyHit() then
 				ScreenShotPlugin.TakeScreenShot()
 			EndIf 		
 		EndIf 
-		If VideoPlugin.Enabled = True Then 
+		If VideoPlugin.Enabled = True then
 			HotKey.SetKeyNumber(VideoPlugin.Key)
 			If HotKey.KeyHit() Then 
 				VideoPlugin.TakeScreenShot()
@@ -110,8 +499,156 @@ Type RunnerWindow Extends wxFrame
 
 	End Function
 	
-	Function TimerUpdate2(event:wxEvent)
+	Function NullPluginUpdateFun(event:wxEvent)	
+		Local MainWin:RunnerWindow = RunnerWindow(event.parent)
+		MainWin.Timer.Stop()	
+	End Function
+	
+	Function NullStatusUpdateFun(event:wxEvent)
+		Local MainWin:RunnerWindow = RunnerWindow(event.parent)
+		MainWin.Timer2.Stop()
+	End Function
+	
+	Method StatusUpdate()
+		Local Process:ProcessType, Process2:ProcessType
+		Local RunningProcessCount:Int = 0
+		ListProcesses()
 		
+		If Self.RunnerDebugEnabled = True then
+			Self.RunnerDebug.UpdateTreeMain()
+		EndIf		
+		
+		Select Self.EXEOnly
+			Case "steam.exe"
+				Select Self.ProgramStarted
+					Case - 1
+						'Loop through all processes and see if it matches any in our watch list
+						For Process = EachIn MainProcessList.ProcessListAll
+							If ListContains(Self.ExtraWatchEXEs, Low(Process.Name) ) then
+								If Self.ProgramStarted = 1 then
+								
+								Else
+									Self.ProgramStarted = 1
+									If RunnerDebugEnabled = True then
+										RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as RUNNING (" + Process.Name + ")~n")	
+									EndIf
+								EndIf
+							EndIf
+							If Low(Process.Name) = Self.EXEOnly then
+								For Process2 = EachIn Process.GetAllChildren()
+									If ListContains(Self.ExtraWatchEXEs, Low(Process2.Name) ) then
+									
+									Else
+										If OnExcludeList(Low(Process2.Name) ) = False then
+											ListAddLast(Self.ExtraWatchEXEs, Low(Process2.Name) )
+											If RunnerDebugEnabled = True then
+												RunnerDebug.LogList.AppendText(CurrentTime() + ": Added " + Process2.Name + " (Child of " + Process.Name + ") to watch list~n")
+											EndIf
+										EndIf
+									EndIf
+								Next
+							EndIf
+						Next
+					Case 1
+						RunningProcessCount = 0
+						For Process = EachIn MainProcessList.ProcessListAll
+							If ListContains(Self.ExtraWatchEXEs, Low(Process.Name) ) then
+								RunningProcessCount = RunningProcessCount + 1
+								For Process2 = EachIn Process.GetAllChildren()
+									If ListContains(Self.ExtraWatchEXEs, Low(Process2.Name) ) then
+									
+									Else
+										ListAddLast(Self.ExtraWatchEXEs, Low(Process2.Name) )
+										If RunnerDebugEnabled = True then
+											RunnerDebug.LogList.AppendText(CurrentTime() + ": Added " + Process2.Name + " (Child of " + Process.Name + ") to watch list~n")
+										EndIf
+									EndIf
+								Next
+							EndIf
+							If Low(Process.Name) = Self.EXEOnly then
+								For Process2 = EachIn Process.GetAllChildren()
+									If ListContains(Self.ExtraWatchEXEs, Low(Process2.Name) ) then
+									
+									Else
+										If OnExcludeList(Low(Process2.Name) ) = False then
+											ListAddLast(Self.ExtraWatchEXEs, Low(Process2.Name) )
+											If RunnerDebugEnabled = True then
+												RunnerDebug.LogList.AppendText(CurrentTime() + ": Added " + Process2.Name + " (Child of " + Process.Name + ") to watch list~n")
+											EndIf
+										EndIf
+									EndIf
+								Next
+							EndIf																				
+						Next
+						
+						If RunningProcessCount = 0 then
+							If RunnerDebugEnabled = True then
+								RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as FINISHED ~n")	
+							EndIf
+							Self.ProgramStarted = 0
+							Self.FinishProgram()
+						EndIf
+					Case 0
+						
+					Default
+						CustomRuntimeError("StatusUpdate Error: Invalid Program State")
+				End Select
+			Default
+				Select Self.ProgramStarted
+					Case - 1
+						'Loop through all processes and see if it matches any in our watch list+ runEXE
+						For Process = EachIn MainProcessList.ProcessListAll
+							If ListContains(Self.ExtraWatchEXEs, Low(Process.Name) ) Or Low(Process.Name) = Self.EXEOnly then
+								Self.ProgramStarted = 1
+								If RunnerDebugEnabled = True then
+									RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as RUNNING (" + Process.Name + ")~n")	
+								EndIf
+							EndIf
+						Next
+					Case 1
+						RunningProcessCount = 0
+						For Process = EachIn MainProcessList.ProcessListAll
+							If ListContains(Self.ExtraWatchEXEs, Low(Process.Name) ) Or Low(Process.Name) = Self.EXEOnly then
+								RunningProcessCount = RunningProcessCount + 1
+								For Process2 = EachIn Process.GetAllChildren()
+									If ListContains(Self.ExtraWatchEXEs, Low(Process2.Name) ) then
+									
+									Else
+										ListAddLast(Self.ExtraWatchEXEs, Low(Process2.Name) )
+										If RunnerDebugEnabled = True then
+											RunnerDebug.LogList.AppendText(CurrentTime() + ": Added " + Process2.Name + " (Child of " + Process.Name + ") to watch list~n")
+										EndIf
+									EndIf
+								Next
+							EndIf						
+						Next
+						
+						If RunningProcessCount = 0 then
+							If RunnerDebugEnabled = True then
+								RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as FINISHED ~n")	
+							EndIf
+							Self.ProgramStarted = 0
+							Self.FinishProgram()
+						EndIf
+					Case 0
+						'Do Nothing
+					Default
+						CustomRuntimeError("StatusUpdate Error: Invalid Program State")
+				End Select
+			End Select
+	End Method
+	
+	Function StatusUpdateFun(event:wxEvent)
+		Local MainWin:RunnerWindow = RunnerWindow(event.parent)
+		PrintF("Running Status Update")
+		MainWin.Timer2.Stop()
+		MainWin.StatusUpdate()
+		MainWin.Timer2.Start(2000)
+		
+		
+		
+		
+		Rem - Rem'ed while testing debug window
 		Local ProcessList:TList = Null
 		Local SteamProcessList:TList = Null  
 		Local Running = True 
@@ -127,14 +664,14 @@ Type RunnerWindow Extends wxFrame
 		
 		?Win32	
 		
-		If MainWin.ProgramStarted = True Then
+		If MainWin.ProgramStarted = True then
 			
 			If Lower(MainWin.EXEOnly) = "steam.exe" Then
 				TWinProc.GetProcesses()
-				p = TWinProc.Find("Steam.exe",TWinProc._list)
+				p = TWinProc.Find("Steam.exe", TWinProc._list)
 				
 				SteamProcessList = CreateList()
-				GetSteamProcesses(p,SteamProcessList)
+				GetSteamProcesses(p, SteamProcessList)
 				'SteamProcessList = p.kidsNames	
 					
 				SteamProcessList = StripSteamProcesses(SteamProcessList)		
@@ -147,25 +684,19 @@ Type RunnerWindow Extends wxFrame
 				If Running = False Then 
 					ProcessList = ListProcesses()
 					For Process:String = EachIn ProcessList
-						If ListContains(MainWin.ExtraWatchEXEs,Low(Process)) Then
+						If ListContains(MainWin.ExtraWatchEXEs, Low(Process) ) then
 							Running = True 
-							Exit 
-						EndIf 
-					Next 
-				EndIf 
-				Rem
-				PrintF("Printing SubProcesses")
-				For a:String = EachIn SteamProcessList
-					PrintF(a)
-				Next 
-				PrintF("Finished Printing Subprocesses")
-				EndRem 
+							Exit
+						EndIf
+					Next
+				EndIf
+
 				ClearList(SteamProcessList)					
 				
 			Else
 				ProcessList = ListProcesses()
 				For Process:String = EachIn ProcessList
-					If Lower(Process) = Lower(MainWin.EXEOnly) Or ListContains(MainWin.ExtraWatchEXEs,Low(Process)) Then
+					If Lower(Process) = Lower(MainWin.EXEOnly) Or ListContains(MainWin.ExtraWatchEXEs, Low(Process) ) then
 						Running = True
 						Exit 
 					Else
@@ -192,7 +723,7 @@ Type RunnerWindow Extends wxFrame
 					PrintF("Printing SubProcesses")
 					For a:String = EachIn SteamProcessList
 						PrintF(a)
-					Next 
+					Next
 					PrintF("Finished Printing Subprocesses")
 				EndIf 						
 					
@@ -201,316 +732,81 @@ Type RunnerWindow Extends wxFrame
 
 		?	
 		MainWin.Timer2.Start(3000)
+		EndRem
 	End Function 
 
 	Method FinishProgram()
+		Local GameFinishThread:TThread
 		Timer.Stop()
-		Timer2.Stop()
-		If FinishProgramRunning = 0 Then 
-			FinishProgramRunning = 1
-			'To fix out of focus FrontEnd
-			TextCtrl.AppendText("~n~n~n~n~n")
-			TextCtrl.AppendText("Program Closing...~n")
-			EndButton.Disable()
+		
+		'Connect Timer2 to Null Function that should stop timer
+		Connect(PR_T2 , wxEVT_TIMER , NullStatusUpdateFun)	
+		'Connect Timer to Null Function that should stop timer
+		Connect(PR_T , wxEVT_TIMER , NullPluginUpdateFun)	
+		
+		If RunnerDebugEnabled = True then
+			RunnerDebug.LogList.AppendText(CurrentTime() + ": Finish Program Triggered~n")
+		EndIf
+		
+		
+		?Threaded
+		GameFinishThread = CreateThread(Thread_FinishGame, Self)
+		While GameFinishThread.Running()
 			PhotonRunnerApp.Yield()
-						
-			Local Process:Tprocess 
-			PrintF("FinishProgram")
-			?Win32 
-			If PowerPlanPlugin.Enabled = True Then 
-				PowerPlanPlugin.ActivatePlugin("End")
-				TextCtrl.AppendText("Activating End PowerPlan...~n")
-				PhotonRunnerApp.Yield()			
-			EndIf 	
-			Local CDir:String = StandardSlashes(CurrentDir())
-			PrintF("CWD: "+CDir)		
-			If BatchOFF = False Then
-				If PostBatch="" Then
-				
-				Else
-					PrintF("BF: "+ExtractEXEDir(PostBatch))
-					ChangeDir(ExtractEXEDir(PostBatch))			
-					'Past version compatability 	
-		
-					If PostBatchWait = True Then 
-						If Left(PostBatch,1)=Chr(34) Then 
-							Process = RunProcess(PostBatch, 0)
-						Else
-							Process = RunProcess(Chr(34) + PostBatch + Chr(34), 0)
-						EndIf 
-						TextCtrl.AppendText("Activating End Batch File And Waiting For It To Finish...~n")	
-						PhotonRunnerApp.Yield()
-						PrintF("Waiting for Batch to Complete")
-						EndButton.Enable()
-						EndButton.SetLabel("Skip")
-						Repeat 
-							If Process = Null Then Exit 
-							If ProcessStatus(Process)=0 Then Exit 
-							Delay 100
-							PhotonRunnerApp.Yield()
-							If SkipBatchWait = 1 Then 
-								ProcessDetach(Process)
-								Exit 
-							EndIf 
-						Forever
-						SkipBatchWait = 0
-						EndButton.Disable()
-						EndButton.SetLabel("Close PhotonRunner")							
-					Else
-						TextCtrl.AppendText("Activating End Batch File...~n")
-						PhotonRunnerApp.Yield()				
-						If Left(PostBatch,1)=Chr(34) Then 
-							RunProcess(PostBatch, 1)
-						Else
-							RunProcess(Chr(34) + PostBatch + Chr(34), 1)
-						EndIf 
-					EndIf 
-					ChangeDir(CDir)
-					PrintF("Batch Complete")
-				EndIf 
-			EndIf 
-			If MounterOFF = False And UnMountOFF = False Then
-				TextCtrl.AppendText("Unmounting Disc Images...~n")
-				PhotonRunnerApp.Yield()		
-				PrintF("MF: "+ExtractEXEDir(UnMountCommand))
-				ChangeDir(ExtractEXEDir(UnMountCommand))
-				RunProcess(UnMountCommand , 1)
-				ChangeDir(CDir)
-				PrintF("Mounter Complete")
-			EndIf
-			? 
-			PrintF("FinishProgram End")
-			If CabinateEnable Then 
-				Select CmdLineCabinate
-					Case 0
-						PrintF("No Cabinate")
-					Case 1
-						PrintF("FrontEnd Cabinate")
-						TextCtrl.AppendText("Loading FrontEnd~n")
-						PhotonRunnerApp.Yield()						
-						RunProcess(FRONTENDPROGRAM+" -Wait 1000 -ForceFront 1",1)
-					Case 2
-						PrintF("Explorer Cabinate")
-						TextCtrl.AppendText("Loading Explorer~n")
-						PhotonRunnerApp.Yield()						
-						RunProcess(EXPLORERPROGRAM,1)	
-					Default 
-						CustomRuntimeError("Error: Incorrect Cabinate mode in Photon Runner")
-				End Select 
-			Else
-				PrintF("CabinateEnabled = false")
-			EndIf
-			End 
-		EndIf 
+			Delay 50
+		Wend
+		?Not Threaded
+		Thread_FinishGame(Self)
+		?	
+
+		If RunnerDebugEnabled = True then
+			RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Ended~n")
+			RunnerDebug.LogList.AppendText("~nClose window manually when ready~n")
+		Else
+			End			
+		EndIf		
+		'Program terminates here unless debug enabled
 	End Method
 	
-	Method StartProgram()
-		TextCtrl.Clear()
-		TextCtrl.AppendText("Loading...~n")
-		If RunnerButtonCloseOnly = True Then 
-			PrintF("Always ON Active (Global)")
-			TextCtrl.AppendText("Auto Detect Game Closing: OFF (Global):~n")
-		EndIf
-		If GameNode.GameRunnerAlwaysOn = True 
-			PrintF("Always ON Active (This Game Only)")
-			TextCtrl.AppendText("Auto Detect Game Closing: OFF (This Game Only):~n")
-		EndIf
-		EndButton.Disable()
-		PhotonRunnerApp.Yield()	
-		
-		
-	
-		Local Process:TProcess
-		PrintF("StartProgram")
-		Local CDir:String = StandardSlashes(CurrentDir())
-		PrintF("CWD: "+CDir)
-		
-		?Win32
-		If PowerPlanPlugin.Enabled = True Then 
-			TextCtrl.AppendText("Activating Power Plan~n")
-			PhotonRunnerApp.Yield()		
-			PowerPlanPlugin.ActivatePlugin("Start")
-			PrintF("PowerPlan Started")
-		EndIf 
-		?
-			
-		?Win32	
-		If BatchOFF = False Then
-			If PreBatch="" Then 
-			
-			Else
-				PrintF("BF: "+ExtractEXEDir(PreBatch))
-				ChangeDir(ExtractEXEDir(PreBatch))
-				'Past version compatability 
-				If PreBatchWait = True Then 
-					TextCtrl.AppendText("Activating Start Batch File And Waiting For It To Finish...~n")	
-					PhotonRunnerApp.Yield()			
-					If Left(PreBatch,1)=Chr(34) Then 
-						Process = RunProcess(PreBatch, 0)
-					Else
-						Process = RunProcess(Chr(34) + PreBatch + Chr(34), 0)
-					EndIf 
-					PrintF("Waiting for Batch to Complete")
-					EndButton.Enable()
-					EndButton.SetLabel("Skip")
-					Repeat 
-						If Process=Null Then Exit 
-						If ProcessStatus(Process)=0 Then Exit 
-						Delay 100
-						PhotonRunnerApp.Yield()
-						If SkipBatchWait = 1 Then 
-							ProcessDetach(Process)
-							Exit 
-						EndIf 
-					Forever
-					SkipBatchWait = 0
-					EndButton.Disable()
-					EndButton.SetLabel("Close PhotonRunner")
-				Else
-					TextCtrl.AppendText("Activating Start Batch File...~n")	
-					PhotonRunnerApp.Yield()			
-					If Left(PreBatch,1)=Chr(34) Then 
-						RunProcess(PreBatch, 1)
-					Else
-						RunProcess(Chr(34) + PreBatch + Chr(34), 1)
-					EndIf 
-				EndIf 
-				ChangeDir(CDir)
-				PrintF("Batch Complete")
-			EndIf 
+	Function StartProgramFun(event:wxEvent)
+		'Function triggered by one off timer, which is set in SetGame
+		Local Runner:RunnerWindow = RunnerWindow(event.parent)	
+		Local GameStartThread:TThread
+		If Runner.RunnerDebugEnabled = True then
+			Runner.RunnerDebug.LogList.AppendText(CurrentTime() + ": Start Program Triggered~n")
 		EndIf
 		
-		If MounterOFF = False Then
-			TextCtrl.AppendText("Mounting Disc Image...~n")	
-			PhotonRunnerApp.Yield()		
-			PrintF("MF: "+ExtractEXEDir(MountCommand))
-			ChangeDir(ExtractEXEDir(MountCommand))
-			RunProcess(MountCommand , 1)
-			ChangeDir(CDir)
-			Delay 4000
-			PrintF("Mounter Complete")
+		
+		?Threaded
+		GameStartThread = CreateThread(Thread_StartGame, Runner)
+		While GameStartThread.Running()
+			PhotonRunnerApp.Yield()
+			Delay 50
+		Wend
+		?Not Threaded
+		Thread_StartGame(Runner)
+		?	
+		If RunnerButtonCloseOnly = False then
+			If Runner.GameNode.GameRunnerAlwaysOn = False then
+				Runner.Timer2.Start(2000)		
+			EndIf
 		EndIf	
-		?
-		
-		
-		PrintF("EF: "+ExtractEXEDir(RunEXE) )
-		ChangeDir(ExtractEXEDir(RunEXE))
-		
-		'Past Version Compatability 
-		TextCtrl.AppendText("Running Program...~n")	
-		PhotonRunnerApp.Yield()
-		
-		'Rem
-		Local hWnd:Byte Ptr=Self.GetHandle()
-		OurThreadID = GetCurrentThreadId()
-		
-		Local ahwnd:Byte Ptr 
-		CurrentThreadID = GetWindowThreadProcessId(GetForegroundWindow(),ahwnd)
-		
-		PrintF("Our Thread: "+OurThreadID)
-		PrintF("Current Thread: "+CurrentThreadID)
-		PrintF("Win: "+Int(hWnd))
-		
-		If OurThreadID<>CurrentThreadID Then 
-			AttachThreadInput(OurThreadID,CurrentThreadID,True)
-		EndIf 
-		
-		SetForegroundWindow(Int(hWnd))
-		BringWindowToTop(Int(hWnd))
-		'SetActiveWindow(hWnd)
-		
-		If OurThreadID<>CurrentThreadID Then 
-			AttachThreadInput(OurThreadID,CurrentThreadID,False)
-		EndIf 
-		'EndRem 
-
-		Delay 1000			
-
-		EndButton.Enable()
+		If Runner.RunnerDebugEnabled = True then
+			Runner.RunnerDebug.LogList.AppendText(CurrentTime() + ": Start Program Finished~n")
+		EndIf		
+	End Function
 	
-					
-		If Left(RunEXE,1)=Chr(34) Then 
-			RunProcess(RunEXE , 1)
-		Else
-			RunProcess(Chr(34)+ RunEXE +Chr(34) , 1)
-		EndIf 
-		'AllowSetForegroundWindow(-1)
-		ChangeDir(CDir)
-
-		If Low(EXEOnly) <> "steam.exe" Then
-			PrintF("Steam Program")
-			ProgramStarted = True
-		EndIf
-		If SilentRunnerEnabled = False Then
-			End
-		EndIf 
-		PrintF("StartProgram End")	
-		
-		Delay 5000
-		
-		If OriginWaitEnabled = True Then 
-			'Detect Origin and delay by half a miniute
-			Local ProcessList:TList = Null
-			ProcessList = ListProcesses()
-			For ProcessString:String = EachIn ProcessList
-				If Low(ProcessString) = "origin.exe" Then 
-					TextCtrl.AppendText("~n~n")	
-					TextCtrl.AppendText("Detected Origin Running. Waiting extra 30 seconds for origin to start.~n")
-					For k=1 To 30
-						PhotonRunnerApp.Yield()
-						TextCtrl.AppendText(k+"  ")	
-						Delay 1000
-					Next
-					Exit
-				EndIf 
-			Next	
-		Else
-			If GameNode.StartWaitEnabled = True Then 
-				TextCtrl.AppendText("~n~n")	
-				TextCtrl.AppendText("Waiting for 30 seconds (Advanced setting for this game)~n")
-				For k=1 To 30
-					PhotonRunnerApp.Yield()
-					TextCtrl.AppendText(k+"  ")	
-					Delay 1000
-				Next
-			EndIf 
-		EndIf 
-		
-		TextCtrl.AppendText("~n~n~n~n~n")	
-		TextCtrl.AppendText("If you are seeing this window after your game has ended Then Game Manager has failed To detect the game finishing properly. ~n" + ..
-		"Click 'Close PhotonRunner' to close GameManager, run any post-batch scripts set and unmount any game images if required.")
-		TextCtrl.AppendText("~n~n~n")
-
-		If RunnerButtonCloseOnly = False Then 
-			If GameNode.GameRunnerAlwaysOn = False Then 
-				Timer2.Start(3000)		
-			EndIf
-		EndIf
-	End Method
-	
-	Function ExtractEXEDir:String(Dir:String)
-		Local DirOnly:String = ""
-		Dir = Replace(Dir,Chr(34),"")
-		For a = 1 To Len(Dir)
-			If Mid(Dir , a , 1) = "\" Or Mid(Dir , a , 1) = "/" Then
-				If FileType(Left(Dir , a - 1) ) = 2 Then
-					DirOnly = Left(Dir , a - 1)
-				Else
-					Exit 
-				EndIf
-			EndIf
-		Next
-		Return DirOnly
-	End Function 
-
 	Method SetGame(GN:String , EN:Int)
 		ExtraWatchEXEs = CreateList()
 		EXENum = EN
 		GameNode = New GameReadType
-		GameNode.GetGame(GN)
-
+		If GameNode.GetGame(GN) = - 1 then
+			Notify "Could Not Get Game"
+			End
+		EndIf
+		
 		If GameNode.Mounter = "None" Or GameNode.Mounter = "" Or EXENum > 1 Then
-			MounterOFF = True 
+			MounterOFF = True
 		Else
 			MounterOFF = False
 			Mounter = New MounterReadType
@@ -530,32 +826,61 @@ Type RunnerWindow Extends wxFrame
 			UnMountString = Replace(UnMountString , "[MounterNum]" , VDriveNum)
 			UnMountString = Replace(UnMountString , "[GameISOPath]" , Image)			
 			
-			MountCommand = MountString
-			UnMountCommand = UnMountString
-			
-			If GameNode.UnMount = "Yes" Then
+			Self.MountCommand = MountString
+			Self.MountCommandFolder = ExtractEXEDir(Self.MountCommand)
+			Self.UnMountCommand = UnMountString
+			Self.UnMountCommandFolder = ExtractEXEDir(Self.UnMountCommand)
+			Self.MountDelay = Mounter.MounterDelay
+						
+			If GameNode.UnMount = "Yes" then
 				UnMountOFF = False
 			Else
 				UnMountOFF = True
 			EndIf 
 		EndIf
 		
-		If EXENum > 1 Then
-			BatchOFF = True		
+		If EXENum > 1 then
+			PreBatchOFF = True		
+			PostBatchOFF = True
 		Else
-			BatchOFF = False
+			PreBatchOFF = False 	
+			PostBatchOFF = False
 			PreBatch = GameNode.PreBF
+			PreBatchFolder = ExtractEXEDir(PreBatch)
 			PreBatchWait = GameNode.PreBFWait
-			PrintF("PRe wait on")
-			PostBatch = GameNode.PostBF				
+			If PreBatch = "" then
+				PreBatchOFF = True
+				PrintF("PreBatch OFF")
+			Else
+				PrintF("PreBatch ON")
+				If Left(PreBatch, 1) = Chr(34) then
+					
+				Else
+					PreBatch = Chr(34) + PreBatch + Chr(34)
+				EndIf
+			EndIf
+			
+			
+			PostBatch = GameNode.PostBF		
+			PostBatchFolder = ExtractEXEDir(PostBatch)
 			PostBatchWait = GameNode.PostBFWait
-			PrintF("Post wait on")
+			If PostBatch = "" then
+				PostBatchOFF = True
+				PrintF("PostBatch OFF")
+			Else
+				PrintF("PostBatch ON")
+				If Left(PostBatch, 1) = Chr(34) then
+					
+				Else
+					PostBatch = Chr(34) + PostBatch + Chr(34)
+				EndIf				
+			EndIf
 		EndIf
 		
 		Local OEXE:Object[] = ListToArray(GameNode.OEXEs)
 		
-		If GameNode.Plat = "PC" Then 
-			If EXENum = 1 Then
+		If GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).PlatType = "Folder" then
+			If EXENum = 1 then
 				RunEXE = GameNode.RunEXE
 			Else
 				If (EXENum - 2) > Len(OEXE) - 1 Then
@@ -575,7 +900,7 @@ Type RunnerWindow Extends wxFrame
 				RunEXE = Replace(RunEXE , "[EXTRA-CMD]" , GameNode.ExtraCMD)
 
 			Else
-				If (EXENum - 2) > Len(OEXE) - 1 Then
+				If (EXENum - 2) > Len(OEXE) - 1 then
 					CustomRuntimeError("Error 110: EXENum out of bounds") 'MARK: Error 110
 				Else
 					RunEXE = String(OEXE[EXENum - 2])
@@ -584,37 +909,31 @@ Type RunnerWindow Extends wxFrame
 
 		EndIf
 		
-		
-		
-		If Left(RunEXE,1)=Chr(34) Then 
-			For a=2 To Len(RunEXE)
-				If Mid(RunEXE,a,1)=Chr(34)
-					
-					EXEOnly=Mid(RunEXE,2,a-2)
-					EXEOnly=StripDir(EXEOnly)
-					Exit 
-				EndIf
-			Next			
-				
+		If Left(RunEXE, 1) = Chr(34) then
+
 		Else
-			For a=1 To Len(RunEXE)
-				If Mid(RunEXE,a,1)=" " Then 
-					EXEOnly=Mid(RunEXE,1,a-1)
-					EXEOnly=StripDir(EXEOnly)
-					Exit 
-				EndIf
-			Next 
+			RunEXE = Chr(34) + RunEXE + Chr(34)
 		EndIf
 		
+		For a = 2 To Len(RunEXE)
+			If Mid(RunEXE,a,1)=Chr(34)
+				EXEOnly=Mid(RunEXE,2,a-2)
+				EXEOnly=StripDir(EXEOnly)
+				Exit 
+			EndIf
+		Next		
+					
+		EXEOnly = Low(EXEOnly)
 		
+		RunEXEFolder = ExtractEXEDir(RunEXE)
 		
 		For WatchEXEString:String = EachIn GameNode.WatchEXEs
-			If FileType(WatchEXEString)=1 Then
-				ListAddLast(Self.ExtraWatchEXEs,Low(StripDir(WatchEXEString)))
-			EndIf 
+			If FileType(WatchEXEString) = 1 then
+				ListAddLast(Self.ExtraWatchEXEs, Low(StripDir(WatchEXEString) ) )
+			EndIf
 			If FileType(WatchEXEString)=2 Then 
-				GetEXEsFromFolder(WatchEXEString,Self.ExtraWatchEXEs)
-			EndIf 
+				GetEXEsFromFolder(WatchEXEString, Self.ExtraWatchEXEs)
+			EndIf
 		Next
 		
 		
@@ -637,20 +956,24 @@ Type RunnerWindow Extends wxFrame
 		
 		PrintF("PhotonRunner Given Following Data")
 		PrintF("RunEXE: " + RunEXE)
-		PrintF("EXEOnly: "+EXEOnly)
-		PrintF("PreBatch: "+PreBatch)
+		PrintF("EXEOnly: " + EXEOnly)
+		PrintF("PreBatch: " + PreBatch)
 		PrintF("PostBatch: "+PostBatch)
 		PrintF("MountCommand: "+MountCommand)
 		PrintF("UnMountCommand: "+UnMountCommand)
 		PrintF(WatchEXEPrintString)
 		PrintF("---------------------------------")
 		
+		If Self.RunnerDebugEnabled = True then
+			Self.RunnerDebug.LoadInEXEs()
+		EndIf
 		
-		Self.StartProgram()
-	End Method 
+		'Use Timer to prevent event queue clog at startup
+		Self.StartProgramTimer.Start(1000, True)
+	End Method
 End Type
 
-Function GetEXEsFromFolder(Folder:String,List:TList)
+Function GetEXEsFromFolder(Folder:String, List:TList)
 	If Right(Folder,1)="\" Or Right(Folder,1)="/" Then
 		Folder = Left(Folder,Len(Folder)-1)
 	EndIf 
@@ -878,7 +1201,7 @@ Type VideoPluginType
 	End Method
 	
 	Function VideoName$(Game$,Format$)
-		Number=1
+		Number = 1
 		Repeat
 			If FileType(GAMEDATAFOLDER+Game+FolderSlash+"ScreenShots"+FolderSlash+"Vid"+Number+Format)=1 Then
 				Number=Number+1
@@ -886,12 +1209,13 @@ Type VideoPluginType
 				Exit
 			EndIf
 		Forever
-		Return GAMEDATAFOLDER+Game+FolderSlash+"ScreenShots"+FolderSlash+"Vid"+Number+Format
+		Return GAMEDATAFOLDER + Game + FolderSlash + "ScreenShots" + FolderSlash + "Vid" + Number + Format
 	End Function	
-End Type 
+End Type
 
+Rem
 ?Win32
-Function GetSteamProcesses(p:TWinProc,List:TList)
+Function GetSteamProcesses(p:TWinProc, List:TList)
 	'Get all child processes of p and put them into List. This includes children of child processes etc.
 	Local a:TWinProc
 	If p.kids <> Null And CountList(p.kids) <> 0 Then 
@@ -904,19 +1228,53 @@ Function GetSteamProcesses(p:TWinProc,List:TList)
 	EndIf 
 End Function 
 ?
+EndRem
 
+Function ExtractEXEDir:String(Dir:String)
+	Local DirOnly:String = ""
+	Dir = Replace(Dir,Chr(34),"")
+	For a = 1 To Len(Dir)
+		If Mid(Dir , a , 1) = "\" Or Mid(Dir , a , 1) = "/" Then
+			If FileType(Left(Dir , a - 1) ) = 2 then
+				DirOnly = Left(Dir , a - 1)
+			Else
+				Exit
+			EndIf
+		EndIf
+	Next
+	Return DirOnly
+End Function 
+
+'Returns true if EXE should be excluded
+Function OnExcludeList(EXE:String)
+	If EXE = "gameoverlayui.exe" then Return 1
+	If EXE = "steamservice.exe" then Return 1
+	If EXE = "steamerrorreporter.exe" then Return 1
+	If EXE = "steamerrorreporter64.exe" then Return 1
+	If EXE = "Steamtmp.exe" then Return 1
+	If EXE = "streaming_client.exe" then Return 1
+	If EXE = "x64launcher.exe" then Return 1
+	If EXE = "x86launcher.exe" then Return 1
+	If EXE = "steamwebhelper.exe" then Return 1
+	
+	If EXE = "uplay.exe" then Return 1
+	
+	Return 0
+End Function
+Rem
 Function StripSteamProcesses:TList(ProcessList:TList)
-	ListRemove(ProcessList,"GameOverlayUI.exe")
+	ListRemove(ProcessList, "GameOverlayUI.exe")
 	ListRemove(ProcessList,"steamservice.exe")
 	ListRemove(ProcessList,"steamerrorreporter.exe")	
 	ListRemove(ProcessList,"steamerrorreporter64.exe")
-	ListRemove(ProcessList,"SteamTmp.exe")
+	ListRemove(ProcessList, "SteamTmp.exe")
 	ListRemove(ProcessList,"streaming_client.exe")
-	ListRemove(ProcessList,"x64launcher.exe")
+	ListRemove(ProcessList, "x64launcher.exe")
 	ListRemove(ProcessList,"x86launcher.exe")
 	
 	'Fix for steam launching UPlay Games
-	ListRemove(ProcessList,"uplay.exe")	
+	ListRemove(ProcessList, "uplay.exe")	
 
 	Return ProcessList	
 End Function
+EndRem

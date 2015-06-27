@@ -1,6 +1,6 @@
-'TODO: Put filter into separate thread to increase smoothness and prevent wxwidgets debug message error
 'TODO: Fix LuaInternet to check for meta refreshes
-
+'TODO: Fix Adobe Flash bug error with trailer window
+'TODO: Fix Explorer/Frontends ability to handle files, webpages etc as Other Executables
 
 'FIX: Steam ScreenShots!
 
@@ -83,6 +83,8 @@ Global FolderSlash:String = "/"
 Global FolderSlash:String ="\"
 ?
 
+AppTitle = "PhotonExplorer"
+
 Include "Includes\General\StartupOverrideCheck.bmx"
 Local TempFolderPath:String = OverrideCheck(FolderSlash)
 
@@ -130,7 +132,7 @@ Local ProgramMode:Int = 1
 
 
 CheckKey()
-If EvaluationMode = True Then 
+If EvaluationMode = True then
 	Notify "You are running in evaluation mode, this limits you to 5 games."
 EndIf
 
@@ -389,6 +391,7 @@ Type GameExplorerFrame Extends wxFrame
 	Field DownloadListSelectButton:wxButton
 	
 	Field LuaTimer:wxTimer
+	Field FilterTimer:wxTimer
 	
 	Method OnInit()
 	
@@ -402,7 +405,7 @@ Type GameExplorerFrame Extends wxFrame
 		LuaTimer = New wxTimer.Create(Self, LT1)
 		ResizeTimer = New wxTimer.Create(Self, RT1)
 		MoveTimer = New wxTimer.Create(Self, MT1)
-
+		FilterTimer = New wxTimer.Create(Self, FT1)
 
 		SubMenu1 = New wxMenu.Create()
 		SubMenu1.AppendRadioItem(GL_SM1_IV , "Icon View")
@@ -962,7 +965,6 @@ Type GameExplorerFrame Extends wxFrame
 			Self.Center()
 		EndIf
 		
-		
 		Self.PopulateGameList()
 		
 		Connect(GW_DP_DSo, wxEVT_COMMAND_TEXT_UPDATED, DownloadSourceChangedFun)
@@ -973,14 +975,14 @@ Type GameExplorerFrame Extends wxFrame
 		
 		
 		
-		Connect(GES_SL , wxEVT_COMMAND_COMBOBOX_SELECTED , GameListUpdate)
-		Connect(GES_FTB , wxEVT_COMMAND_TEXT_UPDATED , GameListUpdate)
-		Connect(GES_PL , wxEVT_COMMAND_COMBOBOX_SELECTED , GameListUpdate)
+		Connect(GES_SL , wxEVT_COMMAND_COMBOBOX_SELECTED , FilterUpdate2)	
+		Connect(GES_FTB , wxEVT_COMMAND_TEXT_UPDATED , FilterUpdate)	
+		Connect(GES_PL , wxEVT_COMMAND_COMBOBOX_SELECTED , FilterUpdate2)
 			
 			
 		Connect(GES_GL , wxEVT_COMMAND_LIST_ITEM_SELECTED , UpdateSelectionFun)
 		Connect(GES_GL , wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK , GLRightClickedFun)
-		Connect(GES_GL , wxEVT_COMMAND_LIST_ITEM_ACTIVATED  , GLMenuClickedFun , "RG")
+		Connect(GES_GL , wxEVT_COMMAND_LIST_ITEM_ACTIVATED , GLMenuClickedFun , "RG")
 		
 
 		
@@ -1014,29 +1016,34 @@ Type GameExplorerFrame Extends wxFrame
 		Local ID:Int = 0
 		Local IDSet = False 
 		Local item:wxListItem
-		If CmdLineGameName = "" Then 
-			If SettingFile.GetSetting("LastGameNumber") <> "" Then		
-				item = New wxListItem.Create()	
-				item.SetID(Int(SettingFile.GetSetting("LastGameNumber")))
-				GameList.GetItem(item)
-				item.SetState(wxLIST_STATE_SELECTED)
-				GameList.SetItem(item)
+		If CmdLineGameName = "" then
+			If SettingFile.GetSetting("LastGameNumber") <> "" then
+												ID = Int(SettingFile.GetSetting("LastGameNumber") )
+				If ID < GameList.GetItemCount() then
+					item = New wxListItem.Create()	
+					item.SetId(ID )
+					GameList.GetItem(item)
+					item.SetState(wxLIST_STATE_SELECTED)
+					GameList.SetItem(item)
+				EndIf
 			EndIf
 		Else
 			For StringItem = EachIn GameRealPathList
-				If StringItem = CmdLineGameName Then 
+				If StringItem = CmdLineGameName then
 					IDSet = True 
 					Exit
 				Else
 					ID = ID + 1
 				EndIf 
-			Next 
-			If IDSet = True Then 
-				item = New wxListItem.Create()	
-				item.SetID(ID)
-				GameList.GetItem(item)
-				item.SetState(wxLIST_STATE_SELECTED)
-				GameList.SetItem(item)
+			Next
+			If IDSet = True then
+				If ID < GameList.GetItemCount() then
+					item = New wxListItem.Create()	
+					item.SetId(ID)
+					GameList.GetItem(item)
+					item.SetState(wxLIST_STATE_SELECTED)
+					GameList.SetItem(item)
+				EndIf
 			EndIf 
 		
 		EndIf 
@@ -1048,7 +1055,7 @@ Type GameExplorerFrame Extends wxFrame
 		Connect(SRT1 , wxEVT_TIMER , StartupRefreshTimerFun)
 
 		?Linux
-		StartupRefreshTimer2 = New wxTimer.Create(Self,SRT2)
+		StartupRefreshTimer2 = New wxTimer.Create(Self, SRT2)
 		StartupRefreshTimer2.Start(2000 , True)
 		Connect(SRT2 ,wxEVT_TIMER , StartupRefreshTimerFun2)
 		?
@@ -1061,6 +1068,8 @@ Type GameExplorerFrame Extends wxFrame
 		Connect(GES , wxEVT_MOVE , MoveEventFun)
 		Connect(RT1, wxEVT_TIMER, ResizedFun)
 		Connect(MT1, wxEVT_TIMER, MovedFun)
+		
+		Connect(FT1, wxEVT_TIMER, GameListUpdate)
 		
 		LuaTimer.Start(100)
 		Connect(LT1, wxEVT_TIMER , DownloadLuaEvent)
@@ -1803,6 +1812,9 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local Selection:String = GameExploreWin.LocalWalkList.GetStringSelection()
 		Local CDir:String = CurrentDir()
+		If Selection = "No Walkthroughs Found Locally" Or Selection = "Use 'Download' tab to download some" then
+			Return
+		EndIf 		
 		ChangeDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides")
 		OpenURL(Selection)
 		ChangeDir(CDir)
@@ -1811,6 +1823,9 @@ Type GameExplorerFrame Extends wxFrame
 	Function ManualItemSelectedFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local Selection:String = GameExploreWin.LocalManualList.GetStringSelection()
+		If Selection = "No Manuals Found Locally" Or Selection = "Use 'Download' tab to download some" then
+			Return
+		EndIf
 		Local CDir:String = CurrentDir()
 		ChangeDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Manuals")
 		OpenURL(Selection)
@@ -1821,6 +1836,9 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local Selection:String = GameExploreWin.LocalCheatList.GetStringSelection()
 		Local CDir:String = CurrentDir()
+		If Selection = "No Cheats Found Locally" Or Selection = "Use 'Download' tab to download some" then
+			Return
+		EndIf 		
 		ChangeDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Cheats")
 		OpenURL(Selection)
 		ChangeDir(CDir)
@@ -1830,6 +1848,10 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		Local Selection:String = GameExploreWin.LocalPatchList.GetStringSelection()
 		Local File:String
+		
+		If Selection = "No Patches Found Locally" Or Selection = "Use 'Download' tab to download some" then
+			Return
+		EndIf
 		
 		GameExploreWin.LocalPatchFileList.Clear()
 		
@@ -2023,13 +2045,13 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameN:String = String(GameNamesArray[item])	
 
 		Local data:Object = event.userData
-		If String(data) = "RG" Then		
-			RunProcess(EXPLORERPROGRAM+" -Runner 1 -GameName "+Chr(34)+GameN+Chr(34)+" -EXENum 1 -Cabinate 2",1)
+		If String(data) = "RG" then		
+			RunProcess(RUNNERPROGRAM + " -Runner 1 -GameName " + Chr(34) + GameN + Chr(34) + " -EXENum 1 -Cabinate 2", 1)
 			GameExploreWin.Close(True)
 		Else
 			Local RunNumber:Int = Int(String(data) )
-			Print RunNumber
-			RunProcess(EXPLORERPROGRAM+" -Runner 1 -GameName "+Chr(34)+GameN+Chr(34)+" -EXENum "+RunNumber+" -Cabinate 2",1)
+			PrintF(RunNumber)
+			RunProcess(RUNNERPROGRAM + " -Runner 1 -GameName " + Chr(34) + GameN + Chr(34) + " -EXENum " + RunNumber + " -Cabinate 2", 1)
 			GameExploreWin.Close(True)
 		EndIf
 	End Function
@@ -2098,7 +2120,7 @@ Type GameExplorerFrame Extends wxFrame
 				MessageBox.Free()					
 				Return
 			Else
-				OpenURL("http://www.youtube.com/watch?v="+GameNode.Trailer)
+				OpenURL("http://www.youtube.com/watch?v=" + GameNode.Trailer)
 			EndIf
 		EndIf
 	End Function
@@ -2227,6 +2249,11 @@ Type GameExplorerFrame Extends wxFrame
 				CloseDir(ReadPatches)
 			EndIf
 
+			If Self.LocalPatchList.GetCount() = 0 then
+				Self.LocalPatchList.Append("No Patches Found Locally")
+				Self.LocalPatchList.Append("Use 'Download' tab to download some")
+			EndIf
+			
 			If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Cheats") = 2 then
 
 				ReadCheats = ReadDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Cheats")
@@ -2239,7 +2266,12 @@ Type GameExplorerFrame Extends wxFrame
 					EndIf
 				Forever
 				CloseDir(ReadCheats)
-			EndIf			
+			EndIf	
+
+			If Self.LocalCheatList.GetCount() = 0 then
+				Self.LocalCheatList.Append("No Cheats Found Locally")
+				Self.LocalCheatList.Append("Use 'Download' tab to download some")
+			EndIf								
 			
 			If FileType(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash + "Guides") = 2 then
 				ReadWalks = ReadDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash +"Guides")
@@ -2254,6 +2286,11 @@ Type GameExplorerFrame Extends wxFrame
 				CloseDir(ReadWalks)
 			EndIf			
 
+			If Self.LocalWalkList.GetCount() = 0 then
+				Self.LocalWalkList.Append("No Walkthroughs Found Locally")
+				Self.LocalWalkList.Append("Use 'Download' tab to download some")
+			EndIf		
+
 			If FileType(GAMEDATAFOLDER+GameNode.OrginalName+FolderSlash+"Manuals") = 2 Then
 				ReadManuals = ReadDir(GAMEDATAFOLDER + GameNode.OrginalName + FolderSlash +"Manuals")
 				Repeat
@@ -2266,6 +2303,11 @@ Type GameExplorerFrame Extends wxFrame
 				Forever
 				CloseDir(ReadManuals)
 			EndIf
+			
+			If Self.LocalManualList.GetCount() = 0 then
+				Self.LocalManualList.Append("No Manuals Found Locally")
+				Self.LocalManualList.Append("Use 'Download' tab to download some")
+			EndIf					
 			
 			Self.DownloadSearchBox.ChangeValue(GameNode.Name)
 			Self.GGenreText.SetLabel("Genre: " + CorrectText(GenreList) )
@@ -2289,11 +2331,11 @@ Type GameExplorerFrame Extends wxFrame
 			
 			
 			If GameNode.Trailer = "" then
-				If Self.TrailerWeb.GetCurrentURL() = "https://photongamemanager.com/GameManagerPages/NoVideo.php" then
+				'If Self.TrailerWeb.GetCurrentURL() = "file:///" + RESFOLDER + "NoTrailer.html" then
 				
-				Else
-					Self.TrailerWeb.LoadURL("https://photongamemanager.com/GameManagerPages/NoVideo.php")
-				EndIf
+				'Else
+					Self.TrailerWeb.LoadURL(RealPath(RESFOLDER + "NoTrailer.html") )
+				'EndIf
 			Else
 				If Self.TrailerWeb.GetCurrentURL() = "https://www.youtube.com/embed/" + GameNode.Trailer then
 				
@@ -2320,11 +2362,25 @@ Type GameExplorerFrame Extends wxFrame
 		PrintF("----------------------------Updating Game List----------------------------")
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
 		SettingFile.SaveSetting("Sort" , GameExploreWin.SortCombo.GetValue())
-		SettingFile.SaveSetting("Filter" , GameExploreWin.FilterTextBox.GetValue())
-		SettingFile.SaveSetting("Platform" , GameExploreWin.PlatformCombo.GetValue())
+		SettingFile.SaveSetting("Filter" , GameExploreWin.FilterTextBox.GetValue() )
+		SettingFile.SaveSetting("Platform" , GameExploreWin.PlatformCombo.GetValue() )
 		SettingFile.SaveFile()			
+		
 		GameExploreWin.PopulateGameList()
 	End Function
+	
+	
+	Function FilterUpdate(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		GameExploreWin.FilterTimer.Stop()
+		GameExploreWin.FilterTimer.Start(500, True)
+	End Function
+	
+	Function FilterUpdate2(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		GameExploreWin.FilterTimer.Stop()
+		GameExploreWin.FilterTimer.Start(100, True)
+	End Function	
 	
 	Method PopulateGameList()
 		Local FIPixmap:TFreeImage
@@ -3435,14 +3491,19 @@ Function LoadGlobalSettings()
 	EndIf 
 	If ReadSettings.GetSetting("RunnerButtonCloseOnly") <> "" Then	
 		RunnerButtonCloseOnly = Int(ReadSettings.GetSetting("RunnerButtonCloseOnly"))
-	EndIf 
-	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" Then	
-		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled"))
-	EndIf 			
+	EndIf
+	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" then	
+		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled") )
+	EndIf 		
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+			DebugLogEnabled = 1
+		EndIf
+	EndIf			
 	ReadSettings.CloseFile()
 End Function
 
-Function FitPixmapIntoBox:TPixmap(Pixmap:TPixmap,IconSize:Int,Banner:Int = -1)
+Function FitPixmapIntoBox:TPixmap(Pixmap:TPixmap, IconSize:Int, Banner:Int = - 1)
 	Local Pixmap2:TPixmap
 	If Banner = -1 Then 
 				

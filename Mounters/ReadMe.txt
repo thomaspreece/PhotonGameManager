@@ -1,0 +1,2 @@
+DO NOT PUT YOUR MOUNTER SCRIPTS HERE
+These files are copied to the Settings/Mounter folder in My Documents on first run. After that Photon does not read this folder so any scripts placed in here will not be recognised, please put them in the My Documents folder instead.
