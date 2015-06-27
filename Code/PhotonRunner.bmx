@@ -1,3 +1,5 @@
+'TODO: Remove Mounter delay and that detect iso mounted
+
 Framework wx.wxapp
 Import wx.wximage
 Import wx.wxFrame
@@ -7,6 +9,8 @@ Import wx.wxStaticText
 Import wx.wxTextCtrl
 Import wx.wxTimer
 Import wx.wxMessageDialog
+Import wx.wxtreeListctrl
+Import wx.wxlistctrl
 
 Import brl.retro
 Import BRL.OpenALAudio
@@ -23,16 +27,19 @@ Import bah.libxml
 Import bah.regex
 Import bah.libcurlssl
 
+Import brl.threads
 
 ?Win32
-Import "Icons\PhotonManager.o"
+Import "Icons\PhotonRunner.o"
 ?
+
+AppTitle = "PhotonRunner"
 
 ?Not Win32
 Global FolderSlash:String = "/"
 
 ?Win32
-Global FolderSlash:String ="\"
+Global FolderSlash:String = "\"
 ?
 
 Include "Includes\General\StartupOverrideCheck.bmx"
@@ -71,62 +78,35 @@ CreateFile(LOGFOLDER + LogName)
 Local ArguemntNo:int = 0
 Local RunnerEXENumber:int
 Local RunnerGameName:String
-Local ProgramMode:Int = 1
-
-'Mode = 1 NORMAL MODE
-'Mode = 2 RUNNER MODE ONLY
-'Mode = 3 TRAY APP
-
-CheckKey()
-
 
 LoadGlobalSettings()
 
-ProgramMode = 1
-Local PastArgument:String 
+Local PastArgument:String
 For Argument$ = EachIn AppArgs$
 	Select PastArgument
-		Case "-Cabinate","Cabinate"
-			CmdLineCabinate = Int(Argument)
+		Case "-Cabinate", "Cabinate"
+			CmdLineCabinate = int(Argument)
 			PastArgument = ""
-		Case "-GameTab","GameTab"
-			CmdLineGameTab = Argument
-			PastArgument = ""
-		Case "-Game","Game"
-			CmdLineGameName = Argument
-			PastArgument = ""
-		Case "-Tray","Tray"
-			'Rem
-			If Int(Argument) = 1 Then 
-				ProgramMode = 3
-			EndIf 
-			PastArgument = ""
-			'EndRem
-		Case "-Runner","Runner"
-			If Int(Argument) = 1 Then 
-				ProgramMode = 2
-			EndIf 
-			PastArgument = ""	
-		Case "-GameName","GameName"
+		Case "-GameName", "GameName"
 			RunnerGameName = Argument
 			PastArgument = ""		
-		Case "-EXENum","EXENum"
+		Case "-EXENum", "EXENum"
 			RunnerEXENumber = Int(Argument)
 			PastArgument = ""
-		Case "-Debug","Debug"
-			If Int(Argument) = 1 Then 
+		Case "-Debug", "Debug"
+			If int(Argument) = 1 then
 				DebugLogEnabled = True
 			EndIf 
 			PastArgument = ""
 		Default
 			Select Argument
-				Case "-Tray" , "-Debug" , "-Runner" , "-GameName" , "-EXENum" , "-Game" , "-GameTab", "-Cabinate", "Tray" , "Debug" , "Runner" , "GameName" , "EXENum" , "Game" , "GameTab", "Cabinate"
+				Case "-Debug" , "-GameName" , "-EXENum" , "-Cabinate", "Debug" , "GameName" , "EXENum" , "Cabinate"
 					PastArgument = Argument
 			End Select
 	End Select
 Next
 
-If DebugLogEnabled=False Then 
+If DebugLogEnabled = False then
 	DeleteFile(LOGFOLDER + LogName)
 EndIf
 
@@ -134,12 +114,10 @@ WindowsCheck()
 SetupPlatforms()
 OldPlatformListChecks()
 
-Global PhotonRunnerApp:PhotonRunner
-
 If FileType(GAMEDATAFOLDER + RunnerGameName) <> 2 then
 	Notify "Invalid Game"
 	End
-EndIf 
+EndIf
 PhotonRunnerApp = New PhotonRunner
 PhotonRunnerApp.SetGame(RunnerGameName , RunnerEXENumber)
 PhotonRunnerApp.Run()
@@ -147,6 +125,27 @@ PhotonRunnerApp.Run()
 
 Print "Close"
 End
+
+
+Type PhotonRunner Extends wxApp
+	Field Runner:RunnerWindow
+	Field GameNode:String
+	Field EXENum:int
+	
+	Method OnInit:Int()		
+		wxImage.AddHandler( New wxICOHandler)
+		Runner = RunnerWindow(New RunnerWindow.Create(Null , wxID_ANY , "PhotonRunner" , - 1 , - 1 , 300 , 300) )
+		Runner.SetGame(GameNode, EXENum)
+		
+		Return True
+	End Method
+	
+	Method SetGame(GN:String , EN:Int)
+		PrintF(GN + " " + EN)
+		Self.GameNode = GN
+		Self.EXENum = EN
+	End Method
+End Type
 
 
 Function LoadGlobalSettings()
@@ -163,13 +162,18 @@ Function LoadGlobalSettings()
 	EndIf 
 	If ReadSettings.GetSetting("Cabinate") <> "" Then	
 		CabinateEnable = Int(ReadSettings.GetSetting("Cabinate"))
-	EndIf 
+	EndIf
 	If ReadSettings.GetSetting("RunnerButtonCloseOnly") <> "" Then	
 		RunnerButtonCloseOnly = Int(ReadSettings.GetSetting("RunnerButtonCloseOnly"))
 	EndIf 
 	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" Then	
 		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled"))
 	EndIf 			
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+			DebugLogEnabled = 1
+		EndIf
+	EndIf			
 	ReadSettings.CloseFile()
 End Function
 
@@ -204,7 +208,6 @@ Function WindowsCheck()
 End Function
 
 Include "Includes\Runner\PhotonRunner.bmx"
-Include "Includes\GameExplorerShell\ProcessManager.bmx"
+Include "Includes\Runner\NewProcessManager.bmx"
 Include "Includes\General\ValidationFunctions.bmx"
 Include "Includes\General\General.bmx"
-Include "Includes\GameExplorerShell\LuaFunctions.bmx"

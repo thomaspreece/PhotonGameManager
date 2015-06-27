@@ -327,7 +327,7 @@ End Function
 
 Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 	Local ReturnedValue = 0
-	Local ID = -1
+	Local ID = - 1
 	Local Command1:String
 	Local Command2:String
 	
@@ -340,30 +340,36 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 
 	'BUG: My Programs Crash and others Using CreateProcess on Windows, No Idea Why...
 	?Win32
-	If Detach = 1 Then 
+	If Detach = 1 then
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, FRONTENDPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, MANAGERPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, EXPLORERPROGRAM)
+		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, RUNNERPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, DOWNLOADERPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, UPDATEPROGRAM)
-		If ReturnedValue = 0 Then 
+		If ReturnedValue <> 0 then
 			Local Ex:TExecuter = New TExecuter
 			If Left(Command,1)=Chr(34) Then
-				For a=2 To Len(Command)
+				For a = 2 To Len(Command)
 					If Mid(Command,a,1)=Chr(34) Then 
-						Command1=Mid(Command,2,a-2)
+						Command1 = Mid(Command, 2, a - 2)
 						Command2=Right(Command,Len(Command)-a)
 						Exit
 					EndIf 
 				Next
 			Else
-			
+				For a = 1 To Len(Command)
+					If Mid(Command, a, 1) = " " then
+						Print Mid(Command, 1, a - 1)
+						Print Right(Command, Len(Command) - a)
+						Exit
+					EndIf 
+				Next	
 			EndIf 			
 			If Command2="" Or Command2=" " Then Command2=Null 
 			PrintF("Command1: "+Command1+" Command2: "+Command2)
 			Ex.Execute(Command1, Command2)
 			'ShellExec(Chr(34)+Command1+Chr(34),1)
-			ReturnedValue = 1
 		EndIf
 	EndIf 
 	?
@@ -427,87 +433,6 @@ Function GetEmulator:String(Plat:String)
 		Return ""
 	EndIf
 End Function 
-
-Function SetupPlatforms()
-	GlobalPlatforms = New PlatformReader
-	If FileType(SETTINGSFOLDER + "Platforms.xml") = 1 then
-		GlobalPlatforms.ReadInPlatforms()	
-	Else
-		GlobalPlatforms.PopulateDefaultPlatforms()
-		GlobalPlatforms.ReadInPlatforms()
-	EndIf
-	
-	DefaultPlatforms = New PlatformReader
-	If FileType(TEMPFOLDER + "DefaultPlatforms.xml") = 1 then
-		DefaultPlatforms.ReadInPlatforms(TEMPFOLDER + "DefaultPlatforms.xml")	
-	Else
-		DefaultPlatforms.PopulateDefaultPlatforms(TEMPFOLDER + "DefaultPlatforms.xml")
-		DefaultPlatforms.ReadInPlatforms(TEMPFOLDER + "DefaultPlatforms.xml")	
-	EndIf
-End Function
-
-Function OldPlatformListChecks()
-	If GlobalPlatforms = Null then
-		CustomRuntimeError("OldPlatformListChecks: GlobalPlatforms Null")
-	EndIf
-	PrintF("Checking for Old Platform Lists")
-	Local Line:String, EmuPath:String
-	Local ReadPlatform:TStream
-	Local MovePlat = False
-	Local a:Int, b:Int	
-	Local Platform:PlatformType
-	
-	If FileType("Platforms.txt") = 1 then
-		MovePlat = True
-		PrintF("Upgrading Original Platforms.txt")
-	EndIf
-	If FileType(SETTINGSFOLDER + "Platforms.txt") = 1 And MovePlat = True then
-		MovePlat = False
-		DeleteFile("Platforms.txt")
-		PrintF("New Platforms.txt Found, deleting old Platforms.txt")
-	EndIf
-	If MovePlat = True then
-		CopyFile("Platforms.txt",SETTINGSFOLDER + "Platforms.txt")
-		DeleteFile("Platforms.txt")
-	EndIf
-	
-
-	If FileType(SETTINGSFOLDER + "Platforms.txt") = 1 then
-		ReadPlatform = ReadFile(SETTINGSFOLDER + "Platforms.txt")
-		b = 1
-		Repeat
-			'PC is 24 and not used in Platforms.txt so skip
-			If b = 24 then b = 25
-			Line = ReadLine(ReadPlatform)
-			EmuPath = ""
-			For a = 1 To Len(Line)
-				If Mid(Line, a, 1) = ">" then
-					EmuPath = Right(Line, Len(Line) - a)
-					Exit
-				EndIf
-			Next
-			If EmuPath = "" Or EmuPath = " " then
-				'Do nothing
-			Else
-				Platform = GlobalPlatforms.GetPlatformByID(b)
-				If Platform.Emulator = "" Or Platform.Emulator = Null Or Platform.Emulator = " " then
-					Platform.Emulator = EmuPath
-				EndIf
-			EndIf
-			
-			
-			If Eof(ReadPlatform) then
-				Exit
-			EndIf
-			b = b + 1
-		Forever
-		GlobalPlatforms.SavePlatforms()
-		CloseFile(ReadPlatform)
-		DeleteFile(SETTINGSFOLDER + "Platforms.txt")
-	EndIf
-
-End Function
-
 
 Function DeleteCreateFolder(Folder:String)
 	Folder = StripSlash(Folder)
@@ -819,7 +744,7 @@ Type GameReadType {expose}
 								Case "ExtraCMD"
 									Self.ExtraCMD = node2.getText()
 								Case "EmulatorOverride"
-									Self.EmuOverride = node2.getText()
+									Self.EmuOverride = node2.GetText()
 								Case "ExtraEXE"
 									ListAddLast(Self.OEXEs , node2.getText() )
 									ListAddLast(Self.OEXEsName , node2.getAttribute("name") )
@@ -1086,16 +1011,16 @@ End Function
 ?
 
 Function CustomRuntimeError(ERROR:String)
+?Debug
 	PrintF(ERROR)
 	DebugStop()
-	?Threaded
+?Not Debug
+	Notify(ERROR)
+?Threaded
 		RuntimeError ERROR
-	?Not Threaded
-		'Local dial:wxMessageDialog = New wxMessageDialog.Create(Null, ERROR, "Runtime Error", wxOK | wxICON_ERROR)
-		'dial.ShowModal()
-		'dial.Free()	
+?Not Threaded
 		RuntimeError ERROR
-	?
+?
 	End
 End Function
 
@@ -1114,6 +1039,7 @@ Type MounterReadType
 	Field Drives:TList = CreateList()
 	Field MounterPath:String
 	Field Platform:String
+	Field MounterDelay:int
 	
 	
 	Method Init()
@@ -1153,7 +1079,7 @@ Type MounterReadType
 	End Function	
 	
 	Method SaveMounter:Int()
-		CopyFile(MOUNTERFOLDER + Self.CurrentMounter , TEMPFOLDER + "temp.xml") 
+		CopyFile(MOUNTERFOLDER + Self.CurrentMounter , TEMPFOLDER + "temp.xml")
 		CreateEmptyXMLGame(MOUNTERFOLDER + Self.CurrentMounter)
 		
 		Local Mounterdoc:TxmlDoc
@@ -1182,6 +1108,7 @@ Type MounterReadType
 		RootNode.addTextChild("Mount" , Null , Self.MountString)
 		RootNode.addTextChild("UnMount" , Null , Self.UnMountString)
 		RootNode.addTextChild("Platform" , Null , Self.Platform)	
+		RootNode.addTextChild("Delay" , Null , Self.MounterDelay)
 		
 		DrivesNode = RootNode.addTextChild("Drives" , Null , "")
 		For Drive:String = EachIn Drives
@@ -1211,6 +1138,7 @@ Type MounterReadType
 		MountString = ""
 		UnMountString = ""
 		Platform = ""
+		MounterDelay = 4000
 		
 		
 		If FileType(MOUNTERFOLDER+File) <> 1 Then
@@ -1254,7 +1182,7 @@ Type MounterReadType
 		For node = EachIn ChildrenList
 			Select node.getName()
 				Case "MounterPath"
-					Self.MounterPath = node.getText()
+					Self.MounterPath = node.GetText()
 				Case "Drives"
 					'EXENode = node
 					Local DriveList:TList = node.getChildren()
@@ -1264,7 +1192,7 @@ Type MounterReadType
 						For node2 = EachIn DriveList
 							Select node2.getName()
 								Case "Drive"
-									ListAddLast(Self.Drives , node2.getText())
+									ListAddLast(Self.Drives , node2.GetText() )
 							End Select	 
 						Next
 					EndIf
@@ -1275,7 +1203,9 @@ Type MounterReadType
 				Case "UnMount"
 					Self.UnMountString = node.getText()
 				Case "Platform"
-					Self.Platform = node.getText()
+					Self.Platform = node.GetText()
+				Case "Delay"
+					Self.MounterDelay = Int(node.GetText() )
 			End Select
 		Next	
 					

@@ -18,6 +18,8 @@ Import "Icons\PhotonFrontEnd.o"
 Global FolderSlash:String = "\"
 ?
 
+AppTitle = "PhotonTray"
+
 Include "Includes\General\StartupOverrideCheck.bmx"
 Local TempFolderPath:String = OverrideCheck(FolderSlash)
 

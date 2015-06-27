@@ -666,7 +666,7 @@ Type OnlineAdd Extends wxFrame
 		Local OnlineWin:OnlineAdd = OnlineAdd(event.parent)
 	
 		item = OnlineWin.SourceItemsList.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
-		PrintF("Delete item: "+item)
+		PrintF("Delete item: " + item)
 		OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")
 		OnlineWin.SourceItemsList.SetStringItem(item , 2 , "")
 		If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" then

@@ -42,20 +42,20 @@ Global OnlineAddPlatform:String = ""
 Global EditGameName:String = ""
 
 
-Global PMRed:Int = 185'190
+Global PMRed:int = 185'190
 Global PMGreen:Int = 210'190
 Global PMBlue:Int = 255'255
 
-Global PMRed2:Int = 215
-Global PMGreen2:Int = 230
+Global PMRed2:int = 215
+Global PMGreen2:int = 230
 Global PMBlue2:int = 255
 
 Global PMRedF:int = 0
 Global PMGreenF:int = 0
 Global PMBlueF:int = 0
 
-Global PERed:int = 190'190
-Global PEGreen:int = 190'190
+Global PERed:int = 185'190
+Global PEGreen:int = 210'190
 Global PEBlue:int = 255'255
 
 Global PERed2:int = 215 '215

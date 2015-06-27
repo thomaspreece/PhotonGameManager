@@ -1,5 +1,9 @@
 'TODO: Update Backup and Restore Functions
-
+'NOTE: PhotonUpdater, PhotonTray dont load GeneralSettings and hence don't load DebugLog Setting
+'TODO: Steam Icon extract should try to keep orginal names of icons 
+'TODO: Automatic icon extract not working for adding games on OnlineAdd
+'BUG: Adding EXE to Watch EXE's causes a wxwidgets debug alert
+'TODO: Artwork downloading... when it fails due to connect, retry upto 3 times then quit all downloading
 
 
 'TODO: Update Artwork BrowseOnline Function
@@ -101,6 +105,7 @@ Import sidesign.minib3d
 Import "Icons\PhotonManager.o"
 ?
 
+AppTitle = "PhotonManager"
 
 Import LuGI.Core
 Include "ManagerGlue.bmx"
@@ -2465,7 +2470,7 @@ Function LoadGlobalSettings()
 	EndIf 	
 	If ReadSettings.GetSetting("LowMem") <> "" Then		
 		LowMemory = Int(ReadSettings.GetSetting("LowMem"))
-	EndIf 
+	EndIf
 	If ReadSettings.GetSetting("LowProc") <> "" then		
 		LowProcessor = Int(ReadSettings.GetSetting("LowProc"))
 	EndIf	
@@ -2482,8 +2487,10 @@ Function LoadGlobalSettings()
 		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton") )
 	EndIf			
 	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
-		DebugLogEnabled = Int(ReadSettings.GetSetting("DebugLogEnabled") )
-	EndIf			
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+			DebugLogEnabled = 1
+		EndIf
+	EndIf				
 	If ReadSettings.GetSetting("GEAddAllEXEs") <> "" then		
 		PM_GE_AddAllEXEs = Int(ReadSettings.GetSetting("GEAddAllEXEs") )
 	EndIf 
