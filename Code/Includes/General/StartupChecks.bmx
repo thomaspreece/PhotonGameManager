@@ -38,11 +38,12 @@ Function OldPlatformListChecks()
 		CustomRuntimeError("OldPlatformListChecks: GlobalPlatforms Null")
 	EndIf
 	PrintF("Checking for Old Platform Lists")
-	Local Line:String, EmuPath:String
+	Local Line:String, EmuPath:String, PlatName:String
 	Local ReadPlatform:TStream
 	Local MovePlat = False
-	Local a:Int, b:Int	
+	Local a:Int, b:Int
 	Local Platform:PlatformType
+	Local CustomPlatNumber = DEFAULTPLATFORMNUM + 1
 	
 	If FileType("Platforms.txt") = 1 then
 		MovePlat = True
@@ -60,33 +61,46 @@ Function OldPlatformListChecks()
 	
 
 	If FileType(SETTINGSFOLDER + "Platforms.txt") = 1 then
+		
+		For Platform = EachIn GlobalPlatforms.PlatformList
+			CustomPlatNumber = Max(CustomPlatNumber, Platform.ID)
+		Next
+	
+	
 		ReadPlatform = ReadFile(SETTINGSFOLDER + "Platforms.txt")
-		b = 1
 		Repeat
-			'PC is 24 and not used in Platforms.txt so skip
-			If b = 24 then b = 25
 			Line = ReadLine(ReadPlatform)
 			EmuPath = ""
+			PlatName = ""
 			For a = 1 To Len(Line)
 				If Mid(Line, a, 1) = ">" then
 					EmuPath = Right(Line, Len(Line) - a)
+					PlatName = Left(Line, a - 1)
 					Exit
 				EndIf
 			Next
-			If EmuPath = "" Or EmuPath = " " then
-				'Do nothing
+			
+			Platform = GlobalPlatforms.GetPlatformByName(PlatName)
+			If Platform.ID = 0 then
+				'Platform is custom and not added
+				Platform.ID = CustomPlatNumber
+				CustomPlatNumber = CustomPlatNumber + 1
+				Platform.Name = PlatName
+				Platform.Emulator = EmuPath
+				ListAddLast(GlobalPlatforms.PlatformList, Platform)
 			Else
-				Platform = GlobalPlatforms.GetPlatformByID(b)
-				If Platform.Emulator = "" Or Platform.Emulator = Null Or Platform.Emulator = " " then
-					Platform.Emulator = EmuPath
+				If EmuPath = "" Or EmuPath = " " then
+					'Do nothing
+				Else
+					If Platform.Emulator = "" Or Platform.Emulator = Null Or Platform.Emulator = " " then
+						Platform.Emulator = EmuPath
+					EndIf
 				EndIf
 			EndIf
-			
 			
 			If Eof(ReadPlatform) then
 				Exit
 			EndIf
-			b = b + 1
 		Forever
 		GlobalPlatforms.SavePlatforms()
 		CloseFile(ReadPlatform)
@@ -178,36 +192,4 @@ Function FolderCheck()
 		CloseDir(ReadMounters)
 	EndIf				
 	
-End Function
-
-Function GamesCheck()
-	PrintF("Checking Games")
-	Local DBVersion:Int
-	Local DBVersionFile:TStream
-	Repeat
-	
-		If FileType(GAMEDATAFOLDER + "DBVersion.txt") = 1 then
-			DBVersionFile = ReadFile(GAMEDATAFOLDER + "DBVersion.txt")
-			DBVersion = Int(ReadLine(DBVersionFile) )
-			If DBVersion = 0 then DBVersion = 1
-			CloseFile(DBVersionFile)
-		Else
-			DBVersion = 1
-		EndIf
-		
-		Select DBVersion
-			Case 1
-				'Moving From Patch 4.09+
-				PrintF("Updating DBVersion From 1 to 2")
-				DBUpdate1()
-				DBVersion = 2
-			Default
-				'Latest Version
-				Return
-		End Select
-		
-		DBVersionFile = WriteFile(GAMEDATAFOLDER + "DBVersion.txt")
-		WriteLine(DBVersionFile, String(DBVersion) )
-		CloseFile(DBVersionFile)
-	Forever
 End Function

@@ -4,45 +4,39 @@ Import wx.wxStaticText
 Import wx.wxProgressDialog
 Import wx.wxTimer
 Import wx.wxMessageDialog
+Import wx.wxpanel
 
 Import BRL.StandardIO
 Import BRL.FileSystem
 Import BRL.Stream
 Import BRL.System
 Import BRL.Retro
+Import brl.threads
+Import brl.pixmap
+Import brl.pngloader
 
 Import Pub.FreeProcess
 
+
 Import Bah.Volumes
 Import BaH.libcurlssl
+Import bah.libxml
+Import bah.regex
 
 ?Linux
-Global FolderSlash:String ="/"
+Global FolderSlash:String = "/"
 
 ?Win32
-Import "Icons\PhotonUpdater.o"
+Import "..\Icons\PhotonUpdater.o"
 Global FolderSlash:String ="\"
 
 ?
 
-Local TempFolderPath:String
-If FileType("SaveLocationOverride.txt") = 1 Then 
-	ReadLocationOverride = ReadFile("SaveLocationOverride.txt")
-	TempFolderPath = ReadLine(ReadLocationOverride)
-	CloseFile(ReadLocationOverride)
-	If Right(TempFolderPath,1)=FolderSlash Then 
-	
-	Else
-		TempFolderPath = TempFolderPath + FolderSlash
-	EndIf 
-Else
-	If FileType(GetUserDocumentsDir()+"\GameManagerV4") <> 2 Then 
-		CreateFolder(GetUserDocumentsDir()+"\GameManagerV4")
-	EndIf 
-	TempFolderPath = GetUserDocumentsDir()+"\GameManagerV4\"
-EndIf 
+Include "Includes\General\StartupOverrideCheck.bmx"
+Local TempFolderPath:String = OverrideCheck(FolderSlash)
 
 Include "Includes\General\GlobalConsts.bmx"
+Include "Includes\Update\GlobalConsts.bmx"
 
 ' Revision Version Generation Code
 ' @bmk include Includes/General/Increment.bmk
@@ -57,46 +51,28 @@ Include "Includes\General\GlobalConsts.bmx"
 Incbin "Version/PU-Version.txt"
 Incbin "Version/OverallVersion.txt"
 
-Global SubVersion:String = ExtractSubVersion(LoadText("incbin::Version/PU-Version.txt"), 1)
-Global OSubVersion:String = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
+SubVersion = ExtractSubVersion(LoadText("incbin::Version/PU-Version.txt"), 1)
+OSubVersion = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
 
 Print "Version = " + CurrentVersion
 Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
-If FileType("DebugLog.txt")=1 Then 
-	DebugLogEnabled = True
-EndIf 
+DebugCheck()
 FolderCheck()
-LogName = "Log-Updater"+CurrentDate()+" "+Replace(CurrentTime(),":","-")+".txt"
-CreateFile(LOGFOLDER+LogName)
 
-Global PROGRAMICON:String = RESFOLDER+"Internet.ico"
-Global DownloaderApp:DownloaderShell
-Global Message:String = ""
-Global CurrentSearchLine:String = ""
-Global DownloadSpeedTimer:Int = MilliSecs()
-Global Downloaded:Int = 0
-Global DownloadSpeed:Int = 0
+LogName = "Log-Updater" + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
+CreateFile(LOGFOLDER + LogName)
 
 AppTitle = "PhotonDownloader"
 
-
 If DebugLogEnabled=False Then 
 	DeleteFile(LOGFOLDER+LogName)
-EndIf 
+EndIf
 
 DownloaderApp = New DownloaderShell
 DownloaderApp.Run()
-'Install_UpdatePackage()
 
-
-'Local DownloadUpdatePackage:TProcess = CreateProcess("PhotonDownloader.exe -Mode 2 -DownloadFile http://photongamemanager.com/PackageManager/V401.zip -DownloadPath Temp -DownloadName UpdatePackage.zip" , 1)
-'Repeat
-'	If ProcessStatus(DownloadUpdatePackage) = 0 Then Exit 
-'	Delay 100
-'Forever
-'Print "Done"
 
 Function Install_UpdatePackage:String(Dialog:DownloaderDialog)
 	Message = "Started Installing"
@@ -233,18 +209,39 @@ Function Download_UpdatePackage:String(Package:String)
 	Return "1"
 End Function
 
-Type DownloaderShell Extends wxApp 
+Type DownloaderShell Extends wxApp
 	Field Dialog:DownloaderDialog
 	Field Timer:wxTimer 
+	Field Splash:SplashFrame
 	
 	Method OnInit:Int()
-		Local MessageBox:wxMessageDialog
 		wxImage.AddHandler( New wxICOHandler)	
-			
+		
+		Splash = SplashFrame(New SplashFrame.Create(Null, wxID_ANY, "Photon Loading...", - 1, - 1, 600, 225, 0) )	
+		Local Timer:wxTimer = New wxTimer.Create(Self, wxID_ANY)
+		Timer.Start(3000, 1)
+		ConnectAny(wxEVT_TIMER, StartupFun)	
+	
+		
+		Return True
+
+	End Method
+	
+	Function StartupFun(event:wxEvent)
+		Local Down:DownloaderShell = DownloaderShell(event.parent)
+		
+		Down.Splash.Destroy()
+		Down.Yield()
+		Down.Startup()
+	End Function
+	
+	Method Startup()
+		Local MessageBox:wxMessageDialog	
 		Local a:Int
 		Local Success:String 
-		Dialog = DownloaderDialog(New DownloaderDialog.Create("Updating..." , "", 101, Null, wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_SMOOTH | wxPD_CAN_ABORT))
-		Dialog.SetDimensions(0,0,600,200)
+		Dialog = DownloaderDialog(New DownloaderDialog.Create("Updating..." , "", 101, Null, wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_SMOOTH | wxPD_CAN_ABORT) )
+		Dialog.SetDimensions(0, 0, 600, 200)
+		Dialog.Center()
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON,wxBITMAP_TYPE_ICO)
 		Dialog.SetIcon( Icon )	
 		Dialog.Update()
@@ -388,13 +385,11 @@ Type DownloaderShell Extends wxApp
 			Message = "Update Completed Successfully"
 			Dialog.UpdateProgress(101 , Message , a)			
 		EndIf
-		Return True
-
 	End Method
 	
 	Function OnTick(event:wxEvent)
 		Local Main:DownloaderShell = DownloaderShell(event.Parent)
-		If Main.Dialog.IsShown() = 0 Then
+		If Main.Dialog.IsShown() = 0 then
 			End
 		EndIf 
 	End Function
@@ -403,7 +398,7 @@ End Type
 
 Type DownloaderDialog Extends wxProgressDialog
 	Method OnInit()
-	
+
 	End Method
 End Type
 
@@ -442,139 +437,22 @@ Function progressCallback:Int(data:Object , dltotal:Double , dlnow:Double , ulto
 	Return 0
 End Function
 
-Type SettingsType
-	'Dummy Type
-	
-End Type
-
-Function PrintF(Tex:String)
-	If Debug = True Then
-		Print Tex
-	Else
-		If DebugLogEnabled = True Then 
-			WriteLog = OpenFile(LOGFOLDER + LogName)
-			SeekStream(WriteLog,StreamSize(WriteLog))
-			WriteLog.WriteLine(Tex)
-			CloseFile(WriteLog)
-		EndIf 
-	EndIf
-End Function
-
-Function CustomRuntimeError(ERROR:String)
-	PrintF(ERROR)
-	'DebugStop()
-	If Debug = True Then
-		RuntimeError ERROR
-	Else
-		Notify Error
-	EndIf 
-	End
-End Function
-
-Function DeleteCreateFolder(Folder:String)
-	Folder = StripSlash(Folder)
-	PrintF("DeleteCreateFolder: "+Folder)
-	For a=1 To 20
-		If FileType(Folder)=2 Then
-			DeleteDir(Folder , 1)
-			Delay 100
-		Else
-			Exit
+Function LoadGlobalSettings()	
+	ReadSettings:SettingsType = New SettingsType
+	ReadSettings.ParseFile(SETTINGSFOLDER + "GeneralSettings.xml" , "GeneralSettings")		
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+			DebugLogEnabled = 1
 		EndIf
-	Next
-	PrintF("DeleteDir Loop "+a)
-	If FileType(Folder) = 2 Then
-		CustomRuntimeError("Error 207: Cannot Delete Folder "+Folder) 'MARK: Error 207
-	EndIf
-	For a = 1 To 20
-		If FileType(Folder)=0 Then
-			CreateDir(Folder,1)
-			Delay 100
-		Else
-			Exit
-		EndIf
-	Next	
-	PrintF("CreateDir Loop "+a)
-	If FileType(Folder) = 0 Then
-		CustomRuntimeError("Error 208: Cannot Create Folder "+Folder) 'MARK: Error 208
-	EndIf
+	EndIf					
+	ReadSettings.CloseFile()
 End Function
 
 Extern "win32"
 	Function WinExec(lpCmdLine$z , nCmdShow)
-	Function GetEnvironmentVariable(lpName$z, lpBuffer:Byte Ptr, nSize) = "GetEnvironmentVariableA@12"
 End Extern
 
-Function CheckInternet:Int()
-	'Connected Needs to be Global
 
-	Local ReturnValue:String 
-	Local temp_proc:TProcess
-	Const PingError1:String = "Ping request could not find host www.photongamemanager.com. Please check the name and try again."
+Include "Includes\General\General.bmx"
+Include "Includes\General\SplashApp.bmx"
 
-	ReturnValue = "" 
-	temp_proc = CreateProcess("ping www.photongamemanager.com -n 1",1)
-	While temp_proc.status()
-		If temp_proc.pipe.ReadAvail() Then
-			ReturnValue = ReturnValue + temp_proc.pipe.ReadLine()
-		EndIf
-	Wend
-	PrintF(ReturnValue)
-	If Left(ReturnValue , Len(PingError1) ) = PingError1 Then
-		PrintF("Failed To Connect to Internet")
-		Connected = 0
-		Return 0
-	EndIf
-		
-	PrintF("Connected to Internet")
-	Connected = 1
-	Return 1
-
-End Function
-
-Function CreateFolder(Folder:String)
-	For a = 1 To 20
-		If FileType(Folder)=0 Then
-			CreateDir(Folder)
-			Delay 100
-		Else
-			Exit
-		EndIf
-	Next	
-	PrintF("CreateDir Loop "+a)
-	If FileType(Folder) = 0 Then
-		CustomRuntimeError("Error 11: Cannot Create Folder "+Folder) 'MARK: Error 11
-	EndIf
-End Function
-
-Function FolderCheck()
-	If FileType(StripSlash(LOGFOLDER) ) = 0 Then
-		CreateDir(StripSlash(LOGFOLDER),1 )
-		PrintF("Creating Log Folder: "+LOGFOLDER)
-	EndIf		
-	If FileType(StripSlash(SETTINGSFOLDER) ) = 0 Then
-		CreateDir(StripSlash(SETTINGSFOLDER),1 )
-		PrintF("Creating Settings Folder: "+SETTINGSFOLDER)
-	EndIf
-	If FileType(StripSlash(GAMEDATAFOLDER) ) = 0 Then
-		CreateDir(StripSlash(GAMEDATAFOLDER),1 )
-		PrintF("Creating Games Folder: "+GAMEDATAFOLDER)
-	EndIf
-	If FileType(StripSlash(TEMPFOLDER) ) = 0 Then
-		CreateDir(StripSlash(TEMPFOLDER),1 )
-		PrintF("Creating Temp Folder: "+TEMPFOLDER)
-	EndIf
-	If FileType(StripSlash(RESFOLDER) ) = 0 Then
-		CreateDir(StripSlash(RESFOLDER),1 )
-		PrintF("Creating Res Folder: "+RESFOLDER)
-	EndIf	
-	If FileType(StripSlash(APPFOLDER) ) = 0 Then
-		CreateDir(StripSlash(APPFOLDER),1 )
-		PrintF("Creating App Folder: "+APPFOLDER)
-	EndIf	
-	If FileType(StripSlash(MOUNTERFOLDER) ) = 0 Then
-		CreateDir(StripSlash(MOUNTERFOLDER),1 )
-		PrintF("Creating Mounter Folder: "+MOUNTERFOLDER)
-	EndIf			
-
-End Function

@@ -1,8 +1,8 @@
 
 Function OverrideCheck:String(FolderSlash:String)
-	Local ReadLocationOverride:TStream
+	Local ReadLocationOverride:TStream, WriteLocationOverride:TStream
 	Local TempFolderPath:String
-	
+	Local UserDocsDir:String = GetUserDocumentsDir()
 	If FileType("SaveLocationOverride.txt") = 1 then
 		ReadLocationOverride = ReadFile("SaveLocationOverride.txt")
 		TempFolderPath = ReadLine(ReadLocationOverride)
@@ -13,10 +13,17 @@ Function OverrideCheck:String(FolderSlash:String)
 			TempFolderPath = TempFolderPath + FolderSlash
 		EndIf
 	Else
-		If FileType(GetUserDocumentsDir() + FolderSlash + "GameManagerV4") <> 2 then
-			CreateFolder(GetUserDocumentsDir() + FolderSlash + "GameManagerV4")
-		EndIf 
-		TempFolderPath = GetUserDocumentsDir() + FolderSlash + "GameManagerV4" + FolderSlash
+		'Backwards Compatability: Check for GameManagerV4 Folder and rename to PhotonV4
+		If FileType(UserDocsDir + FolderSlash + "GameManagerV4") = 2 then
+			RenameFile(UserDocsDir + FolderSlash + "GameManagerV4", UserDocsDir + FolderSlash + "PhotonV4")
+		EndIf
+				 	
+		If FileType(UserDocsDir + FolderSlash + "PhotonV4") <> 2 then	
+			CreateFolder(UserDocsDir + FolderSlash + "PhotonV4")
+		EndIf
+		TempFolderPath = UserDocsDir + FolderSlash + "PhotonV4" + FolderSlash		
+
+
 	EndIf
 	Return TempFolderPath
 End Function

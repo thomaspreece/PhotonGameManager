@@ -19,7 +19,7 @@ Type PlatformReader
 				Return Platform
 			EndIf 
 		Next
-		Local NullPlatform:PlatformType = PlatformType.Init(0,"","","")
+		Local NullPlatform:PlatformType = PlatformType.Init(0, "", "", "")
 		Return NullPlatform
 	End Method
 	
@@ -515,7 +515,7 @@ Type PlatformReader
 		
 		For b = 1 To 10
 			SaveStatus = Platdoc.saveFormatFile(PlatformFile , False)
-			PrintF("SaveXML Try: "+b+" Status: "+SaveStatus)
+			PrintF("SaveXML Try: " + b + " Status: " + SaveStatus)
 			If SaveStatus <> - 1 then Exit
 			Delay 100
 		Next
