@@ -1,4 +1,4 @@
-'Disabled Timer1
+
 
 Function Thread_StartGame:Object(obj:Object)
 	Local Runner:RunnerWindow = RunnerWindow(obj)
@@ -157,8 +157,8 @@ Function Thread_StartGame:Object(obj:Object)
 	EndRem
 	
 	Runner.TextCtrl.AppendText("~n~n~n~n~n")	
-	Runner.TextCtrl.AppendText("If you are seeing this window after your game has ended Then Photon has failed To detect the game finishing properly. ~n" + ..
-	"Click 'Close PhotonRunner' to close Photon, run any post-batch scripts set and unmount any game images if required.")
+	Runner.TextCtrl.AppendText("If you are seeing this window after your game has ended then Photon has failed to detect the game finishing properly. ~n" + ..
+	"Click 'Close PhotonRunner' to close Photon, run any post-batch scripts set and unmount any game images.")
 	Runner.TextCtrl.AppendText("~n~n~n")
 	
 	PrintF("StartGame Thread End")	
@@ -418,12 +418,20 @@ Type RunnerWindow Extends wxFrame
 	Field ExtraWatchEXEs:TList
 	
 	Field TextCtrl:wxTextCtrl
+	Field StatusBox:wxTextCtrl
 	Field EndButton:wxButton
 	
 	Field RunnerDebug:RunnerDebugWindow
 	Field RunnerDebugEnabled:int = False
 	
+	Field GreenColour:wxColour
+	Field RedColour:wxColour
+	
 	Method OnInit()
+	
+		Self.GreenColour = New wxColour.Create(190, 255, 190)
+		Self.RedColour = New wxColour.Create(255, 190, 190)
+	
 		If DebugLogEnabled = True then
 			RunnerDebugEnabled = True
 		EndIf
@@ -438,6 +446,7 @@ Type RunnerWindow Extends wxFrame
 		Self.SetBackgroundColour(New wxColour.Create(PRRed, PRGreen, PRBlue) )	
 		FinishProgramRunning = 0
 		Local Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		Local subhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local Icon:wxIcon = New wxIcon.CreateFromFile(PROGRAMICON2,wxBITMAP_TYPE_ICO)
 		Self.SetIcon(Icon)
 		Timer = New wxTimer.Create(Self, PR_T)
@@ -448,11 +457,18 @@ Type RunnerWindow Extends wxFrame
 		'Timer.Start(100)
 
 		'KeyTimer.Start(10)
-		TextCtrl = New wxTextCtrl.Create(Self,wxID_ANY,"(Initialising)" , -1, -1 ,-1 , -1 , wxTE_WORDWRAP | wxTE_MULTILINE | wxTE_READONLY)
+		TextCtrl = New wxTextCtrl.Create(Self, wxID_ANY, "(Initialising)" , - 1, - 1 , - 1 , - 1 , wxTE_WORDWRAP | wxTE_MULTILINE | wxTE_READONLY)
 		EndButton = New wxButton.Create(Self , PR_EB , "Close PhotonRunner")
+		
+		Local StatusText:wxStaticText = New wxStaticText.Create(Self, wxID_ANY, "Game Status: ")
+		StatusBox = New wxTextCtrl.Create(Self, wxID_ANY, "Not Started Yet", - 1, - 1, - 1, - 1, wxTE_READONLY)
+		subhbox.Add(StatusText, 0, wxEXPAND | wxTOP, 3 )
+		subhbox.Add(StatusBox, 1, wxEXPAND, 0)
+		
 		
 		Vbox.Add(TextCtrl , 3 , wxEXPAND | wxALL , 4)
 		Vbox.Add(EndButton , 3 , wxEXPAND | wxALL , 4)
+		Vbox.AddSizer(subhbox, 0, wxEXPAND | wxALL, 4)
 
 		Self.SetSizer(Vbox)	
 		
@@ -482,20 +498,18 @@ Type RunnerWindow Extends wxFrame
 	End Function
 	
 	Function PluginUpdateFun(event:wxEvent)	
-		PhotonRunnerApp.Yield()
 		If ScreenShotPlugin.Enabled = True then
 			HotKey.SetKeyNumber(ScreenShotPlugin.Key)
 			If HotKey.KeyHit() then
 				ScreenShotPlugin.TakeScreenShot()
 			EndIf 		
-		EndIf 
+		EndIf
 		If VideoPlugin.Enabled = True then
 			HotKey.SetKeyNumber(VideoPlugin.Key)
 			If HotKey.KeyHit() Then 
 				VideoPlugin.TakeScreenShot()
 			EndIf 		
 		EndIf 		
-
 
 	End Function
 	
@@ -529,6 +543,8 @@ Type RunnerWindow Extends wxFrame
 								
 								Else
 									Self.ProgramStarted = 1
+									StatusBox.SetValue("Started")
+									StatusBox.SetBackgroundColour(GreenColour)
 									If RunnerDebugEnabled = True then
 										RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as RUNNING (" + Process.Name + ")~n")	
 									EndIf
@@ -585,6 +601,8 @@ Type RunnerWindow Extends wxFrame
 							If RunnerDebugEnabled = True then
 								RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as FINISHED ~n")	
 							EndIf
+							StatusBox.SetValue("Finished")
+							StatusBox.SetBackgroundColour(RedColour)							
 							Self.ProgramStarted = 0
 							Self.FinishProgram()
 						EndIf
@@ -600,6 +618,8 @@ Type RunnerWindow Extends wxFrame
 						For Process = EachIn MainProcessList.ProcessListAll
 							If ListContains(Self.ExtraWatchEXEs, Low(Process.Name) ) Or Low(Process.Name) = Self.EXEOnly then
 								Self.ProgramStarted = 1
+								StatusBox.SetValue("Started")
+								StatusBox.SetBackgroundColour(GreenColour)								
 								If RunnerDebugEnabled = True then
 									RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as RUNNING (" + Process.Name + ")~n")	
 								EndIf
@@ -628,6 +648,8 @@ Type RunnerWindow Extends wxFrame
 								RunnerDebug.LogList.AppendText(CurrentTime() + ": Program Detected as FINISHED ~n")	
 							EndIf
 							Self.ProgramStarted = 0
+							StatusBox.SetValue("Finished")
+							StatusBox.SetBackgroundColour(RedColour)							
 							Self.FinishProgram()
 						EndIf
 					Case 0
@@ -643,100 +665,12 @@ Type RunnerWindow Extends wxFrame
 		PrintF("Running Status Update")
 		MainWin.Timer2.Stop()
 		MainWin.StatusUpdate()
-		MainWin.Timer2.Start(2000)
-		
-		
-		
-		
-		Rem - Rem'ed while testing debug window
-		Local ProcessList:TList = Null
-		Local SteamProcessList:TList = Null  
-		Local Running = True 
-		?Win32
-		Local p:TWinProc
-		?
-		MainWin:RunnerWindow = RunnerWindow(event.parent)
-		MainWin.Timer2.Stop()
-				
-		?Linux
-		'Hack to bypass executable search code
-		'Do Nothing
-		
-		?Win32	
-		
-		If MainWin.ProgramStarted = True then
-			
-			If Lower(MainWin.EXEOnly) = "steam.exe" Then
-				TWinProc.GetProcesses()
-				p = TWinProc.Find("Steam.exe", TWinProc._list)
-				
-				SteamProcessList = CreateList()
-				GetSteamProcesses(p, SteamProcessList)
-				'SteamProcessList = p.kidsNames	
-					
-				SteamProcessList = StripSteamProcesses(SteamProcessList)		
-				If SteamProcessList = Null Or SteamProcessList.Count() < 1 Then
-					Running = False
-				Else
-					Running = True 
-				EndIf 	
-				
-				If Running = False Then 
-					ProcessList = ListProcesses()
-					For Process:String = EachIn ProcessList
-						If ListContains(MainWin.ExtraWatchEXEs, Low(Process) ) then
-							Running = True 
-							Exit
-						EndIf
-					Next
-				EndIf
-
-				ClearList(SteamProcessList)					
-				
-			Else
-				ProcessList = ListProcesses()
-				For Process:String = EachIn ProcessList
-					If Lower(Process) = Lower(MainWin.EXEOnly) Or ListContains(MainWin.ExtraWatchEXEs, Low(Process) ) then
-						Running = True
-						Exit 
-					Else
-						Running = False 
-					EndIf 
-				Next
-				ClearList(ProcessList)
-			EndIf 
-			If Running = False Then 
-				MainWin.FinishProgram()
-			EndIf 
-		Else
-			If Lower(MainWin.EXEOnly) = "steam.exe" Then
-				TWinProc.GetProcesses()
-				p = TWinProc.Find("Steam.exe",TWinProc._list)
-				SteamProcessList = CreateList()
-				GetSteamProcesses(p,SteamProcessList)				
-				'SteamProcessList:TList = p.kidsNames
-				SteamProcessList = StripSteamProcesses(SteamProcessList)		
-				If SteamProcessList <> Null And SteamProcessList.Count() > 0 Then
-					Delay 1000
-					MainWin.ProgramStarted = True
-					PrintF("Steam - ProgramStarted")
-					PrintF("Printing SubProcesses")
-					For a:String = EachIn SteamProcessList
-						PrintF(a)
-					Next
-					PrintF("Finished Printing Subprocesses")
-				EndIf 						
-					
-			EndIf 
-		EndIf
-
-		?	
-		MainWin.Timer2.Start(3000)
-		EndRem
-	End Function 
+		MainWin.Timer2.Start(ProcessQueryDelay)
+	End Function
 
 	Method FinishProgram()
 		Local GameFinishThread:TThread
+		Timer2.Stop()
 		Timer.Stop()
 		
 		'Connect Timer2 to Null Function that should stop timer
@@ -788,9 +722,10 @@ Type RunnerWindow Extends wxFrame
 		?	
 		If RunnerButtonCloseOnly = False then
 			If Runner.GameNode.GameRunnerAlwaysOn = False then
-				Runner.Timer2.Start(2000)		
+				Runner.Timer2.Start(ProcessQueryDelay)		
 			EndIf
 		EndIf	
+		Runner.Timer.Start(PluginQueryDelay)
 		If Runner.RunnerDebugEnabled = True then
 			Runner.RunnerDebug.LogList.AppendText(CurrentTime() + ": Start Program Finished~n")
 		EndIf		
