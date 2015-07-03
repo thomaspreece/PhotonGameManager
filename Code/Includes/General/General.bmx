@@ -1,7 +1,6 @@
 Include "PlatformReader.bmx"
 Include "SanitiseFunctions.bmx"
 Include "StartupChecks.bmx"
-Include "DBUpdates.bmx"
 
 
 Function ReadLine:String(stream:TStream)
@@ -718,9 +717,9 @@ Type GameReadType {expose}
 				Case "Description"
 					Self.Desc = node.getText()
 				Case "Platform"
-					Self.Plat = node.getText()
+					Self.Plat = node.GetText()
 				Case "PlatformNumber"
-					Self.PlatformNum = Int(node.getText())
+					Self.PlatformNum = Int(node.GetText() )
 				Case "Co-op"
 					Self.Coop = node.getText()
 				Case "Players"
@@ -854,6 +853,16 @@ Type GameReadType {expose}
 			EndIf
 			
 		Next	
+		
+		If Self.PlatformNum = 0 Or Self.PlatformNum = Null then
+			If Self.Plat = "" then
+			
+			Else
+				Self.PlatformNum = GlobalPlatforms.GetPlatformByName(Self.Plat).ID
+			EndIf
+		EndIf
+		
+		
 		
 		PrintF("Getting userdata")
 		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "userdata.txt") = 1 then
