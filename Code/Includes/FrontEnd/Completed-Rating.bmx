@@ -10,7 +10,7 @@ Type ScreenShotButtonType Extends GeneralType
 	Field DrawX:Int
 	Field DrawY:Int
 	
-	Field Selected:Int = 0
+	Field Selected:int = 0
 	
 	Field Mode:Int = 0
 	Field Show:Int = 1
@@ -49,7 +49,7 @@ Type ScreenShotButtonType Extends GeneralType
 	End Method
 	
 	Method Max2D()
-		If ShowScreenButton = True Then 
+		If ShowScreenButton = True then
 			If Self.Show = True Then
 				If Self.Selected = True Then
 					If Mode = 0 Then 
@@ -122,7 +122,7 @@ Type ScreenShotButtonType Extends GeneralType
 	
 		
 	Method Update()
-		If GameNode.ScreenShotsAvailable = 0 Then 
+		If GameNode.ScreenShotsAvailable = 0 then
 			Self.Show = False 
 		Else
 			Self.Show = True

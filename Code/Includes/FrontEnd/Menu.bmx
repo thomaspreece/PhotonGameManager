@@ -426,7 +426,7 @@ Type MenuWrapperType Extends GeneralType
 						Case 1 '..
 							Menu2.ActiveMenu = "Main"
 						Default
-							RunProcess(EXPLORERPROGRAM+" -Runner 1 -GameName " + Chr(34) + GameNode.OrginalName + Chr(34) + " -EXENum " + String(Menu2.SelectedItem - 1)+" -Cabinate 1" , 1)
+							RunProcess(RUNNERPROGRAM + " -GameName " + Chr(34) + GameNode.OrginalName + Chr(34) + " -EXENum " + String(Menu2.SelectedItem - 1) + " -Cabinate 1" , 1)
 							ExitProgramCall = True
 					End Select
 				Case "Extras"
@@ -435,14 +435,16 @@ Type MenuWrapperType Extends GeneralType
 						Case 1 '..
 							Menu2.ActiveMenu = "Main"
 						Case 2 'Patches
-							RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Patches",1)		
+							RunProcess(EXPLORERPROGRAM + " -Game " + Chr(34) + GameNode.OrginalName + Chr(34) + " -GameTab Patches", 1)		
 							ExitProgramCall = True
 						Case 3 'Walkthroughs
-							RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Walkthroughs",1)		
+							RunProcess(EXPLORERPROGRAM + " -Game " + Chr(34) + GameNode.OrginalName + Chr(34) + " -GameTab Walkthroughs", 1)		
 							ExitProgramCall = True						
 						Case 4 'ScreenShots
-							ChangeInterface(7, True, 0 )
-							MenuActive = False	
+							If GameNode.ScreenShotsAvailable = 1 then
+								ChangeInterface(7, True, 0 )
+								MenuActive = False
+							EndIf
 							'RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
 							'ExitProgramCall = True						
 						Case 5 'Cheats
@@ -541,7 +543,7 @@ Type MenuWrapperType Extends GeneralType
 							Case 0 'Install Menu		
 								InstallGame()	
 							Case 4 'Play menu
-								RunProcess(EXPLORERPROGRAM+" -Runner 1 -GameName " + Chr(34) + GameNode.OrginalName + Chr(34) + " -EXENum " + String(Menu1.Columns[Menu1.SelectedMenu].SelectedItem + 1)+" -Cabinate 1" , 1)
+								RunProcess(RUNNERPROGRAM+" -GameName " + Chr(34) + GameNode.OrginalName + Chr(34) + " -EXENum " + String(Menu1.Columns[Menu1.SelectedMenu].SelectedItem + 1)+" -Cabinate 1" , 1)
 								ExitProgramCall = True
 							
 							Case 5 'Filters
@@ -552,18 +554,20 @@ Type MenuWrapperType Extends GeneralType
 									Case 1 'Search Term
 										MenuActive = False								
 										FilterActive = True
-								End Select 
+								End Select
 							Case 3 'Extras Menu
 								Select Menu1.Columns[Menu1.SelectedMenu].SelectedItem
 									Case 0 'Patches
-										RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Patches",1)		
+										RunProcess(EXPLORERPROGRAM + " -Game " + Chr(34) + GameNode.OrginalName + Chr(34) + " -GameTab Patches", 1)		
 										ExitProgramCall = True
 									Case 1 'Walkthroughs
 										RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Walkthroughs",1)		
 										ExitProgramCall = True						
 									Case 2 'ScreenShots
-										ChangeInterface(7, True, 0 )
-										MenuActive = False	
+										If GameNode.ScreenShotsAvailable = 1 then
+											ChangeInterface(7, True, 0 )
+											MenuActive = False	
+										EndIf 
 										'RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
 										'ExitProgramCall = True						
 									Case 3 'Cheats
@@ -808,7 +812,7 @@ Type MenuWrapperType Extends GeneralType
 						Case 0 'Install Menu		
 							InstallGame()	
 						Case 4 'Play menu
-							RunProcess(EXPLORERPROGRAM+" -Runner 1 -GameName " + Chr(34) + GameNode.OrginalName + Chr(34) + " -EXENum " + String(Menu1.Columns[Menu1.SelectedMenu].SelectedItem + 1)+" -Cabinate 1" , 1)
+							RunProcess(RUNNERPROGRAM+" -GameName " + Chr(34) + GameNode.OrginalName + Chr(34) + " -EXENum " + String(Menu1.Columns[Menu1.SelectedMenu].SelectedItem + 1)+" -Cabinate 1" , 1)
 							ExitProgramCall = True
 						
 						Case 5 'Filters
@@ -823,14 +827,16 @@ Type MenuWrapperType Extends GeneralType
 						Case 3 'Extras Menu
 							Select Menu1.Columns[Menu1.SelectedMenu].SelectedItem
 								Case 0 'Patches
-									RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Patches",1)		
+									RunProcess(EXPLORERPROGRAM + " -Game " + Chr(34) + GameNode.OrginalName + Chr(34) + " -GameTab Patches", 1)		
 									ExitProgramCall = True
 								Case 1 'Walkthroughs
-									RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab Walkthroughs",1)		
+									RunProcess(EXPLORERPROGRAM + " -Game " + Chr(34) + GameNode.OrginalName + Chr(34) + " -GameTab Walkthroughs", 1)		
 									ExitProgramCall = True						
-								Case 2 'ScreenShots
-									ChangeInterface(7, True, 0 )
-									MenuActive = False	
+								Case 2 'ScreenShots								
+									If GameNode.ScreenShotsAvailable = 1 then
+										ChangeInterface(7, True, 0 )
+										MenuActive = False	
+									EndIf
 									'RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
 									'ExitProgramCall = True						
 								Case 3 'Cheats
@@ -1259,7 +1265,11 @@ Type Menu2Type
 		ListAddLast(ExtrasList , "..")
 		ListAddLast(ExtrasList , "Patches")
 		ListAddLast(ExtrasList , "Walkthroughs")
-		ListAddLast(ExtrasList , "ScreenShots")
+		If GameNode.ScreenShotsAvailable = 1 then
+			ListAddLast(ExtrasList , "ScreenShots")
+		Else
+			ListAddLast(ExtrasList , "No ScreenShots")
+		EndIf
 		ListAddLast(ExtrasList , "Cheats")	
 		ListAddLast(ExtrasList , "Manuals")
 		
@@ -1271,7 +1281,7 @@ Type Menu2Type
 				If TouchPix = Null Then RuntimeError item+".png Missing!"			
 				TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )
 				TouchButtonsE[a] = LoadImage(TouchPix)				
-				If TouchButtonsE[a] = Null Then RuntimeError item+".png Missing!"							
+				If TouchButtonsE[a] = Null then RuntimeError item + ".png Missing!"							
 			Else
 				TouchButtonsE[a] = TouchButton
 			EndIf
@@ -1365,7 +1375,11 @@ Type Menu1Type
 		Column3:Menu1ColumnType = New Menu1ColumnType
 		ListAddLast(Column3.ItemList , "Patches")
 		ListAddLast(Column3.ItemList , "Walkthroughs")
-		ListAddLast(Column3.ItemList , "ScreenShots")
+		If GameNode.ScreenShotsAvailable = 1 then
+			ListAddLast(Column3.ItemList , "ScreenShots")
+		Else
+			ListAddLast(Column3.ItemList , "No ScreenShots")
+		EndIf
 		ListAddLast(Column3.ItemList , "Cheats")
 		ListAddLast(Column3.ItemList , "Manuals")
 		ListAddLast(ColumnList , Column3)
