@@ -1,5 +1,4 @@
 'TODO: Fix LuaInternet to check for meta refreshes
-'TODO: Fix Adobe Flash bug error with trailer window
 'TODO: Fix Explorer/Frontends ability to handle files, webpages etc as Other Executables
 
 'FIX: Steam ScreenShots!
@@ -65,7 +64,7 @@ Import BRL.System
 Import brl.threads
 
 ?Win32
-Import "Icons\PhotonExplorer.o"
+Import "..\Icons\PhotonExplorer.o"
 ?
 
 Import LuGI.Core
@@ -112,14 +111,6 @@ Print "Version = " + CurrentVersion
 Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
-
-DebugCheck()
-FolderCheck()
-TempFolderCleanup()
-
-LogName = "Log-Explorer" + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
-CreateFile(LOGFOLDER + LogName)
-
 Local ArguemntNo:int = 0
 Local RunnerEXENumber:int
 Local RunnerGameName:String
@@ -129,17 +120,6 @@ Local ProgramMode:Int = 1
 'Mode = 2 RUNNER MODE ONLY
 'Mode = 3 TRAY APP
 
-
-
-CheckKey()
-If EvaluationMode = True then
-	Notify "You are running in evaluation mode, this limits you to 5 games."
-EndIf
-
-SettingFile.ParseFile(SETTINGSFOLDER + "PhotonExplorer.xml")
-LoadGlobalSettings()
-LoadSettings()
-StartupLuaVM()
 
 Local PastArgument:String
 For Argument$ = EachIn AppArgs$
@@ -172,25 +152,124 @@ For Argument$ = EachIn AppArgs$
 	End Select
 Next
 
-If DebugLogEnabled = False then
-	DeleteFile(LOGFOLDER + LogName)
-EndIf
 
-
-WindowsCheck()
-SetupPlatforms()
-OldPlatformListChecks()
 
 Global GameExplorerApp:GameExplorerShell
 
-CheckInternet()
-CheckVersion()
 GameExplorerApp = New GameExplorerShell
 GameExplorerApp.Run()
 
 
 Print "Close"
 End
+
+Type GameExplorerShell Extends wxApp
+	Field Menu:GameExplorerFrame
+	Field Splash:SplashFrame
+	
+	Method OnInit:Int()
+		wxImage.AddHandler( New wxICOHandler)		
+		'wxImage.AddHandler( New wxPNGHandler)		
+		'wxImage.AddHandler( New wxJPEGHandler)
+		'wxImage.AddHandler( New wxJPEGHandler)
+
+		Splash = SplashFrame(New SplashFrame.Create(Null, wxID_ANY, "Photon Loading...", - 1, - 1, 600, 225, 0) )	
+		Local Timer:wxTimer = New wxTimer.Create(Self, wxID_ANY)
+		Timer.Start(100, 1)
+		ConnectAny(wxEVT_TIMER, Startup)
+		
+
+		Return True
+
+	End Method
+	
+	Function Startup(event:wxEvent)
+		Local GES:GameExplorerShell = GameExplorerShell(event.parent)
+		
+		?Threaded
+		Local StartupThread:TThread = CreateThread(Thread_Startup, GES.Splash)
+		While ThreadRunning(StartupThread)
+			GES.Yield()
+			Delay 100
+		Wend
+		?Not Threaded
+		Thread_Download(GES.Splash)
+		?
+
+		If DebugLogEnabled = False then
+			DeleteFile(LOGFOLDER + LogName)
+		EndIf	
+															
+		
+		GES.StartupMain()
+	End Function
+	
+	
+	Method StartupMain()
+	
+		Local w:Int = Int(SettingFile.GetSetting("WindowWidth") )
+		Local h:Int = Int(SettingFile.GetSetting("WindowHeight") )
+		Local Winx:Int
+		Local Winy:Int
+		If SettingFile.GetSetting("WindowX") = "" Or SettingFile.GetSetting("WindowY") = "" then
+			Winx = - 1
+			Winy = - 1
+		Else
+			Winx = Int(SettingFile.GetSetting("WindowX") )
+			Winy = Int(SettingFile.GetSetting("WindowY") )
+		EndIf
+		If w = 0 Or h = 0 then
+			Menu = GameExplorerFrame(New GameExplorerFrame.Create(Null , GES, "PhotonExplorer", Winx, Winy, 800, 600) )
+		Else
+			Menu = GameExplorerFrame(New GameExplorerFrame.Create(Null , GES, "PhotonExplorer", Winx, Winy, w, h) )
+		EndIf	
+		Splash.Destroy()
+	End Method
+End Type
+
+Function Thread_Startup:Object(obj:Object)
+	Local Splash:SplashFrame = SplashFrame(obj)
+	
+	Splash.SetStatusText("Checking for debug")	
+	DebugCheck()
+	
+	Splash.SetStatusText("Checking folder integrity")	
+	FolderCheck()
+	
+	Splash.SetStatusText("Cleaning up temporary folder")	
+	TempFolderCleanup()
+
+	LogName = "Log-Explorer" + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
+	CreateFile(LOGFOLDER + LogName)
+
+
+
+	Splash.SetStatusText("Loading settings")
+	SettingFile.ParseFile(SETTINGSFOLDER + "PhotonExplorer.xml")
+	LoadGlobalSettings()
+	LoadSettings()
+	
+	CheckKey()
+	
+		
+	
+	WindowsCheck()
+	
+	Splash.SetStatusText("Loading platforms")
+	SetupPlatforms()
+	OldPlatformListChecks()
+
+	Splash.SetStatusText("Checking internet connection")
+	CheckInternet()
+	CheckVersion()
+
+	Splash.SetStatusText("Setting up LuaMachine")
+	StartupLuaVM()
+	
+	Splash.SetStatusText("Loading main window...")
+
+	
+End Function
 
 
 Function LoadSettings()
@@ -277,37 +356,6 @@ Function LoadSettings()
 			GenericArt = 0						
 	End Select
 End Function
-
-
-Type GameExplorerShell Extends wxApp
-	Field Menu:GameExplorerFrame
-	Method OnInit:Int()
-		wxImage.AddHandler( New wxICOHandler)		
-		'wxImage.AddHandler( New wxPNGHandler)		
-		'wxImage.AddHandler( New wxJPEGHandler)
-		'wxImage.AddHandler( New wxJPEGHandler)		
-		Local w:Int = Int(SettingFile.GetSetting("WindowWidth") )
-		Local h:Int = Int(SettingFile.GetSetting("WindowHeight") )
-		Local Winx:Int
-		Local Winy:Int
-		If SettingFile.GetSetting("WindowX") = "" Or SettingFile.GetSetting("WindowY") = "" then
-			Winx = - 1
-			Winy = - 1
-		Else
-			Winx = Int(SettingFile.GetSetting("WindowX") )
-			Winy = Int(SettingFile.GetSetting("WindowY") )
-		EndIf
-		
-		If w = 0 Or h = 0 then
-			Menu = GameExplorerFrame(New GameExplorerFrame.Create(Null , GES, "PhotonExplorer", Winx, Winy, 800, 600) )
-		Else
-			Menu = GameExplorerFrame(New GameExplorerFrame.Create(Null , GES, "PhotonExplorer", Winx, Winy, w, h) )
-		EndIf
-		Return True
-
-	End Method
-	
-End Type
 
 Type GameExplorerFrame Extends wxFrame
 	Field WinSplit:wxSplitterWindow
@@ -746,7 +794,7 @@ Type GameExplorerFrame Extends wxFrame
 		Local GameTrailerPanelvbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		GameTrailerPanel.SetBackgroundColour(New wxColour.Create(PERed3, PEGreen3, PEBlue3) )
 				
-		TrailerWeb = New wxWebView.Create(GameTrailerPanel, wxID_ANY, "http://photongamemanager.com", - 1, - 1, - 1, - 1)
+		TrailerWeb = New wxWebView.Create(GameTrailerPanel, GES_TW, "http://photongamemanager.com", - 1, - 1, - 1, - 1)
 			
 		TrailerButton = New wxButton.Create(GameTrailerPanel , GES_TB ,"Watch in browser")
 		
@@ -1011,10 +1059,12 @@ Type GameExplorerFrame Extends wxFrame
 		Connect(WS , wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, SplitterSashMovedFun)
 		Connect(GES_SWS , wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, SplitterSash2MovedFun)
 
+		Connect(GES_TW, wxEVT_WEBVIEW_NAVIGATED, TrailerSiteChanged)
+
 		?Win32		
 		Local StringItem:String 
 		Local ID:Int = 0
-		Local IDSet = False 
+		Local IDSet = False
 		Local item:wxListItem
 		If CmdLineGameName = "" then
 			If SettingFile.GetSetting("LastGameNumber") <> "" then
@@ -1075,6 +1125,18 @@ Type GameExplorerFrame Extends wxFrame
 		Connect(LT1, wxEVT_TIMER , DownloadLuaEvent)
 		
 	End Method
+	
+	Function TrailerSiteChanged(event:wxEvent)
+		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
+		'GameExploreWin.TrailerWeb.GetCurrentURL()
+		PrintF("Website Changed: " + GameExploreWin.TrailerWeb.GetCurrentURL() )
+		If GameExploreWin.TrailerWeb.GetCurrentURL() = "https://get.adobe.com/flashplayer/" Or GameExploreWin.TrailerWeb.GetCurrentURL() = "https://www.youtube.com/html5" then
+			Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null, "This Gadget requires Adobe Flash for IE to work. To install Adobe Flash open up Internet Explorer and navigate to https://get.adobe.com/flashplayer/ ~n (You will still have to do this even if you have installed Adobe Flash via another browser such as Firefox or Chrome)", "Info", wxOK | wxICON_INFORMATION)
+			MessageBox.ShowModal()
+			MessageBox.Free()
+			GameExploreWin.TrailerWeb.LoadURL("https://www.youtube.com/embed/" + GameNode.Trailer)
+		EndIf
+	End Function
 	
 	Function HyperLinkFun(event:wxEvent)
 		Local GameExploreWin:GameExplorerFrame = GameExplorerFrame(event.parent)
@@ -3738,3 +3800,4 @@ Include "Includes\General\General.bmx"
 Include "Includes\General\LuaFunctions.bmx"
 Include "Includes\GameExplorerShell\LuaFunctions.bmx"
 Include "Includes\General\Compress.bmx"
+Include "Includes\General\SplashApp.bmx"

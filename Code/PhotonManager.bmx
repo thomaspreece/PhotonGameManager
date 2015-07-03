@@ -1,9 +1,5 @@
 'TODO: Update Backup and Restore Functions
 'NOTE: PhotonUpdater, PhotonTray dont load GeneralSettings and hence don't load DebugLog Setting
-'TODO: Steam Icon extract should try to keep orginal names of icons 
-'TODO: Automatic icon extract not working for adding games on OnlineAdd
-'BUG: Adding EXE to Watch EXE's causes a wxwidgets debug alert
-'TODO: Artwork downloading... when it fails due to connect, retry upto 3 times then quit all downloading
 
 
 'TODO: Update Artwork BrowseOnline Function
@@ -102,10 +98,8 @@ Import Pub.FreeJoy
 Import sidesign.minib3d
 
 ?Win32
-Import "Icons\PhotonManager.o"
+Import "..\Icons\PhotonManager.o"
 ?
-
-AppTitle = "PhotonManager"
 
 Import LuGI.Core
 Include "ManagerGlue.bmx"
@@ -121,6 +115,8 @@ Global FolderSlash:String = "/"
 ?Win32
 Global FolderSlash:String = "\"
 ?
+
+AppTitle = "PhotonManager"
 
 Include "Includes\General\StartupOverrideCheck.bmx"
 Local TempFolderPath:String = OverrideCheck(FolderSlash)
@@ -150,40 +146,6 @@ Print "SubVersion = " + SubVersion
 Print "OSubVersion = " + OSubVersion
 
 
-DebugCheck()
-
-FolderCheck()
-TempFolderCleanup()
-GamesCheck()
-LogName = "Log-Manager " + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
-CreateFile(LOGFOLDER+LogName)
-
-
-LoadGlobalSettings()
-LoadManagerSettings()
-LoadExplorerSettings()
-
-CheckKey()
-If EvaluationMode = True then
-	Notify "You are running in evaluation mode, this limits you to the first 5 games added to the database in FrontEnd and PhotonExplorer"
-EndIf
-SearchBeep = LoadSound("Resources" + FolderSlash + "BEEP.wav")
-
-WindowsCheck()
-SetupPlatforms()
-OldPlatformListChecks()
-
-CheckInternet()
-'CheckPGMInternet()
-
-CheckVersion()
-CheckEXEDatabaseStatus()
-
-'ValidateGames()
-
-
-StartupLuaVM()
-
 Local PastArgument:String
 For Argument$ = EachIn AppArgs$
 	Select PastArgument
@@ -205,11 +167,7 @@ Next
 
 Global DatabaseApp:wxApp
 
-If DebugLogEnabled = False then
-	DeleteFile(LOGFOLDER + LogName)
-EndIf 
-
-
+PrintF("Starting DM")
 DatabaseApp = New DatabaseManager
 DatabaseApp.Run()
 
@@ -219,6 +177,7 @@ End
 Type DatabaseManager Extends wxApp
 	Field Menu:MainWindow
 	Field Wizard:FirstRunWizard
+	Field Splash:SplashFrame
 	
 	Method OnInit:Int()
 		wxImage.AddHandler( New wxICOHandler)		
@@ -226,7 +185,41 @@ Type DatabaseManager Extends wxApp
 		wxImage.AddHandler( New wxJPEGHandler)	
 		
 		New PMFactory
-		 
+		
+		Splash = SplashFrame(New SplashFrame.Create(Null, wxID_ANY, "Photon Loading...", - 1, - 1, 600, 225, 0) )	
+		Local Timer:wxTimer = New wxTimer.Create(Self, wxID_ANY)
+		Timer.Start(100, 1)
+		ConnectAny(wxEVT_TIMER, Startup)
+			
+		Return True
+
+	End Method
+	
+	Function Startup(event:wxEvent)
+		Local DM:DatabaseManager = DatabaseManager(event.parent)
+						
+		?Threaded
+		Local StartupThread:TThread = CreateThread(Thread_Startup, DM.Splash)
+		While ThreadRunning(StartupThread)
+			DM.Yield()
+			Delay 100
+		Wend
+		?Not Threaded
+		Thread_Download(DM.Splash)
+		?
+
+		If DebugLogEnabled = False then
+			DeleteFile(LOGFOLDER + LogName)
+		EndIf
+
+		If EvaluationMode = True then
+			Notify "You are running in evaluation mode, this limits you to the first 5 games added to the database in FrontEnd and PhotonExplorer"
+		EndIf
+		
+		DM.StartupMain()
+	End Function	
+	
+	Method StartupMain()
 		If FileType(SETTINGSFOLDER + "GeneralSettings.xml") = 1 then
 		
 		Else
@@ -237,14 +230,59 @@ Type DatabaseManager Extends wxApp
 		EndIf
 		
 		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400, wxDEFAULT_FRAME_STYLE ) )
-		
-		Return True
-
-	End Method
+		Splash.Destroy()
+	End Method	
 	
 End Type
 
 
+Function Thread_Startup:Object(obj:Object)
+	Local Splash:SplashFrame = SplashFrame(obj)
+	
+	Splash.SetStatusText("Checking for debug")	
+	DebugCheck()
+
+	Splash.SetStatusText("Checking folder integrity")	
+	FolderCheck()
+	
+	Splash.SetStatusText("Cleaning up temporary folder")	
+	TempFolderCleanup()
+
+	LogName = "Log-Manager " + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
+	CreateFile(LOGFOLDER+LogName)
+
+	Splash.SetStatusText("Loading settings")
+	LoadGlobalSettings()
+	LoadManagerSettings()
+	LoadExplorerSettings()
+
+	CheckKey()
+	
+	Splash.SetStatusText("Loading resources")
+	SearchBeep = LoadSound("Resources" + FolderSlash + "BEEP.wav")
+
+	
+	WindowsCheck()
+	
+	Splash.SetStatusText("Loading platforms")
+	SetupPlatforms()
+	OldPlatformListChecks()
+
+	Splash.SetStatusText("Checking internet connection")
+	CheckInternet()
+	'CheckPGMInternet()
+	CheckVersion()
+	CheckEXEDatabaseStatus()
+
+	Splash.SetStatusText("Checking game database")
+	'ValidateGames()
+	GamesCheck()
+
+	Splash.SetStatusText("Setting up LuaMachine")
+	StartupLuaVM()		
+
+	Splash.SetStatusText("Loading main window...")
+End Function
 
 
 Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
@@ -326,27 +364,27 @@ Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
 		
 		ResolutionCombo.SetSelection(ResolutionCombo.GetCount() - 1)
 		
-		P4vbox.Add(TextField4 , 1 , wxEXPAND | wxALL , 10)
+		P4vbox.Add(TextField4 , 3 , wxEXPAND | wxALL , 10)
 		P4vbox.Add(SL4 , 0 , wxEXPAND | wxALL , 10)
 		P4vbox.Add(TextField4_2 , 0 , wxEXPAND | wxTOP | wxLEFT | wxRIGHT | wxBOTTOM , 10)
 		P4vbox.Add(ResolutionCombo , 0 , wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT , 10)
-		P4vbox.AddStretchSpacer(1)
+		P4vbox.AddStretchSpacer(2)
 		
 		Page4.SetSizer(P4vbox)
 		'------------------------------------PAGE 5------------------------------------
 		Local P5vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Local TextField5:wxStaticText = New wxStaticText.Create(Page5 , wxID_ANY , "Generic Settings (Can be changed later in settings menu)", - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)
+		Local TextField5:wxStaticText = New wxStaticText.Create(Page5 , wxID_ANY , "Generic Settings ~n(Can be changed later in settings menu)", - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)
 		Local SL5:wxStaticLine = New wxStaticLine.Create(Page5, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)
 	
 		Local TextField5_2:wxStaticText = New wxStaticText.Create(Page5 , wxID_ANY , "Date Format:", - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		DateCombo = New wxComboBox.Create(Page5, wxID_ANY, "UK", ["UK", "US", "EU"] , - 1, - 1, - 1, - 1, wxCB_DROPDOWN | wxCB_READONLY)
 
 	
-		P5vbox.Add(TextField5 , 0 , wxEXPAND | wxALL , 10)
+		P5vbox.Add(TextField5 , 1 , wxEXPAND | wxALL , 10)
 		P5vbox.Add(SL5 , 0 , wxEXPAND | wxALL , 10)	
 		P5vbox.Add(TextField5_2 , 0 , wxEXPAND | wxTOP | wxLEFT | wxRIGHT | wxBOTTOM, 10)	
 		P5vbox.Add(DateCombo , 0 , wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT , 10)	
-		
+		P5vbox.AddStretchSpacer(2)
 		Page5.SetSizer(P5vbox)
 		
 		ConnectAny(wxEVT_WIZARD_CANCEL, WizardCancel)
@@ -544,7 +582,7 @@ Type MainWindow Extends wxFrame
 		SteamMenuField = SteamMenu(New SteamMenu.Create(Self, wxID_ANY, "Steam Import Select", , , 600, 400) )
 		AddGamesMenuField = AddGamesMenu(New AddGamesMenu.Create(Self, wxID_ANY, "Add Games Select", , , 600, 400) )
 		SettingsMenuField = SettingsMenu(New SettingsMenu.Create(Self , wxID_ANY , "Settings Select" , , , 600 , 400) )	
-		ActivateMenuField = ActivateMenu(New ActivateMenu.Create(Self , wxID_ANY , "Activate" , , , 300 , 200) )
+		ActivateMenuField = ActivateMenu(New ActivateMenu.Create(Self , wxID_ANY , "Activate" , , , 300 , 230) )
 					
 											
 
@@ -1891,6 +1929,8 @@ Type SteamIconWindow Extends wxFrame
 	
 	Function Back(event:wxEvent)
 		Local SteamIconWin:SteamIconWindow = SteamIconWindow(event.parent)
+		Local EditGameWin:EditGameList = EditGameList(SteamIconWin.GetParent() )
+		EditGameWin.Enable()
 		SteamIconWin.Destroy()
 	End Function
 	
@@ -1924,6 +1964,7 @@ Type SteamIconWindow Extends wxFrame
 	Function IconSelected(event:wxEvent)
 		Local SteamIconWin:SteamIconWindow = SteamIconWindow(event.parent)
 		Local EditGameWin:EditGameList = EditGameList(SteamIconWin.GetParent() )
+		EditGameWin.Enable()
 		Local MessageBox:wxMessageDialog
 
 		If SteamIconWin.Selection = - 1 Then
@@ -1957,7 +1998,8 @@ Type SteamIconWindow Extends wxFrame
 					EditGameWin.SaveButton.Enable()
 					SteamIconWin.Destroy()
 			End Select
-		EndIf		
+		EndIf	
+		
 	End Function	
 
 End Type
@@ -2450,7 +2492,7 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("GraphicsHeight") <> "" Then	
 		GraphicsH = Int(ReadSettings.GetSetting("GraphicsHeight"))
 	EndIf 		
-	If ReadSettings.GetSetting("GraphicsMode") <> "" Then	
+	If ReadSettings.GetSetting("GraphicsMode") <> "" then	
 		GMode = Int(ReadSettings.GetSetting("GraphicsMode") )
 	EndIf	
 	If ReadSettings.GetSetting("SilentRunOff") <> "" Then	
@@ -2462,7 +2504,7 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("RunnerButtonCloseOnly") <> "" Then	
 		RunnerButtonCloseOnly = Int(ReadSettings.GetSetting("RunnerButtonCloseOnly"))
 	EndIf 	
-	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" Then	
+	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" then	
 		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled"))
 	EndIf 	
 	If ReadSettings.GetSetting("GameCache") <> "" then	
@@ -2493,7 +2535,13 @@ Function LoadGlobalSettings()
 	EndIf				
 	If ReadSettings.GetSetting("GEAddAllEXEs") <> "" then		
 		PM_GE_AddAllEXEs = Int(ReadSettings.GetSetting("GEAddAllEXEs") )
-	EndIf 
+	EndIf
+	If ReadSettings.GetSetting("ProcessQueryDelay") <> "" then		
+		PRProcessQueryDelay = Int(ReadSettings.GetSetting("ProcessQueryDelay") )
+	EndIf	
+	If ReadSettings.GetSetting("PluginQueryDelay") <> "" then		
+		PRPluginQueryDelay = Int(ReadSettings.GetSetting("PluginQueryDelay") )
+	EndIf		
 	ReadSettings.CloseFile()
 End Function
 
@@ -2521,7 +2569,8 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("ShowScreenButton" , ShowScreenButton)	
 	SaveSettings.SaveSetting("DebugLogEnabled" , DebugLogEnabled)		
 	SaveSettings.SaveSetting("GEAddAllEXEs" , PM_GE_AddAllEXEs)		
-
+	SaveSettings.SaveSetting("ProcessQueryDelay" , PRProcessQueryDelay)		
+	SaveSettings.SaveSetting("PluginQueryDelay" , PRPluginQueryDelay)	
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()
 	
@@ -2598,4 +2647,6 @@ Include "Includes\General\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\DatabaseSearchPanelType.bmx"
 Include "Includes\General\Compress.bmx"
-
+Include "Includes\DatabaseManager\StartupChecks.bmx"
+Include "Includes\DatabaseManager\DBUpdates.bmx"
+Include "Includes\General\SplashApp.bmx"
