@@ -1,4 +1,4 @@
-Global PROGRAMICON:String = RESFOLDER + "Database.ico"
+Global PROGRAMICON:String = RESFOLDER + "Manager.ico"
 'Global ExtractProgLoc:String = APPFOLDER+"ResourcesExtract\ResourcesExtract.exe"
 
 Global wxEVT_COMMAND_SEARCHPANEL_SELECTED:Int = wxNewEventType()
@@ -42,8 +42,11 @@ Global OnlineAddPlatform:String = ""
 Global EditGameName:String = ""
 
 
+Global PRProcessQueryDelay:int = 50
+Global PRPluginQueryDelay:int = 50
+
 Global PMRed:int = 185'190
-Global PMGreen:Int = 210'190
+Global PMGreen:int = 210'190
 Global PMBlue:Int = 255'255
 
 Global PMRed2:int = 215
@@ -278,6 +281,7 @@ Const SW_TFB = 530
 Const SW_LFB = 531
 Const SW_SFB = 532
 Const SW_GFB = 533
+Const SW_PQD = 534
 
 Const PW_BB = 600
 Const PW_OB = 601

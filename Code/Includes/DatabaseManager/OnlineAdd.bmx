@@ -337,7 +337,7 @@ Function Thread_SaveGames:Object(obj:Object)
 			
 			GameNode.OverideArtwork = 1
 			GameNode.DownloadGameArtWork()
-			GameNode.ExtractIcon()
+			'GameNode.ExtractIcon()
 
 			OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")	
 			SavedGames = SavedGames + 1

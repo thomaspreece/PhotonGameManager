@@ -60,7 +60,7 @@ Type GameType Extends GameReadType
 					MessageBox.ShowModal()
 					MessageBox.Free()
 					For a = 1 To Len(Self.OrginalName)
-						If Mid(Self.OrginalName , a , 3) = "---" Then
+						If Mid(Self.OrginalName , a , 3) = "---" then
 							Self.Name = Left(Self.OrginalName , a - 1)
 							Self.PlatformNum = Int(Right(Self.OrginalName , Len(Self.OrginalName) - a - 2))
 							Exit 
@@ -86,12 +86,15 @@ Type GameType Extends GameReadType
 	End Method
 	
 	Method ExtractIcon()
+		
 		If GlobalPlatforms.GetPlatformByID(Self.PlatformNum).PlatType = "Folder" then
 			?Win32	
 			Local GName:String = Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum
 			Local temp:String , File:String
 				
 			Local EXE:String = StandardiseSlashes(StripCmdOpt(Self.RunEXE) )
+			If Left(EXE, 1) = Chr(34) then EXE = Right(EXE, Len(EXE) - 1)
+			If Right(EXE, 1) = Chr(34) then EXE = Left(EXE, Len(EXE) - 1)
 			DeleteCreateFolder(TEMPFOLDER + "Icons")
 			DeleteCreateFolder(TEMPFOLDER + "Icons2")
 			Local ExtractIcon:TProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + EXE + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons" + FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
@@ -102,8 +105,8 @@ Type GameType Extends GameReadType
 				Forever	
 			Else
 				PrintF("Failed to extract Icon")
-			EndIf 
-			ReadIcons = ReadDir(TEMPFOLDER + "Icons"+FolderSlash)
+			EndIf
+			ReadIcons = ReadDir(TEMPFOLDER + "Icons" + FolderSlash)
 			temp = ""
 			Repeat
 				File = NextFile(ReadIcons)
@@ -115,18 +118,21 @@ Type GameType Extends GameReadType
 				EndIf
 			Forever
 			CloseDir(ReadIcons)		
-			If temp = "" Then
+			If temp = "" then
 			Else
 				If FileType(GAMEDATAFOLDER + GName + FolderSlash + "Icon.ico") = 1 And Self.OverideArtwork = False then
 					'Do Nothing
 				Else
 					DeleteFile(GAMEDATAFOLDER + GName + FolderSlash +"Icon.ico")
-					CopyFile(temp , GAMEDATAFOLDER + GName + FolderSlash +"Icon.ico")
+					CopyFile(temp , GAMEDATAFOLDER + GName + FolderSlash + "Icon.ico")
+					Return 0
 				EndIf
 							
 			EndIf
 			?
 		EndIf
+		
+		Return 1
 	End Method
 	
 	
@@ -252,7 +258,7 @@ Type GameType Extends GameReadType
 	Method DownloadGameArtWork()
 
 		Local Override:Int = Self.OverideArtwork
-		Self.OverideArtwork = 0
+		
 		Local ArtworkListItem:DownloadArtworkListItemType
 		Local URL:String
 		Local GName:String = Lower(Self.GameNameDirFilter(Self.Name) + "---" + Self.PlatformNum)
@@ -393,15 +399,24 @@ Type GameType Extends GameReadType
 		
 		DeleteCreateFolder(TEMPFOLDER + "ArtWork")
 
+		If Log1.LogClosed = False then
+			If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Icon.ico") = 0 then
+				Log1.AddText("Extracting Icon")
+				If Self.ExtractIcon() <> 0 then
+					Log1.AddText("Could not extract an icon")
+				EndIf
+			EndIf
+		EndIf
 
 		Local curl:TCurlEasy
 		Local Pixmap:TPixmap
 		curl = TCurlEasy.Create()
+		Local FailCount:Int = 0
 		
 		Repeat
 		
 			If DownloadArtworkList.Count() > 0 then
-				ArtworkListItem = DownloadArtworkListItemType(DownloadArtworkList.RemoveFirst() )
+				ArtworkListItem = DownloadArtworkListItemType(DownloadArtworkList.First() )
 			Else
 				'Exit Repeat loop
 				Exit
@@ -429,11 +444,21 @@ Type GameType Extends GameReadType
 			CloseFile(TFile)
 
 			If res then
+				FailCount = FailCount + 1
 				PrintF("DownloadError: " + CurlError(res) )
-				Log1.AddText("Download failed")
 				DeleteFile(TEMPFOLDER + "Artwork" + FolderSlash + ArtworkListItem.Filename)
 				
+				If FailCount >= 3 then
+					PrintF("Failed to Download 3 times" )
+					Log1.AddText("Download failed.")	
+					DownloadArtworkList.RemoveFirst()
+					FailCount = 0
+				Else
+					Log1.AddText("Download failed. Retrying...")
+				EndIf
 			Else
+				DownloadArtworkList.RemoveFirst()
+				FailCount = 0
 				'perform convert to correct type, move
 				Pixmap = LoadPixmap(TEMPFOLDER + "ArtWork" + FolderSlash + ArtworkListItem.Filename)
 				SavePixmapJPeg(Pixmap , GAMEDATAFOLDER + GName + FolderSlash + ArtworkListItem.Filename + ".jpg" , 100 )
@@ -443,14 +468,9 @@ Type GameType Extends GameReadType
 				Exit
 			EndIf	
 
-		Forever		
+		Forever			
 		
-		If Log1.LogClosed = False then
-			If Override = 1 Or FileType(GAMEDATAFOLDER + GName + FolderSlash + "Icon.ico") = 0 then
-				Self.ExtractIcon()
-			EndIf
-		EndIf
-				
+		Self.OverideArtwork = 0
 		
 		If Log1.LogClosed = False then
 			Log1.AddText("Optimizing Artwork...")
