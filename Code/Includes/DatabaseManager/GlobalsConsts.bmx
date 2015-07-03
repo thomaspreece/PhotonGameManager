@@ -40,7 +40,7 @@ Global OnlineAddSource:String = ""
 Global OnlineAddPlatform:String = ""
 
 Global EditGameName:String = ""
-
+Global PMHideHelp:int = 0
 
 Global PRProcessQueryDelay:int = 50
 Global PRPluginQueryDelay:int = 50
@@ -216,6 +216,9 @@ Const EGL_ULT = 275
 Const EGL_OO = 276
 Const EGL_M1_I1 = 277
 Const EGL_M1_I2 = 278
+Const EGL_GN = 279
+Const EGL_EN = 280
+Const EGL_EP_EO_B = 281
 
 Const OA_PC = 300
 Const OA_SP = 301
@@ -352,10 +355,10 @@ Const AEPL_TDD = 1704
 Global KeyboardInputText:String[] = ["Big Cover","Flip Cover", "Right", "Left" , "Up", "Down", "OK" , "Info", "Back", "Menu", "Search", "Rotate Platforms", "View ScreenShots", "End" ]
 Global JoyStickInputText:String[] = ["Big Cover","Flip Cover", "OK" , "Menu" ,  "Search" , "Back", "Info", "Rotate Platforms", "View ScreenShots", "End" ]
 
-Const EP_EXE_DescribeText1:String = "Below you can select what file GameManager will run for this game ~n" + ..
+Const EP_EXE_DescribeText1:String = "Below you can select what file PhotonFrontend or PhotonExplorer will run for this game ~n" + ..
 "and any other command line options you require for this game. ~n" + ..
 "If you do not know what 'command line options' are, then you don't need them. ~n"
-Const EP_EXE_DescribeText2:String = "Below you can select what rom file GameManager will pass to the emulator for this platform ~n" + ..
+Const EP_EXE_DescribeText2:String = "Below you can select what rom file PhotonFrontend or PhotonExplorer will pass to the emulator for this platform ~n" + ..
 "and any other command line options you require for this rom to be passed to emulator. ~n" + ..
 "Note: rom file will be inserted into [ROMPATH] and command line into [EXTRA-CMD] ~n" + ..
 "see 'Emulators' tab from main menu for more info"
@@ -383,10 +386,35 @@ Const AM_ET_Text:String = "Here you can setup the AutoMounter for this game. ~n"
 "Note2: AutoMount is not loaded when executables other than the main game executable are run. ~n"
 
 Const A_ET_Text:String = "Here Are Some Advanced Options For This Game "
-Const A_ET_Text2:String = "PhotonRunner looks for which executables are running and will close when it cannot find the games main executable. " + ..
-"This is no good when your game uses a Launcher because the launcher closes before starting the game and hence PhotonRunner thinks your game has closed. "+..
-"To fix this add executables to the below list and then PhotonRunner will not close until your main executable and all those specified in the list below have finished. ~n"+.. 
-"Use the folder button to add all the executables within the folder to the list. "
+Const A_ET_Text2:String = "Watch Executable List"
+
+
+Const EGL_Help_Details:String = "Details Tab Help ~nHere you can change various text information and categories for the game. ~nThe 'Youtube Video Code' field should be 11 characters long and can be found by taking the youtube video link and copying the 11 characters after the 'v=' part of the link. Press the 'Auto Find Trailer' button to automatically search youtube for a trailer and fill in the 'Youtube Video Code' field and press the 'View Trailer' button to open a browser to the Youtube video pointed to by the 'Youtube Video Code' field. "
+
+Const EGL_Help_Artwork:String = "Artwork Tab Help ~nHere you can change the artwork that is used in PhotonExplorer and PhotonFrontend. ~nRight click on the artwork or click on the change button to bring up an options menu for each piece of artwork."
+
+Const EGL_Help_Runner_Options:String = "Runner Options Tab Help ~nHere you can change settings for PhotonRunner, the program that handles running your games, batch files,AutoMounter and plugins. ~n~n" + ..
+"Watch Executable List Help ~n" + ..
+"PhotonRunner looks for which executables are running and will close when it cannot find the games main executable. If you want it to not close until another executable has also closed, add it to the below list and then PhotonRunner will then not close until your main executable and all those specified in the list below have finished. ~n Use the folder button to add all the executables within the folder to the list. "
+
+Const EGL_Help_AutoMount:String = "AutoMount Tab Help ~nHere you can setup the AutoMounter for this game, which basically allows you to mount game disc images automatically when you start a game and optionally unmount them when finished. ~n~n" + ..
+"Note: You will need the relevant software installed for this to work. ~n" + ..
+"Note #2: Changing 'Mounter Path' will change it for all games using this specific Mounter. ~n" +..
+"Note #3: AutoMount is not loaded when executables other than the main game executable are run. ~n"
+
+
+Const EGL_Help_Batch:String = "Batch Files Tab Help ~nHere you can select batch files to run before and after your game has run. This is useful for loading your own programs or external scripts like autohotkey.~n~n" + ..
+"Note: Batch files are not loaded when executables other than the main game executable are run. ~n"
+
+Const EGL_Help_Other_Executables:String = "Other Executables Tab Help ~nBelow you can select other executables for this game that can be run from PhotonFrontend and PhotonExplorer by selecting them from the menu. ~n~nNote: Batch files and AutoMount are not run when you select to run one of these executables."
+
+Const EGL_Help_ROM:String = "Rom Path Tab Help ~nBelow you can select what rom file PhotonFrontend or PhotonExplorer will pass to the emulator for this platform and any other command line options you require for this rom to be passed to emulator. 'Rom Path' will be inserted into [ROMPATH] and 'Extra Command Line Options' into [EXTRA-CMD] of the Platform emulator. ~n" + ..
+"See 'Platforms' tab from main menu for more info ~n~nEmulator Override~n"+ ..
+"Use this option to override the default emulator for this single rom. Best use for this option is for those few games that have problems with the default platform emulator.~n" + ..
+"Note: setting this option will mean that any change to the general platform emulator will not affect this rom."
+
+Const EGL_Help_Run:String = "Run Executable Path Tab Help ~nBelow you can select what executable PhotonFrontend or PhotonExplorer will run for this game and any other command line options you require for this game. ~n" + ..
+"If you do not know what 'command line options' are, then you don't need them. ~n"
 
 Global ShowUselessNotifys = True
 Global ExtraKeyData:String = ""

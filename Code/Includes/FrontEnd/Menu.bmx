@@ -1239,7 +1239,7 @@ Type Menu2Type
 		Next 
 		
 		
-		'DebugStop 
+		'DebugStop
 		
 		ListAddLast(InterfaceList , "..")
 		ListAddLast(InterfaceList , "CoverFlow")

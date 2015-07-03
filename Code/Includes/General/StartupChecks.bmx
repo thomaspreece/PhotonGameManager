@@ -33,6 +33,54 @@ Function SetupPlatforms()
 	EndIf
 End Function
 
+Function ResourcesCheck()
+	Local PlatDir:Int, File:String, PlatName:String
+	Local Plat:PlatformType
+	Local PlatformsEmpty:Int = 0
+	If FileType(RESFOLDER + "Menu" + FolderSlash + "PlatformNums") = 2 then
+		
+	Else
+		CreateFolder(RESFOLDER + "Menu" + FolderSlash + "PlatformNums")
+	EndIf
+	
+	If FileType(RESFOLDER + "Menu" + FolderSlash + "Platforms") = 2 then
+		PlatDir = ReadDir(RESFOLDER + "Menu" + FolderSlash + "Platforms")
+		PlatformsEmpty = True
+		Repeat
+			File = NextFile(PlatDir)
+			If File = "." Or File = ".." then Continue
+			If File = "" then Exit
+			PlatformsEmpty = False
+			If File = "Nintendo Game Boy Advance.jpg" then
+				PlatName = "Nintendo Gameboy Advance"
+			ElseIf File = "Nintendo Game Boy.jpg" then
+				PlatName = "Nintendo Gameboy"
+			ElseIf File = "Sony PlayStation.jpg" then
+				PlatName = "Sony Playstation"
+			Else
+				PlatName = StripExt(File)
+			EndIf
+			Plat = GlobalPlatforms.GetPlatformByName(PlatName )
+			If Plat.ID = 0 then
+			
+			Else
+				If FileType(RESFOLDER + "Menu" + FolderSlash + "PlatformNums" + FolderSlash + String(Plat.ID) + ".jpg") = 1 then
+				
+				Else
+					CopyFile(RESFOLDER + "Menu" + FolderSlash + "Platforms" + FolderSlash + File, RESFOLDER + "Menu" + FolderSlash + "PlatformNums" + FolderSlash + String(Plat.ID) + ".jpg")
+					If FileType(RESFOLDER + "Menu" + FolderSlash + "PlatformNums" + FolderSlash + String(Plat.ID) + ".jpg") = 1 then
+						DeleteFile(RESFOLDER + "Menu" + FolderSlash + "Platforms" + FolderSlash + File)
+					EndIf
+				EndIf
+			EndIf
+		Forever
+		CloseDir(PlatDir)
+		If PlatformsEmpty = True then
+			DeleteDir(RESFOLDER + "Menu" + FolderSlash + "Platforms")
+		EndIf
+	EndIf
+End Function
+
 Function OldPlatformListChecks()
 	If GlobalPlatforms = Null then
 		CustomRuntimeError("OldPlatformListChecks: GlobalPlatforms Null")

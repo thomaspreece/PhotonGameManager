@@ -1,3 +1,5 @@
+'TODO: Remind users to backup their database
+
 Framework wx.wxApp
 Import wx.wxFrame
 Import wx.wxStaticText

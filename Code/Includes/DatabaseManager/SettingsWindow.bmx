@@ -22,6 +22,7 @@ Type SettingsWindow Extends wxFrame
 	Field SW_ColourPicker1:wxColourPickerCtrl
 	Field SW_ColourPicker2:wxColourPickerCtrl
 	Field SW_Maximize:wxComboBox
+	Field SW_HideHelp:wxComboBox
 	Field SW_DefaultGameLua:wxComboBox
 	Field SW_DownloadAllArtwork:wxComboBox
 	Field SW_DebugLog:wxComboBox
@@ -85,6 +86,7 @@ Type SettingsWindow Extends wxFrame
 		Local E251:String = "Colour Picker ~nHere you can change the two colours used on the interface of PhotonManager. Note you will need to restart PhotonManager to see these changes."
 		Local E252:String = "Maximize ~nSetting this to Yes will cause most PhotonManager windows to maximize when they become visible. ~n~nRecommended Setting: Yes"
 		Local E253:String = "Default Game Search ~nWhen searching online for game information you can use different online sources(websites) but the one selected here will automatically be selected and used first for online searching. ~n~nRecommended Setting: thegamesdb.net (Best site around and a brilliant resource)"
+		Local E255:String = "Hide All Help ~nSetting this to Yes will remove most help boxes from PhotonManager's interface."
 		
 		Local E301:String = "Add Extra EXEs ~nWhen the wizard extracts Game Explorer games it usually extras multiple EXE's and other items such as manuals, website links and alternative programs bundled with each game. You have to select one of these as the main executable for the game but selecting 'Yes' here will mean any other items will be added as extra EXE's allowing you to view/open/run them from PhotonFrontEnd and PhotonExplorer. Selecting 'No' here will cause those extra links to be discarded. ~n~nRecommended Setting: No"
 		
@@ -123,6 +125,9 @@ Type SettingsWindow Extends wxFrame
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, DefaultHelp, - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY)
 		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
+		If PMHideHelp = 1 then
+			HelpText.Hide()
+		EndIf
 		Panel2.SetSizer(P2Hbox)
 
 		'--------------------------------GENERAL SETTINGS------------------------------------	
@@ -386,6 +391,9 @@ Type SettingsWindow Extends wxFrame
 		SW_OriginWait = New wxComboHelpBox.Create(ScrollBox5 , SW_OW , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		wxComboHelpBox(SW_OriginWait).SetFields( E204, DefaultHelp, HelpText)
 		
+		ST14.Hide()
+		SW_OriginWait.Hide()
+		
 		Local ST34:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox5 , wxID_ANY , "Runner Process Query Delay: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
 		wxStaticHelpText(ST34).SetFields( E205, DefaultHelp, HelpText)		
 		
@@ -453,6 +461,12 @@ Type SettingsWindow Extends wxFrame
 		SW_DefaultGameLua = New wxComboHelpBox.Create(ScrollBox6 , SW_DGL , "" , Null , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		wxComboHelpBox(SW_DefaultGameLua).SetFields( E253, DefaultHelp, HelpText)
 
+		Local ST36:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox6 , wxID_ANY , "Hide All Help Boxes: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
+		wxStaticHelpText(ST36).SetFields( E255, DefaultHelp, HelpText)
+
+		SW_HideHelp = New wxComboHelpBox.Create(ScrollBox6 , wxID_ANY , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		wxComboHelpBox(SW_HideHelp).SetFields( E255, DefaultHelp, HelpText)
+		
 		
 		
 		Local DefaultGameLuaTList:TList = GetLuaList(1)
@@ -470,7 +484,8 @@ Type SettingsWindow Extends wxFrame
 		ScrollBoxvbox6.Add(SW_ColourPicker1 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox6.Add(ST20 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox6.Add(SW_ColourPicker2 , 0 , wxEXPAND | wxALL , 4)
-
+		ScrollBoxvbox6.Add(ST36 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox6.Add(SW_HideHelp , 0 , wxEXPAND | wxALL , 4)
 		
 		ScrollBox6.SetSizer(ScrollBoxvbox6)
 		
@@ -693,6 +708,12 @@ Type SettingsWindow Extends wxFrame
 			SW_Maximize.SetValue("Yes")
 		Else
 			SW_Maximize.SetValue("No")
+		EndIf
+		
+		If PMHideHelp = 1 then
+			SW_HideHelp.SetValue("Yes")
+		Else
+			SW_HideHelp.SetValue("No")
 		EndIf
 		
 		If PMFetchAllArt = 1 then
@@ -1051,6 +1072,22 @@ Type SettingsWindow Extends wxFrame
 		Else
 			PMMaximize = 0
 		EndIf 	
+			
+		If SW_HideHelp.GetValue() = "Yes"
+			If PMHideHelp <> 1 then
+				MessageBox = New wxMessageDialog.Create(Null , "Not all help boxes will be hiden until PhotonManager is restarted" , "Info" , wxOK | wxICON_INFORMATION)
+				MessageBox.ShowModal()
+				MessageBox.Free()				
+			EndIf
+			PMHideHelp = 1
+		Else
+			If PMHideHelp <> 0 then
+				MessageBox = New wxMessageDialog.Create(Null , "Not all help boxes will be shown until PhotonManager is restarted" , "Info" , wxOK | wxICON_INFORMATION)
+				MessageBox.ShowModal()
+				MessageBox.Free()				
+			EndIf		
+			PMHideHelp = 0
+		EndIf
 		
 		If SW_DownloadAllArtwork.GetValue() = "Yes" then
 			PMFetchAllArt = 1

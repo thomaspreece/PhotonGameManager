@@ -146,18 +146,21 @@ Type MainMenuType Extends GeneralType
 							ChangeInterface(CurrentInterfaceNumber,1,0)
 						Case "Platforms"
 							Local PlatformNameList:TList = CreateList()
+							Local PlatformFileList:TList = CreateList()
 							Local tempPlatform:String
 							
 							For tempPlatform = EachIn PlatformList
 								If tempPlatform = "Sort By Platform" Or tempPlatform = ".." then
-										ListAddLast(PlatformNameList,tempPlatform)
+										ListAddLast(PlatformNameList, tempPlatform)
+										ListAddLast(PlatformFileList, tempPlatform)
 								Else
-										ListAddLast(PlatformNameList, GlobalPlatforms.GetPlatformByID(Int(tempPlatform) ).Name)							
+										ListAddLast(PlatformNameList, String(GlobalPlatforms.GetPlatformByID(Int(tempPlatform) ).Name ) )							
+										ListAddLast(PlatformFileList, String(GlobalPlatforms.GetPlatformByID(Int(tempPlatform) ).ID ) )
 								EndIf
 								
 							Next
 							MenuFlow.Clear()
-							MenuFlow.Init(PlatformNameList , "Platforms" , 1)
+							MenuFlow.Init(PlatformFileList , "PlatformNums" , 1, PlatformNameList)
 							FilterType = "Platform"
 							FilterName = ""
 						Case "Genres"
@@ -511,6 +514,7 @@ Type MenuFlowType
 	Field Covers:MainMenuItemType[]
 	Field CoverFloor:TMesh	
 	Field MenuArray:String[]
+	Field MenuNameArray:String[]
 	Field MenuArrayLen:int
 	Field MenuResFolder:String
 	Field CurrentMenuPos:Int
@@ -538,7 +542,18 @@ Type MenuFlowType
 		UnlockMutex(Mutex_ProcessStack)	
 	End Function	
 	
-	Method Init(List:TList , ResourceFolder:String , SetCurrentPos:Int = 0)
+	Method Init(List:TList , ResourceFolder:String , SetCurrentPos:Int = 0, NameList:TList = Null)
+		'If size of two lists does not match, discard namelist
+		If NameList = Null then
+		
+		Else 
+			If List.Count() = NameList.Count() then
+			
+			Else
+				NameList = Null
+			EndIf
+		EndIf
+		
 		DelayPos = 1
 		FilterMenuEnabled = True 
 		UpdateStack(List , ResourceFolder)
@@ -549,13 +564,24 @@ Type MenuFlowType
 		'MenuList = List 'Array
 		MenuResFolder = ResourceFolder
 		MenuArray = MenuArray[..List.Count()]
+		MenuNameArray = MenuArray[..List.Count()]
 		Covers = Covers[..List.Count()]
 		Local item:String 
 		Local a:Int = 0
 		For item = EachIn List
 			MenuArray[a] = item
+			MenuNameArray[a] = item
 			a = a + 1
 		Next
+		a = 0
+		If NameList = Null then
+		
+		Else
+			For item = EachIn NameList
+				MenuNameArray[a] = item
+				a = a + 1
+			Next		
+		EndIf 
 		MenuArrayLen = List.Count()
 		
 		Local tex:TTexture 
@@ -578,7 +604,7 @@ Type MenuFlowType
 			Covers[a].Position = a
 			Covers[a].CoverNum = -1
 			If Left(MenuArray[a],Len("Sort"))="Sort" Then
-				Covers[a].TexName = RESFOLDER + "Menu"+FolderSlash+"Sort.jpg"
+				Covers[a].TexName = RESFOLDER + "Menu" + FolderSlash + "Sort.jpg"
 			ElseIf MenuArray[a] = ".." Then 
 				Covers[a].TexName = RESFOLDER + "Menu"+FolderSlash+"Back.jpg"
 			Else
@@ -625,10 +651,10 @@ Type MenuFlowType
 		SetImageFont(NameFont)
 		SetColor(0,0,0)
 		SetAlpha(0.7)
-		DrawRect( (GWidth - TextWidth(MenuArray[CurrentMenuPos]) ) / 2 - 20 , GHeight / 1.2 , TextWidth(MenuArray[CurrentMenuPos]) + 40 , TextHeight(MenuArray[CurrentMenuPos]) + 5)
+		DrawRect( (GWidth - TextWidth(MenuNameArray[CurrentMenuPos]) ) / 2 - 20 , GHeight / 1.2 , TextWidth(MenuNameArray[CurrentMenuPos]) + 40 , TextHeight(MenuNameArray[CurrentMenuPos]) + 5)
 		SetColor(255 , 255 , 255)
 		SetAlpha(1)
-		DrawText(MenuArray[CurrentMenuPos] , (GWidth - TextWidth(MenuArray[CurrentMenuPos]) ) / 2 , GHeight / 1.2)			
+		DrawText(MenuNameArray[CurrentMenuPos] , (GWidth - TextWidth(MenuNameArray[CurrentMenuPos]) ) / 2 , GHeight / 1.2)			
 	End Method 
 	
 	Method Update()
@@ -759,7 +785,7 @@ Type MainMenuItemType
 	Field NormY:Float
 	Field GlobalPosition:Int = False 
 	
-	Field Textured:Int
+	Field Textured:int
 	'Field BackTextured:Int	
 	Field Tex:TTexture
 	'Field BackTex:TTexture
@@ -797,7 +823,7 @@ Type MainMenuItemType
 		Roty = EntityYaw(Mesh)
 		Rotz = EntityRoll(Mesh)
 		
-			ReflectMesh = CreateCover(1,Mesh)
+			ReflectMesh = CreateCover(1, Mesh)
 			MoveEntity ReflectMesh , 0 , - 2.05 , 0
 			EntityFX ReflectMesh , 1
 			ScaleEntity ReflectMesh , - 1 , - 1 , 0
