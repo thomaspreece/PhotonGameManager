@@ -42,7 +42,7 @@ Type AddEditPlatformsList Extends wxFrame
 			Self.TypeDropdown.SetValue(col2.GetText() )
 			Self.EmulatorTextBox.SetValue(col4.GetText() )
 			
-			If col2.GetText() = "Folder" then
+			If col2.GetText() = "Native" then
 				Self.EmulatorTextBox.Disable()
 				Self.EmulatorButton.Disable()
 			EndIf
@@ -160,7 +160,11 @@ Type AddEditPlatformsList Extends wxFrame
 			index = Window.PlatformWindow.PlatformListCtrl.InsertStringItem( InsertPoint , Window.IDTextBox.GetValue() )
 			Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 1 , Window.TypeDropdown.GetValue() )
 			Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 2 , Window.NameTextBox.GetValue() )
-			Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 3 , Window.EmulatorTextBox.GetValue() )
+			If Window.TypeDropdown.GetValue() = "Emulated" then
+				Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 3 , Window.EmulatorTextBox.GetValue() )
+			Else
+				Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 3 , "" )
+			EndIf
 			
 			Local PlatformC:PlatformCount
 			Local Count:Int = 0
@@ -210,7 +214,7 @@ Type AddEditPlatformsList Extends wxFrame
 	
 	Function PlatTypeUpdatedFun(event:wxEvent)
 		Local Window:AddEditPlatformsList = AddEditPlatformsList(event.parent)
-		If Window.TypeDropdown.GetValue() = "Folder" then
+		If Window.TypeDropdown.GetValue() = "Native" then
 			Window.EmulatorTextBox.Disable()
 			Window.EmulatorButton.Disable()		
 		Else
@@ -232,7 +236,7 @@ Type AddEditPlatformsList Extends wxFrame
 		Local NameText:wxStaticText = New wxStaticText.Create(Self, wxID_ANY , "Name:")
 		Self.NameTextBox = New wxTextCtrl.Create(Self, wxID_ANY, "", - 1, - 1, - 1, - 1)
 		Local TypeText:wxStaticText = New wxStaticText.Create(Self, wxID_ANY , "Type:")
-		Self.TypeDropdown = New wxComboBox.Create(Self, AEPL_TDD, "", ["File", "Folder"], - 1, - 1, - 1, - 1, wxCB_DROPDOWN | wxCB_READONLY )
+		Self.TypeDropdown = New wxComboBox.Create(Self, AEPL_TDD, "", ["Emulated", "Native"], - 1, - 1, - 1, - 1, wxCB_DROPDOWN | wxCB_READONLY )
 		
 		Local EmulatorText:wxStaticText = New wxStaticText.Create(Self, wxID_ANY , "Emulator:")
 		Self.EmulatorTextBox = New wxTextCtrl.Create(Self, wxID_ANY, "", - 1, - 1, - 1, - 1)
@@ -345,14 +349,21 @@ Type PlatformsList Extends wxFrame
 		Panel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		P2Hbox = New wxBoxSizer.Create(wxHORIZONTAL)
 		
-		Local ExplainText:String = "Here you can enter the default path to the emulator for various different platforms. ~n" + ..
-		"Use the browse button to select the emulator. You may then need to change the path in the box next to the browse button afterwards, [ROMPATH] is where GameManager will insert the path of the rom, [EXTRA-CMD] is where GameManager will insert the extra command line options you specify for each rom. ~n" + ..
-		"If you are unsure what should be in the box, you should search the internet for '{emulator name} command line options' ~n" + ..
-		"Click OK to save"
-				
+		Local ExplainText:String = "Platform List ~nHere you can edit/remove/add platforms. Each Platform has several fields associated with it: ~n" + ..
+		"ID - Each platform must have a unique number. You shouldn't worry about this number or change it. ~n" + ..
+		"Type - This affects how the platform works. If the game is not going to run in an emulator choose Native, otherwise choose Emulated ~n" + ..
+		"Platform Name - The text that is displayed for each platform in the other Photon programs ~n" + ..
+		"Default Emulator Path - The program that will be run for every game in that platform (if type is emulated). When executing this program, Photon will replace the placeholders [ROMPATH] and [EXTRA-CMD] with the specific games options~n~n" + ..
+		"You can use the hide/delete button to stop the platform from being displayed in the other Photon programs (and outside this menu)~n" + ..
+		"When you are finished click the Save button to save all the changes you have made. To discard changes click the Back button."
+		
+	
 		'tempstatictext = New wxStaticText.Create(Panel2 , wxID_ANY , ExplainText)
-		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
+		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE )
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
+		If PMHideHelp = 1 then
+			HelpText.Hide()
+		EndIf 
 		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
 
 		Panel2.SetSizer(P2Hbox)
@@ -363,7 +374,7 @@ Type PlatformsList Extends wxFrame
 		Local sl2:wxStaticLine = New wxStaticLine.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)		
 		Local sl3:wxStaticLine = New wxStaticLine.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)		
 		
-		vbox.Add(Panel2 , 4 , wxEXPAND , 0)
+		vbox.Add(Panel2 , 0 , wxEXPAND , 0)
 		vbox.Add(sl1 , 0, wxEXPAND , 0)
 		vbox.Add(PlatformListCtrl , 20 , wxEXPAND , 0)
 		vbox.Add(sl2 , 0, wxEXPAND , 0)
@@ -441,7 +452,11 @@ Type PlatformsList Extends wxFrame
 					MessageBox.ShowModal()
 					MessageBox.Free()				
 				Else
-					PlatList.PlatformListCtrl.SetStringItem(item , 1 , Platform.PlatType )
+					If Platform.PlatType = "Folder" then
+						PlatList.PlatformListCtrl.SetStringItem(item , 1 , "Native" )
+					ElseIf Platform.PlatType = "File" then
+						PlatList.PlatformListCtrl.SetStringItem(item , 1 , "Emulated" )
+					EndIf
 					PlatList.PlatformListCtrl.SetStringItem(item , 2 , Platform.Name )
 					PlatList.PlatformListCtrl.SetStringItem(item , 3 , Platform.Emulator )		
 					PlatList.Changes = True 
@@ -571,7 +586,11 @@ Type PlatformsList Extends wxFrame
 				
 							
 				index = PlatList.PlatformListCtrl.InsertStringItem( InsertPoint , Platform.ID )
-				PlatList.PlatformListCtrl.SetStringItem(index , 1 , Platform.PlatType )
+				If Platform.PlatType = "Folder" then
+					PlatList.PlatformListCtrl.SetStringItem(index , 1 , "Native" )
+				ElseIf Platform.PlatType = "File" then
+					PlatList.PlatformListCtrl.SetStringItem(index , 1 , "Emulated" )
+				EndIf
 				PlatList.PlatformListCtrl.SetStringItem(index , 2 , Platform.Name )
 				PlatList.PlatformListCtrl.SetStringItem(index , 3 , Platform.Emulator)
 				
@@ -669,13 +688,17 @@ Type PlatformsList Extends wxFrame
 			Count = 0
 			
 			index = Self.PlatformListCtrl.InsertStringItem( a , Platform.ID)
-			Self.PlatformListCtrl.SetStringItem(index , 1 , Platform.PlatType)
+			If Platform.PlatType = "File" then
+				Self.PlatformListCtrl.SetStringItem(index , 1 , "Emulated")
+			Else
+				Self.PlatformListCtrl.SetStringItem(index , 1 , "Native")
+			EndIf
 			Self.PlatformListCtrl.SetStringItem(index , 2 , Platform.Name)
 			Self.PlatformListCtrl.SetStringItem(index , 3 , Platform.Emulator)
 			
 			For PlatformC = EachIn Self.PlatformCountList
 				If PlatformC.ID = Platform.ID then
-					count = PlatformC.Count
+					Count = PlatformC.Count
 					Exit
 				EndIf
 			Next
@@ -686,6 +709,7 @@ Type PlatformsList Extends wxFrame
 		
 		Self.PlatformListCtrl.SetColumnWidth(2 , wxLIST_AUTOSIZE)
 		Self.PlatformListCtrl.SetColumnWidth(3 , wxLIST_AUTOSIZE)
+		Self.PlatformListCtrl.SetColumnWidth(3 , wxLIST_AUTOSIZE_USEHEADER)
 		
 		LoadRestorePlatforms()
 	End Method
@@ -728,7 +752,11 @@ Type PlatformsList Extends wxFrame
 			If col2.GetText() = "-" then
 			
 			Else
-				Platform = New PlatformType.Init(Int(col1.GetText() ), col3.GetText(), col2.GetText(), col4.GetText() )
+				If col2.GetText() = "Native" then
+					Platform = New PlatformType.Init(Int(col1.GetText() ), col3.GetText(), "Folder", col4.GetText() )
+				ElseIf col2.GetText() = "Emulated" then
+					Platform = New PlatformType.Init(Int(col1.GetText() ), col3.GetText(), "File", col4.GetText() )
+				EndIf
 				ListAddLast(GlobalPlatforms.PlatformList, Platform)
 			EndIf
 		Forever	

@@ -68,12 +68,12 @@ Type EditGameList Extends wxFrame
 	Field EP_EO:wxTextCtrl
 	Field EP_EO_Text:wxStaticText
 	
-	Field DescribeTextST:wxStaticText
+	'Field DescribeTextST:wxStaticText
 	Field EP_EXE_Text:wxStaticText
 	Field EP_CLO_Text:wxStaticText
-	Field DescribeTexthbox:wxBoxSizer
+	'Field DescribeTexthbox:wxBoxSizer
 	
-	Field EP_TP2_ST:wxStaticText
+	'Field EP_TP2_ST:wxStaticText
 	Field EP_EO_DT:wxStaticText
 	
 	Field EEP_LC:wxListCtrl
@@ -94,13 +94,15 @@ Type EditGameList Extends wxFrame
 	Field PreBFEXEPath:wxTextCtrl
 	
 	Field A_RunnerON:wxComboBox
-	Field A_StartWaitEnabled:wxComboBox 
+	'Field A_StartWaitEnabled:wxComboBox
 	Field A_EXEList:wxListCtrl
 	
 	Field BF_Pre_WTF:wxComboBox 
 	Field BF_Post_WTF:wxComboBox
 	
-	Field UpdateListTimer:wxTimer 
+	Field UpdateListTimer:wxTimer
+	
+	Field HelpText:wxTextCtrl
 	
 	Method OnInit()
 	
@@ -169,7 +171,7 @@ Type EditGameList Extends wxFrame
 		SubGameButton1Hbox.Add(OtherButton , 12 , wxEXPAND | wxALL , 4 )			
 
 		SubGameButtonPanel1.SetSizer(SubGameButton1Hbox)		
-		SubGamePanel1Vbox.Add(SubGameButtonPanel1 , 1 , wxEXPAND , 0 )
+		SubGamePanel1Vbox.Add(SubGameButtonPanel1 , 0 , wxEXPAND , 0 )
 
 		
 		Rem
@@ -188,19 +190,24 @@ Type EditGameList Extends wxFrame
 		SubGamePanel2 = New wxPanel.Create(GamePanel , - 1)
 		SubGamePanel2.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )		
 		Local SubGamePanel2Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
+		
+		HelpText = New wxTextCtrl.Create(SubGamePanel2, wxID_ANY, "Help information will appear here", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY)
+		If PMHideHelp = 1 then
+			HelpText.Hide()
+		EndIf
 		Rem
 		?MacOS
 		GameNotebook = New wxChoicebook.Create(SubGamePanel2 , - 1 , - 1 , - 1 , - 1 , - 1 , wxCHB_DEFAULT)
 		?Not MacOS
 		EndRem
-		GameNotebook = New wxNotebook.Create(SubGamePanel2 , - 1 , - 1 , - 1 , - 1 , - 1 , wxNB_TOP)
+		GameNotebook = New wxNotebook.Create(SubGamePanel2 , EGL_GN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP)
 		'?
 		
 		'GameNotebook.SetBackgroundColour(New wxColour.Create(150 , 150 , 255) )
 		'----------------------------------------------GAMEDETAILSPANEL----------------------------------------
 		Local GameDetailsPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)
 		Local GameDetailsSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
-		Local DP_GN_Text:wxStaticText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "Game Name" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local DP_GN_Text:wxStaticText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "Game Name" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		DP_GameName = New wxTextCtrl.Create(GameDetailsPanel , EGL_DP_GN , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 		Local DP_GD_Text:wxStaticText = New wxStaticText.Create(GameDetailsPanel , wxID_ANY , "Description" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		DP_GameDesc = New wxTextCtrl.Create(GameDetailsPanel , EGL_DP_GD , "" , - 1 , - 1 , - 1 , - 1 , wxTE_BESTWRAP | wxTE_MULTILINE )
@@ -420,7 +427,7 @@ Type EditGameList Extends wxFrame
 		ExecutableNotebook = New wxChoicebook.Create(ExecutablePanel , - 1 , - 1 , - 1 , - 1 , - 1 , wxCHB_DEFAULT)
 		?Not MacOS
 		EndRem
-		ExecutableNotebook = New wxNotebook.Create(ExecutablePanel , - 1 , - 1 , - 1 , - 1 , - 1 , wxNB_TOP)
+		ExecutableNotebook = New wxNotebook.Create(ExecutablePanel , EGL_EN , - 1 , - 1 , - 1 , - 1 , wxNB_TOP)
 		'?	
 		
 		ExecutablePanelSizer.Add(ExecutableNotebook, 1 , wxEXPAND | wxTOP , 4)
@@ -434,16 +441,16 @@ Type EditGameList Extends wxFrame
 		Local GameEXEPanel:wxPanel = New wxPanel.Create(ExecutableNotebook , - 1)	
 		Local GameEXESizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
-		Local DescribeTextPanel:wxPanel = New wxPanel.Create(GameEXEPanel , - 1) 
-		DescribeTexthbox = New wxBoxSizer.Create(wxHORIZONTAL)
+		'Local DescribeTextPanel:wxPanel = New wxPanel.Create(GameEXEPanel , - 1)
+		'DescribeTexthbox = New wxBoxSizer.Create(wxHORIZONTAL)
 	
-		DescribeTextST = New wxStaticText.CreateStaticText(DescribeTextPanel , wxID_ANY , EP_EXE_DescribeText1 , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
+		'DescribeTextST = New wxStaticText.CreateStaticText(DescribeTextPanel , wxID_ANY , EP_EXE_DescribeText1 , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
 		
-		DescribeTexthbox.AddStretchSpacer(1)
-		DescribeTexthbox.Add(DescribeTextST , 0 , wxEXPAND , 0)
-		DescribeTexthbox.AddStretchSpacer(1)
+		'DescribeTexthbox.AddStretchSpacer(1)
+		'DescribeTexthbox.Add(DescribeTextST , 0 , wxEXPAND , 0)
+		'DescribeTexthbox.AddStretchSpacer(1)
 		
-		DescribeTextPanel.SetSizer(DescribeTexthbox)
+		'DescribeTextPanel.SetSizer(DescribeTexthbox)
 		
 		EP_EXE_Text = New wxStaticText.Create(GameEXEPanel , wxID_ANY , "EXE Path:(Please enclose in speach mark) " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		EP_EXE_Text.SetFont(BOLDFONT1)	
@@ -464,33 +471,40 @@ Type EditGameList Extends wxFrame
 		EP_CLO = New wxTextCtrl.Create(GameEXEPanel , EGL_EP_CLO , "" , - 1 , - 1 , - 1 , - 1 , 0 )
 		
 		
-		Local EP_TP2:wxPanel = New wxPanel.Create(GameEXEPanel , - 1) 
-		Local EP_TP2_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		'Local EP_TP2:wxPanel = New wxPanel.Create(GameEXEPanel , - 1)
+		'Local EP_TP2_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 	
-		EP_TP2_ST = New wxStaticText.CreateStaticText(EP_TP2 , wxID_ANY , EP_TP2_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
+		'EP_TP2_ST = New wxStaticText.CreateStaticText(EP_TP2 , wxID_ANY , EP_TP2_Text , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
 		
-		EP_TP2_hbox.AddStretchSpacer(1)
-		EP_TP2_hbox.Add(EP_TP2_ST , 0 , wxEXPAND , 0)
-		EP_TP2_hbox.AddStretchSpacer(1)
+		'EP_TP2_hbox.AddStretchSpacer(1)
+		'EP_TP2_hbox.Add(EP_TP2_ST , 0 , wxEXPAND , 0)
+		'EP_TP2_hbox.AddStretchSpacer(1)
 		
-		EP_TP2.SetSizer(EP_TP2_hbox)
+		'EP_TP2.SetSizer(EP_TP2_hbox)
 
 		
 		
 		EP_EO_Text = New wxStaticText.Create(GameEXEPanel , wxID_ANY , "Emulator Override: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		EP_EO_Text.SetFont(BOLDFONT1)
+		
+		Local EP_EO_hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		EP_EO = New wxTextCtrl.Create(GameEXEPanel , EGL_EP_EO , "" , - 1 , - 1 , - 1 , - 1 , 0 )
+		Local EP_EO_Browse:wxButton = New wxButton.Create(GameEXEPanel, EGL_EP_EO_B, "Browse")
+		
+		EP_EO_hbox.Add(EP_EO, 10, wxEXPAND | wxALL, 4)
+		EP_EO_hbox.Add(EP_EO_Browse, 2, wxEXPAND | wxALL, 4)
+		
 		EP_EO_DT = New wxStaticText.Create(GameEXEPanel , wxID_ANY , "(Default Emulator)" , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		
 			
-		GameEXESizer.Add(DescribeTextPanel, 0 , wxEXPAND | wxALL , 4)
+		'GameEXESizer.Add(DescribeTextPanel, 0 , wxEXPAND | wxALL , 4)
 		GameEXESizer.Add(EP_EXE_Text , 0 , wxEXPAND | wxALL , 4 )
 		GameEXESizer.Add(SubEXEPanel , 0 , wxEXPAND | wxALL , 4 )
 		GameEXESizer.Add(EP_CLO_Text , 0 , wxEXPAND | wxALL , 4 )
 		GameEXESizer.Add(EP_CLO , 2 , wxEXPAND | wxALL , 4 )
-		GameEXESizer.Add(EP_TP2, 0, wxEXPAND | wxALL , 4 )
+		'GameEXESizer.Add(EP_TP2, 0, wxEXPAND | wxALL , 4 )
 		GameEXESizer.Add(EP_EO_Text, 0 , wxEXPAND | wxALL , 4)
-		GameEXESizer.Add(EP_EO , 0 , wxEXPAND | wxALL , 4 )
+		GameEXESizer.AddSizer(EP_EO_hbox , 0 , wxEXPAND | wxALL , 4 )
 		GameEXESizer.Add(EP_EO_DT , 0 , wxEXPAND | wxALL , 4 )		
 		GameEXESizer.AddStretchSpacer(1)
 		
@@ -501,16 +515,16 @@ Type EditGameList Extends wxFrame
 		Local GameExtraEXEPanel:wxPanel = New wxPanel.Create(ExecutableNotebook , - 1)	
 		Local GameExtraEXESizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
-		Local DescribeTextPanel5:wxPanel = New wxPanel.Create(GameExtraEXEPanel , - 1) 
-		DescribeTexthbox5:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
+		'Local DescribeTextPanel5:wxPanel = New wxPanel.Create(GameExtraEXEPanel , - 1)
+		'DescribeTexthbox5:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 	
-		DescribeTextST5 = New wxStaticText.CreateStaticText(DescribeTextPanel5 , wxID_ANY , EP_EEXE_DescribeText1 , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
+		'DescribeTextST5 = New wxStaticText.CreateStaticText(DescribeTextPanel5 , wxID_ANY , EP_EEXE_DescribeText1 , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTRE)
 		
-		DescribeTexthbox5.AddStretchSpacer(1)
-		DescribeTexthbox5.Add(DescribeTextST5 , 0 , wxEXPAND , 0)
-		DescribeTexthbox5.AddStretchSpacer(1)
+		'DescribeTexthbox5.AddStretchSpacer(1)
+		'DescribeTexthbox5.Add(DescribeTextST5 , 0 , wxEXPAND , 0)
+		'DescribeTexthbox5.AddStretchSpacer(1)
 		
-		DescribeTextPanel5.SetSizer(DescribeTexthbox5)
+		'DescribeTextPanel5.SetSizer(DescribeTexthbox5)
 
 		'EEP_LB = New wxListBox.Create(GameExtraEXEPanel , EGL_EEP_LB , Null , -1 , -1 , -1 , -1 , wxLB_SINGLE)
 		EEP_LC = New wxListCtrl.Create(GameExtraEXEPanel , EGL_EEP_LC , - 1 , - 1 , - 1 , - 1 , wxLC_REPORT|wxLC_EDIT_LABELS|wxLC_SORT_ASCENDING)
@@ -552,7 +566,7 @@ Type EditGameList Extends wxFrame
 		
 		
 		
-		GameExtraEXESizer.Add(DescribeTextPanel5 , 0 , wxEXPAND | wxALL , 4)
+		'GameExtraEXESizer.Add(DescribeTextPanel5 , 0 , wxEXPAND | wxALL , 4)
 		GameExtraEXESizer.Add(EEP_LC , 1 , wxEXPAND | wxALL , 4 )
 		GameExtraEXESizer.Add(SubEEXEPanel2 , 0, wxEXPAND | wxBOTTOM , 2 )
 		GameExtraEXESizer.Add(SubEEXEPanel , 0, wxEXPAND , 4 )
@@ -564,7 +578,7 @@ Type EditGameList Extends wxFrame
 		Local BatchFilesPanel:wxPanel = New wxPanel.Create(ExecutableNotebook , - 1)	
 		Local BatchFilesSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)	
 		
-		Local BF_ST:wxStaticText = New wxStaticText.CreateStaticText(BatchFilesPanel , wxID_ANY , BF_ET_Text , - 1 , - 1 , - 1 , - 1, wxALIGN_CENTRE )		
+		'Local BF_ST:wxStaticText = New wxStaticText.CreateStaticText(BatchFilesPanel , wxID_ANY , BF_ET_Text , - 1 , - 1 , - 1 , - 1, wxALIGN_CENTRE )		
 
 		
 		
@@ -598,11 +612,11 @@ Type EditGameList Extends wxFrame
 		
 		Local PreBatchHbox3:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local BF_Post_WTFT:wxStaticText = New wxStaticText.CreateStaticText(BatchFilesPanel , wxID_ANY , "Wait For Batch File to Finish" , - 1 , - 1 , - 1 , - 1 )		
-		BF_Post_WTF = New wxComboBox.Create(BatchFilesPanel, EGL_PostBF_WTF , "No" , ["Yes","No"] , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )	
+		BF_Post_WTF = New wxComboBox.Create(BatchFilesPanel, EGL_PostBF_WTF , "No" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
 		PreBatchHbox3.Add(BF_Post_WTFT , 0 , wxEXPAND | wxALL , 4)
 		PreBatchHbox3.Add(BF_Post_WTF , 10 , wxEXPAND | wxALL , 4)			
 		
-		BatchFilesSizer.Add(BF_ST , 0 , wxEXPAND | wxALL , 4)
+		'BatchFilesSizer.Add(BF_ST , 0 , wxEXPAND | wxALL , 4)
 		'BatchFilesSizer.Add(BF_Pre_PT , 0 , wxEXPAND | wxALL , 4)
 		BatchFilesSizer.Add(PreBatchPanel , 0 , wxEXPAND | wxTOP , 10)
 		BatchFilesSizer.AddSizer(PreBatchHbox2 , 0 , wxEXPAND | wxALL , 0)
@@ -619,7 +633,7 @@ Type EditGameList Extends wxFrame
 		Local AutoMountPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
 		Local AutoMountSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
-		Local AM_ET_ST:wxStaticText = New wxStaticText.CreateStaticText(AutoMountPanel , wxID_ANY , AM_ET_Text , - 1 , - 1 , - 1 , - 1 ,wxALIGN_CENTER)				
+		'Local AM_ET_ST:wxStaticText = New wxStaticText.CreateStaticText(AutoMountPanel , wxID_ANY , AM_ET_Text , - 1 , - 1 , - 1 , - 1 ,wxALIGN_CENTER)				
 
 		
 		
@@ -671,7 +685,7 @@ Type EditGameList Extends wxFrame
 		AM_ISOBrowse.Disable()
 				
 	
-		AutoMountSizer.Add(AM_ET_ST , 0 , wxEXPAND | wxALL , 4)
+		'AutoMountSizer.Add(AM_ET_ST , 0 , wxEXPAND | wxALL , 4)
 		AutoMountSizer.AddSizer(Subhbox2 , 0 , wxEXPAND | wxALL , 4)
 		AutoMountSizer.AddSizer(Subhbox3 , 0 , wxEXPAND | wxALL , 4)
 		AutoMountSizer.AddSizer(Subhbox4 , 0 , wxEXPAND | wxALL , 4)
@@ -689,7 +703,7 @@ Type EditGameList Extends wxFrame
 		Local AdvancedPanel:wxPanel = New wxPanel.Create(GameNotebook , - 1)	
 		Local AdvancedSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		'Local SL3:wxStaticLine = New wxStaticLine.Create(AdvancedPanel , wxID_ANY)
-		Local A_ET_ST:wxStaticText = New wxStaticText.CreateStaticText(AdvancedPanel , wxID_ANY , A_ET_Text , - 1 , - 1 , - 1 , - 1 ,wxALIGN_CENTER)				
+		'Local A_ET_ST:wxStaticText = New wxStaticText.CreateStaticText(AdvancedPanel , wxID_ANY , A_ET_Text , - 1 , - 1 , - 1 , - 1 ,wxALIGN_CENTER)				
 		
 	'	Local font:wxFont = A_ET_ST.GetFont();
       ' 	font.SetWeight(wxFONTWEIGHT_BOLD);
@@ -697,19 +711,19 @@ Type EditGameList Extends wxFrame
 		
 		Local Asubhbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
-		Local A_RAO_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "PhotonRunner only closes when you click the close button (this game only): " , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		Local A_RAO_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "PhotonRunner only closes when you click the close button (this game only): " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
 		A_RunnerON = New wxComboBox.Create(AdvancedPanel, EGL_A_RAO , "No" , ["Yes","No"] , -1 , -1 , -1 , -1 , wxCB_DROPDOWN | wxCB_READONLY )	
 		
 		Local Asubhbox2:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
-		Local A_SWE_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "Wait 30 seconds after starting game before checking if it has closed? (this game only): " , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
-		A_StartWaitEnabled = New wxComboBox.Create(AdvancedPanel, EGL_A_SWE , "No" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
+		'Local A_SWE_Text:wxStaticText = New wxStaticText.Create(AdvancedPanel , wxID_ANY , "Wait 30 seconds after starting game before checking if it has closed? (this game only): " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT)
+		'A_StartWaitEnabled = New wxComboBox.Create(AdvancedPanel, EGL_A_SWE , "No" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		
 		
 		Local Asubhbox3:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		
 		Local SL1:wxStaticLine = New wxStaticLine.Create(AdvancedPanel , wxID_ANY)
-		Local A_ET_ST2:wxStaticText = New wxStaticText.CreateStaticText(AdvancedPanel , wxID_ANY , A_ET_Text2 , - 1 , - 1 , - 1 , - 1 ,wxALIGN_LEFT)	
+		Local A_ET_ST2:wxStaticText = New wxStaticText.CreateStaticText(AdvancedPanel , wxID_ANY , "Watch Executable List" , - 1 , - 1 , - 1 , - 1 , wxALIGN_CENTER)	
 		
 		A_EXEList = New wxListCtrl.Create(AdvancedPanel , EGL_A_EXEL , - 1 , - 1 , - 1 , - 1 , wxLC_REPORT | wxLC_EDIT_LABELS | wxLC_SORT_ASCENDING)
 		Local A_AddFolderButton:wxButton = New wxButton.Create(AdvancedPanel , EGL_A_AddF , "Add Folder")
@@ -725,20 +739,20 @@ Type EditGameList Extends wxFrame
 		Asubhbox.Add(A_RAO_Text , 0 , wxEXPAND | wxALL , 4)
 		Asubhbox.Add(A_RunnerON , 1 , wxEXPAND | wxALL , 4)
 		
-		Asubhbox2.Add(A_SWE_Text , 0 , wxEXPAND | wxALL , 4)
-		Asubhbox2.Add(A_StartWaitEnabled , 1 , wxEXPAND | wxALL , 4)
+		'Asubhbox2.Add(A_SWE_Text , 0 , wxEXPAND | wxALL , 4)
+		'Asubhbox2.Add(A_StartWaitEnabled , 1 , wxEXPAND | wxALL , 4)
 		
 		Asubhbox3.Add(A_AddFolderButton , 0 , wxEXPAND | wxALL , 4)
 		Asubhbox3.Add(A_AddExecutableButton , 1 , wxEXPAND | wxALL , 4)
 		Asubhbox3.Add(A_DeleteButton , 0 , wxEXPAND | wxALL , 4)				
 		
 
-		AdvancedSizer.Add(A_ET_ST , 0 , wxEXPAND | wxALL , 4)
+		'AdvancedSizer.Add(A_ET_ST , 0 , wxEXPAND | wxALL , 4)
 		AdvancedSizer.AddSizer(Asubhbox , 0 , wxEXPAND | wxALL , 4)
 		AdvancedSizer.AddSizer(Asubhbox2 , 0 , wxEXPAND | wxALL , 4)
 
 		AdvancedSizer.Add(SL1 , 0 , wxEXPAND | wxALL , 0)
-		AdvancedSizer.Add(A_ET_ST2 , 1 , wxEXPAND | wxALL , 4)
+		AdvancedSizer.Add(A_ET_ST2 , 0 , wxEXPAND | wxALL , 4)
 		AdvancedSizer.Add(A_EXEList , 2 , wxEXPAND | wxALL , 4)
 		AdvancedSizer.AddSizer(Asubhbox3 , 0 , wxEXPAND | wxALL , 4)
 		AdvancedPanel.SetSizer(AdvancedSizer)	
@@ -766,7 +780,9 @@ Type EditGameList Extends wxFrame
 		GameNotebook.AddPage(AdvancedPanel , "Runner Options" )
 		AdvancedPanel.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )	
 						
-		SubGamePanel2Vbox.Add(GameNotebook , 14 , wxEXPAND | wxALL , 2 )
+		
+		SubGamePanel2Vbox.Add(HelpText , 1 , wxEXPAND | wxALL , 2 )
+		SubGamePanel2Vbox.Add(GameNotebook , 5 , wxEXPAND | wxALL , 2 )
 		
 		
 
@@ -779,7 +795,7 @@ Type EditGameList Extends wxFrame
 		SubGameButton2Hbox.Add(SaveButton , 1 , wxEXPAND | wxALL , 4 )
 		'SubGameButton2Hbox.Add(CancelButton , 1 , wxEXPAND | wxALL , 4 )
 		SubGameButtonPanel2.SetSizer(SubGameButton2Hbox)		
-		SubGamePanel2Vbox.Add(SubGameButtonPanel2 , 1 , wxEXPAND , 0 )
+		SubGamePanel2Vbox.Add(SubGameButtonPanel2 , 0 , wxEXPAND , 0 )
 		SubGamePanel2.SetSizer(SubGamePanel2Vbox)
 		
 
@@ -913,11 +929,68 @@ Type EditGameList Extends wxFrame
 		
 		Connect( EGL_PreBF_WTF , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)
 		Connect( EGL_PostBF_WTF , wxEVT_COMMAND_COMBOBOX_SELECTED , DataChangeUpdate)		
-			
+		
+		Connect(EGL_GN, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, GameNotebookPageChanged)
+		Connect(EGL_EN, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, GameNotebookPageChanged)
+		
+		Connect(EGL_EP_EO_B, wxEVT_COMMAND_BUTTON_CLICKED, BrowseEmuOverrideFun)
+		
 		'------------------------------------------------------------------------------
 		'ConnectAny(wxEVT_COMMAND_RIGHT_CLICK  , TestFun)
 		ConnectAny(wxEVT_CLOSE , CloseApp)
 	End Method
+
+	Function BrowseEmuOverrideFun(event:wxEvent)
+		Local Window:EditGameList = EditGameList(event.parent)
+		?Not Win32	
+		Local openFileDialog:wxFileDialog = New wxFileDialog.Create(EmuWin, "Select emulator path" )	
+		If openFileDialog.ShowModal() = wxID_OK then
+			Window.EP_EO.ChangeValue(Chr(34) + openFileDialog.GetPath() + Chr(34) + " [ROMPATH] [EXTRA-CMD]")
+		EndIf
+		?Win32
+		tempFile:String = RequestFile("Select emulator path" )
+		If tempFile <> "" then
+			Window.EP_EO.ChangeValue(Chr(34) + tempFile + Chr(34) + " [ROMPATH] [EXTRA-CMD]")
+		EndIf
+		? 	
+		Window.DataChangeUpdate(event)
+	End Function
+
+	Function GameNotebookPageChanged(event:wxEvent)
+		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		Local Page:String, Page2:String
+		If EditGameWin.GameNotebook.GetSelection() <> - 1 then
+			Page = EditGameWin.GameNotebook.GetPageText(EditGameWin.GameNotebook.GetSelection() )
+			Select Page
+				Case "Details"
+					EditGameWin.HelpText.SetValue(EGL_Help_Details)
+				Case "Artwork"
+					EditGameWin.HelpText.SetValue(EGL_Help_Artwork)
+				Case "AutoMount"
+					EditGameWin.HelpText.SetValue(EGL_Help_AutoMount)
+				Case "Runner Options"
+					EditGameWin.HelpText.SetValue(EGL_Help_Runner_Options)
+				Case "Executables"
+					If EditGameWin.ExecutableNotebook.GetSelection() <> - 1 then
+						Page2 = EditGameWin.ExecutableNotebook.GetPageText(EditGameWin.ExecutableNotebook.GetSelection() )
+						Select Page2
+							Case "ROM Path"
+								EditGameWin.HelpText.SetValue(EGL_Help_ROM)
+							Case "Run Executable Path"
+								EditGameWin.HelpText.SetValue(EGL_Help_Run)
+							Case "Other Executables"
+								EditGameWin.HelpText.SetValue(EGL_Help_Other_Executables)
+							Case "Batch Files"
+								EditGameWin.HelpText.SetValue(EGL_Help_Batch)
+							Default
+								CustomRuntimeError("GameNotebookPageChanged Page Select Error 2")
+						End Select
+					EndIf
+				Default
+					CustomRuntimeError("GameNotebookPageChanged Page Select Error")
+			End Select
+		EndIf
+	End Function
 
 	Function OtherOptionsMenu(event:wxEvent)
 		Local EditGameWin:EditGameList = EditGameList(event.parent)
@@ -1347,7 +1420,7 @@ EndRem
 		Print String(data)
 		Select String(data)
 			Case "3"
-				ArtworkPickerField = ArtworkPicker(New ArtworkPicker.Create(EGW, wxID_ANY, "Artwork Picker", , , 800, 600))	
+				ArtworkPickerField = ArtworkPicker(New ArtworkPicker.Create(EGW, wxID_ANY, "Artwork Picker", , , 800, 600) )	
 				EGW.Hide()
 				ArtworkPickerField.SetType(GameName , 3)
 				
@@ -1365,6 +1438,7 @@ EndRem
 		Local MessageBox:wxMessageDialog
 		Local GRate:String, GCert:String, GPlatform:String, GEmuOverride:String , GCoop:String , GPlayers:String, GPlatformNum:Int
 		EGW.SubGamePanel2.Enable()
+		EGW.GameNotebookPageChanged(event)
 		
 		If EGW.DataChanged = 1 then
 			PrintF("Clear Changes?")
@@ -1519,17 +1593,17 @@ EndRem
 			EGW.AM_UnMountCombo.SetValue(GameNode.UnMount)
 			EGW.AM_ISOPath.ChangeValue(GameNode.DiscImage)
 			
-			If GameNode.GameRunnerAlwaysOn = 1 Then 
+			If GameNode.GameRunnerAlwaysOn = 1 then
 				EGW.A_RunnerON.SetSelection(EGW.A_RunnerON.FindString("Yes") )
 			Else
 				EGW.A_RunnerON.SetSelection(EGW.A_RunnerON.FindString("No") )
 			EndIf 
 			
-			If GameNode.StartWaitEnabled = 1 Then 
-				EGW.A_StartWaitEnabled.SetSelection(EGW.A_StartWaitEnabled.FindString("Yes") )
-			Else
-				EGW.A_StartWaitEnabled.SetSelection(EGW.A_StartWaitEnabled.FindString("No") )
-			EndIf 
+			'If GameNode.StartWaitEnabled = 1 Then
+			'	EGW.A_StartWaitEnabled.SetSelection(EGW.A_StartWaitEnabled.FindString("Yes") )
+			'Else
+			'	EGW.A_StartWaitEnabled.SetSelection(EGW.A_StartWaitEnabled.FindString("No") )
+			'EndIf
 
 			
 			If GameNode.PreBFWait = 1 Then 
@@ -1552,15 +1626,15 @@ EndRem
 			If GlobalPlatforms.GetPlatformByID(GPlatformNum).PlatType = "Folder" then
 				EGW.ExecutableNotebook.SetPageText(0,"Run Executable Path")
 				EGW.EP_EO_DT.SetLabel("")
-				EGW.EP_TP2_ST.SetLabel("")
+				'EGW.EP_TP2_ST.SetLabel("")
 				EGW.EP_EO.Disable()
 				EGW.EP_EO.Hide()
 				EGW.EP_EO_Text.SetLabel("")
 				EGW.EP_EO.ChangeValue("")
-				EGW.DescribeTextST.SetLabel(EP_EXE_DescribeText1)
+				'EGW.DescribeTextST.SetLabel(EP_EXE_DescribeText1)
 				EGW.EP_EXE_Text.SetLabel("EXE: ")
 				EGW.EP_CLO_Text.SetLabel("Command Line Options: ")		
-				EGW.DescribeTexthbox.Layout()
+				'EGW.DescribeTexthbox.Layout()
 				
 				'For a = 1 To Len(GameNode.EXE)
 				'	If Mid(GameNode.EXE , a , 1) = "." Then
@@ -1589,17 +1663,21 @@ EndRem
 				EndIf 
 			Else
 				EGW.ExecutableNotebook.SetPageText(0,"ROM Path")
-				EGW.EP_TP2_ST.SetLabel(EP_TP2_Text)
+				'EGW.EP_TP2_ST.SetLabel(EP_TP2_Text)
 				EGW.EP_EO.Enable()
 				EGW.EP_EO.Show()
 				EGW.EP_EO_Text.SetLabel("Emulator Override")			
-				EGW.DescribeTextST.SetLabel(EP_EXE_DescribeText2)
+				'EGW.DescribeTextST.SetLabel(EP_EXE_DescribeText2)
 				EGW.EP_EXE_Text.SetLabel("Rom Path: ")
 				EGW.EP_CLO_Text.SetLabel("Extra Command Line Options: ")				
-				EGW.DescribeTexthbox.Layout()
+				'EGW.DescribeTexthbox.Layout()
 				If GEmuOverride = "" Or GEmuOverride = " " Then
 					EGW.EP_EO.ChangeValue(GlobalPlatforms.GetPlatformByID(GPlatformNum).Emulator )
-					EGW.EP_EO_DT.SetLabel("(Default Emulator)")
+					If GlobalPlatforms.GetPlatformByID(GPlatformNum).Emulator = "" then
+						EGW.EP_EO_DT.SetLabel("(Default emulator for this platform not set! Goto 'Platform' tab of main menu to set one.)")
+					Else
+						EGW.EP_EO_DT.SetLabel("(Default Emulator)")
+					EndIf
 				Else
 					EGW.EP_EO.ChangeValue(GEmuOverride)
 					EGW.EP_EO_DT.SetLabel("")
@@ -1642,6 +1720,8 @@ EndRem
 			For a = 0 To Len(WatchEXEsArray) - 1
 				EGW.A_EXEList.InsertStringItem(a  , String(WatchEXEsArray[a]) )
 			Next
+			
+			EGW.GameNotebookPageChanged(event)
 			
 			PrintF("Set Details into Details Pane")
 
@@ -1712,8 +1792,22 @@ EndRem
 	
 	Function ShowTrailer(event:wxEvent)
 		Local EGW:EditGameList = EditGameList(event.parent)
+		Local MessageBox:wxMessageDialog
+	
+		If Left(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=") ) = "https://www.youtube.com/watch?v=" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=")+1 , 11) )
+		EndIf
+		If Left(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") ) = "http://www.youtube.com/watch?v=" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") + 1 , 11) )
+		EndIf	
+							If EGW.DP_GameVid.GetValue().length > 0 And EGW.DP_GameVid.GetValue().length <> 11 then
+			MessageBox = New wxMessageDialog.Create(Null , "Invalid Trailer code: it should be 11 characters and can be found by taking the youtube video link and copying the 11 characters after the 'v=' part of the link. So for 'youtube.com/watch?v=nfWlot6h_JM' you would enter 'nfWlot6h_JM'. Leave blank to not have a trailer." , "Error" , wxOK | wxICON_EXCLAMATION)
+			MessageBox.ShowModal()
+			MessageBox.Free()
+			Return				
+		EndIf
 		Local Trailer:String = EGW.DP_GameVid.GetValue()
-		OpenURL("http://www.youtube.com/watch?v="+Trailer)
+		OpenURL("http://www.youtube.com/watch?v=" + Trailer)
 	End Function
 	
 	Function SaveGame(event:wxEvent)
@@ -1722,7 +1816,7 @@ EndRem
 		If EGW.AM_MountCombo.GetValue() <> "None" Then 
 			EGW.Mounter.MounterPath = EGW.AM_MPath.GetValue()
 			
-			If FileType(EGW.Mounter.MounterPath ) <> 1 Then
+			If FileType(EGW.Mounter.MounterPath ) <> 1 then
 				MessageBox = New wxMessageDialog.Create(Null , "Invalid Mounter Path" , "Error" , wxOK | wxICON_EXCLAMATION)
 				MessageBox.ShowModal()
 				MessageBox.Free()
@@ -1755,6 +1849,13 @@ EndRem
 				
 		EndIf 
 		
+		If Left(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=") ) = "https://www.youtube.com/watch?v=" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=")+1 , 11) )
+		EndIf
+		If Left(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") ) = "http://www.youtube.com/watch?v=" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") + 1 , 11) )
+		EndIf		
+		
 		If EGW.DP_GameVid.GetValue().length > 0 And EGW.DP_GameVid.GetValue().length <> 11 then
 			MessageBox = New wxMessageDialog.Create(Null , "Invalid Trailer code: it should be 11 characters and can be found by taking the youtube video link and copying the 11 characters after the 'v=' part of the link. So for 'youtube.com/watch?v=nfWlot6h_JM' you would enter 'nfWlot6h_JM'. Leave blank to not have a trailer." , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
@@ -1774,7 +1875,7 @@ EndRem
 		Local GPlayers:String = EGW.DP_GamePlayers.GetValue()
 
 		Local GRunnerAlwaysOn:Int
-		Local GStartWaitEnabled:Int 
+		Local GStartWaitEnabled:Int
 		Local PreWait:Int
 		Local PostWait:Int 
 		
@@ -1784,11 +1885,11 @@ EndRem
 			GRunnerAlwaysOn = 0
 		EndIf 
 		
-		If EGW.A_StartWaitEnabled.GetValue()="Yes" Then 
-			GStartWaitEnabled = 1
-		Else
-			GStartWaitEnabled = 0
-		EndIf 
+		'If EGW.A_StartWaitEnabled.GetValue()="Yes" Then
+		'	GStartWaitEnabled = 1
+		'Else
+		'	GStartWaitEnabled = 0
+		'EndIf
 
 		If EGW.BF_Pre_WTF.GetValue()="Yes" Then 
 			PreWait = 1
@@ -2055,7 +2156,7 @@ EndRem
 		
 		Else
 			PrintF("Copying: Icon Art")
-			If EGW.IconArt.Image = "" Then
+			If EGW.IconArt.Image = "" then
 				DeleteFile(GAMEDATAFOLDER + GameName +FolderSlash+"Icon.ico")
 			Else			
 				CopyFile(EGW.IconArt.Image , GAMEDATAFOLDER + GameName +FolderSlash+"Icon.ico")
@@ -2080,6 +2181,7 @@ EndRem
 	
 	Function DataChangeUpdate(event:wxEvent)
 		Local EditGameWin:EditGameList = EditGameList(event.parent)
+		Local Path:String
 		If EditGameWin.DataChanged = True Then
 		
 		Else
@@ -2090,8 +2192,12 @@ EndRem
 		If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).PlatType = "Folder" Then
 		
 		Else
-			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).Emulator Or EditGameWin.EP_EO.GetValue()="" Then
-				EditGameWin.EP_EO_DT.SetLabel("(Default Emulator)")
+			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator Or EditGameWin.EP_EO.GetValue() = "" then
+				If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator = "" then
+					EditGameWin.EP_EO_DT.SetLabel("(Default emulator for this platform not set! Goto 'Platform' tab of main menu to set one.)")
+				Else
+					EditGameWin.EP_EO_DT.SetLabel("(Default Emulator)")
+				EndIf
 			Else
 				EditGameWin.EP_EO_DT.SetLabel("")
 			EndIf

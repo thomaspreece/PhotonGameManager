@@ -200,7 +200,11 @@ Type PlatformReader
 		PlatformNode = RootNode.addTextChild("Platform" , Null , "")
 		PlatformNode.addTextChild("ID" , Null , "12")
 		PlatformNode.addTextChild("Name" , Null , "Mac OS")
+		?MacOS
 		PlatformNode.addTextChild("Type" , Null , "Folder")
+		?Not MacOS
+		PlatformNode.addTextChild("Type" , Null , "File")
+		?
 		PlatformNode.addTextChild("Emulator" , Null , "")
 		PlatformNode = RootNode.addTextChild("Platform" , Null , "")
 		PlatformNode.addTextChild("ID" , Null , "13")
@@ -260,7 +264,11 @@ Type PlatformReader
 		PlatformNode = RootNode.addTextChild("Platform" , Null , "")
 		PlatformNode.addTextChild("ID" , Null , "24")
 		PlatformNode.addTextChild("Name" , Null , "PC")
+		?Win32
 		PlatformNode.addTextChild("Type" , Null , "Folder")
+		?Not Win32
+		PlatformNode.addTextChild("Type" , Null , "File")
+		?
 		PlatformNode.addTextChild("Emulator" , Null , "")
 		PlatformNode = RootNode.addTextChild("Platform" , Null , "")
 		PlatformNode.addTextChild("ID" , Null , "25")
@@ -340,7 +348,11 @@ Type PlatformReader
 		PlatformNode = RootNode.addTextChild("Platform" , Null , "")
 		PlatformNode.addTextChild("ID" , Null , "40")
 		PlatformNode.addTextChild("Name" , Null , "Linux")
+		?Linux
+		PlatformNode.addTextChild("Type" , Null , "Folder")
+		?Not Linux
 		PlatformNode.addTextChild("Type" , Null , "File")
+		?
 		PlatformNode.addTextChild("Emulator" , Null , "")
 		PlatformNode = RootNode.addTextChild("Platform" , Null , "")
 		PlatformNode.addTextChild("ID" , Null , "41")

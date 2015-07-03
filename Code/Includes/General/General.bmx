@@ -444,7 +444,7 @@ Function DeleteCreateFolder(Folder:String)
 			Exit
 		EndIf
 	Next
-	PrintF("DeleteDir Loop "+a)
+	PrintF("DeleteDir Loop " + a)
 	If FileType(Folder) = 2 Then
 		CustomRuntimeError("Error 7: Cannot Delete Folder "+Folder) 'MARK: Error 7
 	EndIf
@@ -858,6 +858,14 @@ Type GameReadType {expose}
 			If Self.Plat = "" then
 			
 			Else
+				If Self.Plat = "Nintendo Game Boy Advance" then
+					Self.Plat = "Nintendo Gameboy Advance"
+				ElseIf Self.Plat = "Nintendo Game Boy" then
+					Self.Plat = "Nintendo Gameboy"
+				ElseIf Self.Plat = "Sony PlayStation" then
+					Self.Plat = "Sony Playstation"
+				EndIf			
+			
 				Self.PlatformNum = GlobalPlatforms.GetPlatformByName(Self.Plat).ID
 			EndIf
 		EndIf
@@ -866,7 +874,7 @@ Type GameReadType {expose}
 		
 		PrintF("Getting userdata")
 		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "userdata.txt") = 1 then
-			Local ReadUserData = ReadFile(GAMEDATAFOLDER + GName + FolderSlash+"userdata.txt")
+			Local ReadUserData = ReadFile(GAMEDATAFOLDER + GName + FolderSlash + "userdata.txt")
 				Self.Rating = ReadLine(ReadUserData)
 				Self.Completed = Int(ReadLine(ReadUserData) )
 			CloseFile(ReadUserData)
@@ -1813,7 +1821,7 @@ If inNum=118 Then Return "F7"
 If inNum=119 Then Return "F8"
 If inNum=120 Then Return "F9"
 If inNum=121 Then Return "F10"
-If inNum=122 Then Return "F11"
+If inNum = 122 then Return "F11"
 If inNum=123 Then Return "F12"
 If inNum=144 Then Return "Num Lock"
 If inNum = 145 then Return "Scroll Lock"

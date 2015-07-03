@@ -1182,34 +1182,46 @@ End Function
 
 'Returns true if EXE should be excluded
 Function OnExcludeList(EXE:String)
-	If EXE = "gameoverlayui.exe" then Return 1
-	If EXE = "steamservice.exe" then Return 1
-	If EXE = "steamerrorreporter.exe" then Return 1
-	If EXE = "steamerrorreporter64.exe" then Return 1
-	If EXE = "Steamtmp.exe" then Return 1
-	If EXE = "streaming_client.exe" then Return 1
-	If EXE = "x64launcher.exe" then Return 1
-	If EXE = "x86launcher.exe" then Return 1
-	If EXE = "steamwebhelper.exe" then Return 1
-	
-	If EXE = "uplay.exe" then Return 1
-	
-	Return 0
+	If ListContains(EXEExcludeList, EXE) then
+		Return 1
+	Else
+		Return 0
+	EndIf
 End Function
-Rem
-Function StripSteamProcesses:TList(ProcessList:TList)
-	ListRemove(ProcessList, "GameOverlayUI.exe")
-	ListRemove(ProcessList,"steamservice.exe")
-	ListRemove(ProcessList,"steamerrorreporter.exe")	
-	ListRemove(ProcessList,"steamerrorreporter64.exe")
-	ListRemove(ProcessList, "SteamTmp.exe")
-	ListRemove(ProcessList,"streaming_client.exe")
-	ListRemove(ProcessList, "x64launcher.exe")
-	ListRemove(ProcessList,"x86launcher.exe")
-	
-	'Fix for steam launching UPlay Games
-	ListRemove(ProcessList, "uplay.exe")	
 
-	Return ProcessList	
+Function LoadInExclusionList()
+	Local Line:String
+	
+	If FileType(SETTINGSFOLDER + "EXEExclusionList.txt") <> 1 then
+		WriteExclusionList()
+		If FileType(SETTINGSFOLDER + "EXEExclusionList.txt") <> 1 then
+			CustomRuntimeError("Failed to create Exclusion List")
+		EndIf
+	EndIf
+	Local EFile:TStream = ReadFile(SETTINGSFOLDER + "EXEExclusionList.txt")
+	Line = ReadLine(EFile)
+	
+	Repeat
+		Line = ReadLine(EFile)
+		ListAddLast(EXEExcludeList, Low(Line) )
+		If Eof(EFile) then Exit
+	Forever
+	CloseFile(EFile)
 End Function
-EndRem
+
+Function WriteExclusionList()
+	Local EFile:TStream = WriteFile(SETTINGSFOLDER + "EXEExclusionList.txt")
+	WriteLine(EFile, "File Version: 1 #Do Not Change This Line!")
+	WriteLine(EFile, "gameoverlayui.exe")
+	WriteLine(EFile, "steamservice.exe")
+	WriteLine(EFile, "steamerrorreporter.exe")
+	WriteLine(EFile, "steamerrorreporter64.exe")
+	WriteLine(EFile, "Steamtmp.exe")
+	WriteLine(EFile, "streaming_client.exe")
+	WriteLine(EFile, "x64launcher.exe" )
+	WriteLine(EFile, "x86launcher.exe")
+	WriteLine(EFile, "steamwebhelper.exe")
+	WriteLine(EFile, "uplay.exe")
+	
+	CloseFile(EFile)
+End Function

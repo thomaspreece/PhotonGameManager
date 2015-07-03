@@ -1,5 +1,8 @@
 'TODO: Update Backup and Restore Functions
-'NOTE: PhotonUpdater, PhotonTray dont load GeneralSettings and hence don't load DebugLog Setting
+'NOTE: PhotonTray dont load GeneralSettings and hence don't load DebugLog Setting
+'TODO: Fix keycodes on Plugins
+'TODO: Customisable Exclusion EXE List Menu
+'TODO: Some kind of emulator path help function. Eg. Select Gamecube->Dolphin->Path to emulator-> Fills in command line options etc automatically
 
 
 'TODO: Update Artwork BrowseOnline Function
@@ -247,7 +250,7 @@ Function Thread_Startup:Object(obj:Object)
 	
 	Splash.SetStatusText("Cleaning up temporary folder")	
 	TempFolderCleanup()
-
+	
 	LogName = "Log-Manager " + CurrentDate() + " " + Replace(CurrentTime(), ":", "-") + ".txt"
 	CreateFile(LOGFOLDER+LogName)
 
@@ -277,6 +280,9 @@ Function Thread_Startup:Object(obj:Object)
 	Splash.SetStatusText("Checking game database")
 	'ValidateGames()
 	GamesCheck()
+	
+	Splash.SetStatusText("Checking Resources")	
+	ResourcesCheck()
 
 	Splash.SetStatusText("Setting up LuaMachine")
 	StartupLuaVM()		
@@ -619,7 +625,7 @@ Type MainWindow Extends wxFrame
 	Method ResetEditGameWindow()
 		EditGameListField.Destroy()
 		EditGameListField = Null 
-		EditGameListField = EditGameList(New EditGameList.Create(Self, wxID_ANY, "Games", , , 900, 650))	
+		EditGameListField = EditGameList(New EditGameList.Create(Self, wxID_ANY, "Games", , , 950, 850) )	
 		EditGameListField.PopulateGameList()		
 		EditGameListField.Show(True)
 		EditGameListField.Raise()
@@ -665,7 +671,7 @@ Type MainWindow Extends wxFrame
 	Function ShowEditGameList(event:wxEvent)
 		Local MainWin:MainWindow = MainWindow(event.parent)
 		PrintF("----------------------------Show Edit Game List----------------------------")
-		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 900, 650, wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL) )	
+		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 950, 850, wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL) )	
 		MainWin.EditGameListField.PopulateGameList()		
 		MainWin.EditGameListField.Show(True)
 		MainWin.Hide()
@@ -1334,6 +1340,9 @@ Type PluginsWindow Extends wxFrame
 		
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, "Plugins", - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
+		If PMHideHelp = 1 then
+			HelpText.Hide()
+		EndIf 		
 		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
 		Panel2.SetSizer(P2Hbox)
 		
@@ -2384,6 +2393,12 @@ Function LoadManagerSettings()
 		PMFetchAllArt = Int(ReadSettings.GetSetting("FetchAllArt") )
 	EndIf			
 	
+	If ReadSettings.GetSetting("HideHelp") <> "" then
+		PMHideHelp = Int(ReadSettings.GetSetting("HideHelp") )
+	EndIf
+	
+	
+	
 	ReadSettings.CloseFile()
 End Function
 
@@ -2407,6 +2422,7 @@ Function SaveManagerSettings()
 	SaveSettings.SaveSetting("DefaultGameLua" , PMDefaultGameLua)
 	SaveSettings.SaveSetting("FetchAllArt" , PMFetchAllArt)
 	
+	SaveSettings.SaveSetting("HideHelp", PMHideHelp)
 	
 	SaveSettings.SaveFile()
 	SaveSettings.CloseFile()

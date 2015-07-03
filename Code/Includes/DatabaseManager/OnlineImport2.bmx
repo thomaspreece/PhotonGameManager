@@ -434,6 +434,9 @@ Type OnlineImport2 Extends wxFrame
 		HelpPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local HelpPanelSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(HelpPanel, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
+		If PMHideHelp = 1 then
+			HelpText.Hide()
+		EndIf 		
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		HelpPanelSizer.Add(HelpText, 1, wxEXPAND | wxALL, 10)
 		HelpPanel.SetSizer(HelpPanelSizer)

@@ -14,6 +14,8 @@ Const PR_KT = 1626
 Const PR_T2 = 1627
 Const PR_SPT = 1628
 
+
+Global EXEExcludeList:TList = CreateList()
 Global PROGRAMICON2:String = RESFOLDER + "Runner2.ico"
 
 Global CmdLineGameName:String = ""
