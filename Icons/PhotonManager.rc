@@ -25,7 +25,7 @@ WXCURSOR_PLEFT          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/
 WXCURSOR_PRIGHT         CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/pntright.cur"
 WXCURSOR_BLANK          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/blank.cur"
 WXCURSOR_CROSS          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/cross.cur"
-wxICON_AAA                      ICON "Database.ico"
+wxICON_AAA                      ICON "Manager.ico"
 wxICON_SMALL_CLOSED_FOLDER      ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/folder1.ico"
 wxICON_SMALL_OPEN_FOLDER        ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/folder2.ico"
 wxICON_SMALL_FILE               ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/file1.ico"
