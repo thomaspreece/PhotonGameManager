@@ -8,8 +8,8 @@ Global UPDATEPROGRAM:String = "PhotonUpdate.exe"
 Global RUNNERPROGRAM:String = "PhotonRunner.exe"
 ?Linux
 Global FRONTENDPROGRAM:String = Chr(34) + RealPath("PhotonFrontend") + Chr(34)
-Global MANAGERPROGRAM:String = Chr(34)+RealPath("PhotonManager")+Chr(34)
-Global EXPLORERPROGRAM:String = Chr(34)+RealPath("PhotonExplorer")+Chr(34)
+Global MANAGERPROGRAM:String = Chr(34) + RealPath("PhotonManager") + Chr(34)
+Global EXPLORERPROGRAM:String = Chr(34) + RealPath("PhotonExplorer") + Chr(34)
 Global DOWNLOADERPROGRAM:String = Chr(34) + RealPath("PhotonDownloader") + Chr(34)
 Global UPDATEPROGRAM:String = Chr(34) + RealPath("PhotonUpdate") + Chr(34)
 Global RUNNERPROGRAM:String = Chr(34) + RealPath("PhotonRunner") + Chr(34)

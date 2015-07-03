@@ -10,6 +10,7 @@ Const GES_SL = 1004
 Const GES_TB = 1005
 Const GES_GN = 1006
 Const GES = 1007
+Const GES_TW = 1008
 
 Const IP_M1_I1 = 1100
 Const IP_M1_I2 = 1101
@@ -114,8 +115,7 @@ Const RT1 = 1853
 Const MT1 = 1854
 Const FT1 = 1855
 
-Global PROGRAMICON:String = RESFOLDER + "Controller.ico"
-Global PROGRAMICON2:String = RESFOLDER + "Runner.ico"
+Global PROGRAMICON:String = RESFOLDER + "Explorer.ico"
 ?Win32
 Const BackEnd:String = wxMEDIABACKEND_WMP10
 Const ShowPlayerCtrls:int = 0

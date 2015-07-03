@@ -13,9 +13,6 @@ Import BaH.Volumes
 Import PUB.FreeProcess
 Import Pub.FreeJoy
 
-'TODO: Get close window cross button to actually end the program
-
-
 'NOTHING IMPORTANT HERE!
 'Max2D - MouseX,MouseY incorrect on Ubuntu V.M - Fine on native Ubuntu!
 'BUG: Windows 8 Doesn't work - Believed to be fixed
@@ -36,7 +33,7 @@ Import "-ldl"
 Global FolderSlash:String="/"
 
 ?Win32
-Import "Icons\PhotonFrontEnd.o"
+Import "..\Icons\PhotonFrontEnd.o"
 Global FolderSlash:String ="\"
 ?
 
@@ -116,9 +113,6 @@ Include "Includes\FrontEnd\General.bmx"
 
 
 CheckKey()
-If EvaluationMode = True Then 
-	Notify "You are running in evaluation mode, this limits you to 5 games."
-EndIf 
 
 CheckInternet()
 CheckVersion()
@@ -657,7 +651,8 @@ Repeat
 	EndIf
 	
 
-	If ExitProgramCall = True Then Exit
+	If ExitProgramCall = True then Exit
+	If AppTerminate() then Exit
 Forever
 
 LockMutex(Mutex_CloseTextureThread)
@@ -906,7 +901,7 @@ Function PopulateGames()
 	tempGameList = ApplySort(tempGameList)
 	
 	
-	GameArray = GameArray[..tempGameList.count()]
+	GameArray = GameArray[..tempGameList.Count()]
 	GameArrayUpdated = True 
 	For temp = EachIn tempGameList
 		GameArray[a] = temp
