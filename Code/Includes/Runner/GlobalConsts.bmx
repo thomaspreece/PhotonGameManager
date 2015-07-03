@@ -3,6 +3,9 @@ Global OriginWaitEnabled = True
 Global SkipBatchWait:int = 0
 Global FinishProgramRunning:int = 0
 
+Global ProcessQueryDelay:int = 50
+Global PluginQueryDelay:int = 50
+
 Global PhotonRunnerApp:PhotonRunner
 
 Const PR_EB = 1390
@@ -11,7 +14,7 @@ Const PR_KT = 1626
 Const PR_T2 = 1627
 Const PR_SPT = 1628
 
-Global PROGRAMICON2:String = RESFOLDER + "Runner.ico"
+Global PROGRAMICON2:String = RESFOLDER + "Runner2.ico"
 
 Global CmdLineGameName:String = ""
 Global CmdLineGameTab:String = ""

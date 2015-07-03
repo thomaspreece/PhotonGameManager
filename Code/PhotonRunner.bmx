@@ -1,4 +1,5 @@
 'TODO: Remove Mounter delay and that detect iso mounted
+'TODO: Keep PhotonRunner Loaded for several hours to see if it leaks memory
 
 Framework wx.wxapp
 Import wx.wximage
@@ -30,7 +31,7 @@ Import bah.libcurlssl
 Import brl.threads
 
 ?Win32
-Import "Icons\PhotonRunner.o"
+Import "..\Icons\PhotonRunner.o"
 ?
 
 AppTitle = "PhotonRunner"
@@ -91,7 +92,7 @@ For Argument$ = EachIn AppArgs$
 			RunnerGameName = Argument
 			PastArgument = ""		
 		Case "-EXENum", "EXENum"
-			RunnerEXENumber = Int(Argument)
+			RunnerEXENumber = int(Argument)
 			PastArgument = ""
 		Case "-Debug", "Debug"
 			If int(Argument) = 1 then
@@ -105,6 +106,11 @@ For Argument$ = EachIn AppArgs$
 			End Select
 	End Select
 Next
+
+If AppArgs.length = 1 then
+	Notify "This program handles running your games and other options. It is automatically called by PhotonExplorer and PhotonFrontend when you click to start a game, and as such there is no reason for you to run this program manually. PhotonRunner will now exit."
+	End
+EndIf
 
 If DebugLogEnabled = False then
 	DeleteFile(LOGFOLDER + LogName)
@@ -174,6 +180,13 @@ Function LoadGlobalSettings()
 			DebugLogEnabled = 1
 		EndIf
 	EndIf			
+	If ReadSettings.GetSetting("ProcessQueryDelay") <> "" then		
+		ProcessQueryDelay = Int(ReadSettings.GetSetting("ProcessQueryDelay") )
+	EndIf		
+	If ReadSettings.GetSetting("PluginQueryDelay") <> "" then		
+		PluginQueryDelay = Int(ReadSettings.GetSetting("PluginQueryDelay") )
+	EndIf		
+	
 	ReadSettings.CloseFile()
 End Function
 
