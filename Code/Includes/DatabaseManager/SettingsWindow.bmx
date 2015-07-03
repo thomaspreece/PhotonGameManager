@@ -13,7 +13,7 @@ Type SettingsWindow Extends wxFrame
 	Field SW_LowProc:wxComboBox
 	Field SW_GameCache:wxTextCtrl
 	Field SW_TouchKey:wxComboBox
-	Field SW_OverridePath:wxTextCtrl 
+	Field SW_OverridePath:wxTextCtrl
 	Field SW_ButtonCloseOnly:wxComboBox
 	Field SW_OriginWait:wxComboBox
 	Field SW_AntiAlias:wxComboBox
@@ -26,6 +26,9 @@ Type SettingsWindow Extends wxFrame
 	Field SW_DownloadAllArtwork:wxComboBox
 	Field SW_DebugLog:wxComboBox
 	Field SW_GEAddAllEXEs:wxComboBox
+	
+	Field SW_ProcessQueryDelay:wxTextCtrl
+	Field SW_PluginQueryDelay:wxTextCtrl
 	
 	Field SW_ColourPickerE1:wxColourPickerCtrl
 	Field SW_ColourPickerE2:wxColourPickerCtrl
@@ -76,6 +79,8 @@ Type SettingsWindow Extends wxFrame
 		Local E202:String = "Enable Cabinet Mode ~nEnabling this option will cause PhotonFrontend or PhotonExplorer to load back up after you have finished with your game."
 		Local E203:String = "Runner Stays Open ~nSetting this to Yes will cause PhotonRunner to not automatically close when it has finished doing its designated tasks. ~n~nRecommended Setting: No"
 		Local E204:String = "Enable Origin 30 Second Wait ~nDetecting when an Origin game is finished can be difficult as Origin always stays open. Setting this option to Yes causes PhotonRunner to wait 30 seconds to allow origin and hence the game to load before PhotonRunner looks to see if game is still running ~n~nRecommended Setting: Yes"
+		Local E205:String = "Process Query Delay ~nThis is the time (in milliseconds) between PhotonRunner checking whether your game has closed or not. Setting this lower makes PhotonRunner detect that your game has closed quicker but will increase CPU usage of PhotonRunner. In my testing setting this to the lowest value of 50 does not affect performance of system in any noticable way so changing this setting shouldn't affect your system performance in any way either but the option is left here in case it does."
+		Local E206:String = "Plugin Query Delay ~nThis is the time (in milliseconds) between PhotonRunner checking for key presses that are assigned to the plugins such as screenshot and video capture plugins. Setting this lower makes PhotonRunner detect those key presses better. In my testing setting this to the lowest value of 50 does not affect performance of system in any noticable way so changing this setting shouldn't affect your system performance in any way either but the option is left here in case it does."		
 		
 		Local E251:String = "Colour Picker ~nHere you can change the two colours used on the interface of PhotonManager. Note you will need to restart PhotonManager to see these changes."
 		Local E252:String = "Maximize ~nSetting this to Yes will cause most PhotonManager windows to maximize when they become visible. ~n~nRecommended Setting: Yes"
@@ -381,6 +386,18 @@ Type SettingsWindow Extends wxFrame
 		SW_OriginWait = New wxComboHelpBox.Create(ScrollBox5 , SW_OW , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )			
 		wxComboHelpBox(SW_OriginWait).SetFields( E204, DefaultHelp, HelpText)
 		
+		Local ST34:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox5 , wxID_ANY , "Runner Process Query Delay: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
+		wxStaticHelpText(ST34).SetFields( E205, DefaultHelp, HelpText)		
+		
+		SW_ProcessQueryDelay = New wxTextHelpCtrl.Create(ScrollBox5 , SW_PQD , PRProcessQueryDelay , - 1 , - 1 , - 1 , - 1 , 0 )
+		wxTextHelpCtrl(SW_ProcessQueryDelay).SetFields( E205, DefaultHelp, HelpText)
+		
+		Local ST35:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox5 , wxID_ANY , "Runner Plugin Query Delay: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
+		wxStaticHelpText(ST35).SetFields( E206, DefaultHelp, HelpText)		
+		
+		SW_PluginQueryDelay = New wxTextHelpCtrl.Create(ScrollBox5 , wxID_ANY , PRPluginQueryDelay , - 1 , - 1 , - 1 , - 1 , 0 )
+		wxTextHelpCtrl(SW_PluginQueryDelay).SetFields( E206, DefaultHelp, HelpText)		
+		
 		'ScrollBoxvbox5.Add(SL7, 0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox5.Add(SLT4, 0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox5.Add(SL8 , 0 , wxEXPAND | wxALL , 4)		
@@ -394,6 +411,11 @@ Type SettingsWindow Extends wxFrame
 		
 		ScrollBoxvbox5.Add(ST14 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox5.Add(SW_OriginWait , 0 , wxEXPAND | wxALL , 4)			
+		
+		ScrollBoxvbox5.Add(ST34 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox5.Add(SW_ProcessQueryDelay , 0 , wxEXPAND | wxALL , 4)	
+		ScrollBoxvbox5.Add(ST35 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox5.Add(SW_PluginQueryDelay , 0 , wxEXPAND | wxALL , 4)							
 		
 		ScrollBox5.SetSizer(ScrollBoxvbox5)
 		
@@ -906,7 +928,7 @@ Type SettingsWindow Extends wxFrame
 		GameDir = ReadDir(GAMEDATAFOLDER)
 		Repeat
 			item$=NextFile(GameDir)
-			If item = "" Then Exit
+			If item = "" then Exit
 			If item="." Or item=".." Then Continue
 			GameNode:GameType = New GameType
 			If GameNode.GetGame(item) = - 1 then
@@ -1049,6 +1071,17 @@ Type SettingsWindow Extends wxFrame
 		EndIf
 		
 		PMDefaultGameLua = SW_DefaultGameLua.GetValue()
+		
+		
+		
+		PRPluginQueryDelay = Int(SW_PluginQueryDelay.GetValue() )
+		If PRPluginQueryDelay < 10 then
+			PRPluginQueryDelay = 10
+		EndIf
+		PRProcessQueryDelay = Int(SW_ProcessQueryDelay.GetValue() )
+		If PRProcessQueryDelay < 10 then
+			PRProcessQueryDelay = 10
+		EndIf
 		
 		PMRed = SW_ColourPicker1.GetColour().Red()
 		PMGreen = SW_ColourPicker1.GetColour().Green()

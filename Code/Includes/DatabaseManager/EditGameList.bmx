@@ -2186,6 +2186,24 @@ EndRem
 
 	Function ShowMainMenu(event:wxEvent)
 		Local MainWin:MainWindow = EditGameList(event.parent).ParentWin
+		Local EGW:EditGameList = EditGameList(event.parent)
+		Local MessageBox:wxMessageDialog
+		If EGW.DataChanged = 1 then
+			PrintF("Clear Changes? (EXIT)")
+			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes, are you sure you wish to clear them?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
+			If MessageBox.ShowModal() = wxID_NO Then
+				PrintF("Changes Not Cleared")
+				MessageBox.Free()
+				EGW.DataChanged = 1
+				Return
+			Else
+				PrintF("Changes Cleared")
+				MessageBox.Free()
+				EGW.DataChanged = 0
+				EGW.SaveButton.Disable()
+			EndIf
+		EndIf
+		
 		MainWin.Show()
 		
 		MainWin.EditGameListField.FrontBoxArt.Destroy()
@@ -2340,14 +2358,14 @@ EndRem
 	
 	Function EEXEBrowse(event:wxEvent)
 		Local EditGameWin:EditGameList = EditGameList(event.parent)		
-		Local temp:String 
+		Local temp:String
 		?Not Win32	
-		Local openFileDialog:wxFileDialog = New wxFileDialog.Create(EditGameWin, "Choose the game executable" , ExtractDir(EditGameWin.EP_EXEPath.GetValue()) , "" , "All files (*)|*" , wxFD_OPEN , -1 , -1 , -1 , -1)
+		Local openFileDialog:wxFileDialog = New wxFileDialog.Create(EditGameWin, "Choose the game executable" , ExtractDir(EditGameWin.EP_EXEPath.GetValue() ) , "" , "All files (*)|*" , wxFD_OPEN , - 1 , - 1 , - 1 , - 1)
 		If openFileDialog.ShowModal() = wxID_OK Then
 			temp = openFileDialog.GetPath()
 		End If	
 		?Win32
-		temp = RequestFile( "Choose the game executable" , "EXE files (*.exe):exe;All files (*.*): *"  , False , ExtractDir(EditGameWin.EP_EXEPath.GetValue()))
+		temp = RequestFile( "Choose the game executable" , "EXE files (*.exe):exe;All files (*.*): *" , False , ExtractDir(EditGameWin.EP_EXEPath.GetValue() ) )
 		?
 		If temp="" Then
 		
@@ -2444,7 +2462,7 @@ EndRem
 		
 		Else		
 			?Win32
-			EditGameWin.A_EXEList.InsertStringItem( -1 , SelectedFile  )
+			EditGameWin.A_EXEList.InsertStringItem( 0 , SelectedFile  )
 			?Not Win32
 			EditGameWin.A_EXEList.InsertStringItem( 0 , SelectedFile  )
 			?
@@ -2464,14 +2482,14 @@ EndRem
 			SelectedFile = openFileDialog.GetPath()
 		End If	
 		?Win32
-		SelectedFile = RequestFile( "Choose executable" , "All files (*.*): *"  , False , Null)
+		SelectedFile = RequestFile( "Choose executable" , "EXE files (*.exe):exe;All files (*.*): *"  , False , Null)
 		?
 		
 		If SelectedFile="" Or SelectedFile=" " Then 
 		
 		Else		
 			?Win32
-			EditGameWin.A_EXEList.InsertStringItem( -1 , SelectedFile  )
+			EditGameWin.A_EXEList.InsertStringItem( 0 , SelectedFile )
 			?Not Win32
 			EditGameWin.A_EXEList.InsertStringItem( 0 , SelectedFile  )
 			?
@@ -2683,7 +2701,6 @@ EndRem
 	End Function
 	
 	Function IconExtract(event:wxEvent)
-'		Rem
 		Local EditGameWin:EditGameList = EditGameList(event.parent)
 		Local File:String , temp:String
 		Local MessageBox:wxMessageDialog
@@ -2703,13 +2720,14 @@ EndRem
 		Repeat
 			File = NextFile(ReadIcons)
 			If File = "" Then Exit
-			If File="." Or File=".." Then Continue
+			If File = "." Or File = ".." then Continue
 			If ExtractExt(File) = "ico" Then
 				temp = TEMPFOLDER + "Icons"+FolderSlash + File
 				Exit			
 			EndIf
 		Forever
 		CloseDir(ReadIcons)		
+		
 		If temp = "" Then
 			MessageBox = New wxMessageDialog.Create(Null , "Could not extract an icon from the executable" , "Error" , wxOK)
 			MessageBox.ShowModal()
@@ -2773,6 +2791,7 @@ EndRem
 		SteamIconWindowField.GameFolder = GAMEDATAFOLDER + GameTitle	
 		SteamIconWindowField.GameType = 2
 	
+		EditGameWin.Disable()
 	End Function
 	
 	Function IconDelete(event:wxEvent)

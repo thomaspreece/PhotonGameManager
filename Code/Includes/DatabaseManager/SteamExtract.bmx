@@ -86,7 +86,8 @@ End Type
 Function CopyIcons(SteamFolder:String, FullSearch:Int)
 	If FileType(SteamFolder) = 2 then
 		Local Dir:Int = ReadDir(SteamFolder)
-		Local File:String
+		Local File:String, OldFile:String
+		Local Num:Int = 0
 		Repeat
 			File = NextFile(Dir)
 			If File = "" then Exit
@@ -99,14 +100,24 @@ Function CopyIcons(SteamFolder:String, FullSearch:Int)
 				If Lower(Right(File , 3) ) = "ico" then
 					Log1.AddText("Found: " + SteamFolder + FolderSlash + File)
 					PrintF("Found: " + SteamFolder + FolderSlash + File)
-					CopyFile(SteamFolder + FolderSlash + File , TEMPFOLDER + "SteamIcons"+FolderSlash+"SIcon" + String(INum) + ".ico")
+					OldFile = File
+					Num = 0
+					Repeat
+						If FileType(TEMPFOLDER + "SteamIcons" + FolderSlash + File) = 1 then
+							File = Left(OldFile, Len(OldFile) - 4) + "(" + Num + ")" + ".ico"
+							Num = Num + 1							
+						Else
+							Exit
+						EndIf
+					Forever
+					CopyFile(SteamFolder + FolderSlash + OldFile , TEMPFOLDER + "SteamIcons" + FolderSlash + File)
 					INum = INum + 1
 				EndIf
 					
 				If Lower(Right(File , 3) ) = "exe" Or (Lower(Right(File , 3) ) = "dll" And FullSearch = True) then
 					Local ExtractProcess:TProcess
-	
-					ExtractProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + SteamFolder + FolderSlash + File + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons"+FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
+					
+					ExtractProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + SteamFolder + FolderSlash + File + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons" + FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
 					
 					Repeat
 						If ExtractProcess = Null then Exit
