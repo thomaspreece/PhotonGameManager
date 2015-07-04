@@ -1,4 +1,4 @@
-'TODO: Remind users to backup their database
+'TODO: Remind users to backup their database and to backup any custom artwork they are using in Photon's Resources folder.
 
 Framework wx.wxApp
 Import wx.wxFrame

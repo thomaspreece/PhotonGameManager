@@ -1,6 +1,6 @@
 'TODO: Update Backup and Restore Functions
 'NOTE: PhotonTray dont load GeneralSettings and hence don't load DebugLog Setting
-'TODO: Fix keycodes on Plugins
+'TODO: Implement plugins for joystick?
 'TODO: Customisable Exclusion EXE List Menu
 'TODO: Some kind of emulator path help function. Eg. Select Gamecube->Dolphin->Path to emulator-> Fills in command line options etc automatically
 
@@ -224,16 +224,17 @@ Type DatabaseManager Extends wxApp
 	
 	Method StartupMain()
 		If FileType(SETTINGSFOLDER + "GeneralSettings.xml") = 1 then
-		
+			Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400, wxDEFAULT_FRAME_STYLE ) )
+			Splash.Destroy()			
 		Else
+			Splash.Destroy()
 			Local Wizard:FirstRunWizard = FirstRunWizard(New FirstRunWizard.Create(Null, wxID_ANY, "First Run Wizard", Null, - 1, - 1, wxRESIZE_BORDER | wxDEFAULT_DIALOG_STYLE | wxMAXIMIZE_BOX ) )
 			Wizard.Setup()
 			Wizard.RunWizard(Wizard.Page1)
 			Wizard.Destroy()
+			Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400, wxDEFAULT_FRAME_STYLE ) )
 		EndIf
-		
-		Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400, wxDEFAULT_FRAME_STYLE ) )
-		Splash.Destroy()
+
 	End Method	
 	
 End Type
@@ -342,7 +343,7 @@ Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
 		Local SL3:wxStaticLine = New wxStaticLine.Create(Page3, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)
 		InputRadio = New wxRadioBox.Create(Page3, wxID_ANY, "Input", - 1, - 1, - 1, - 1, ["Keyboard Only", "Keyboard/Mouse", "Touchscreen", "Joystick/Controller", "All of the above"], 0, wxRA_VERTICAL)
 		'Local InputText:wxTextCtrl = New wxTextCtrl.Create(Page3, wxID_ANY, "", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY)
-		
+		InputRadio.SetSelection(4)
 		P3vbox.Add(TextField3 , 1 , wxEXPAND | wxALL , 10)
 		P3vbox.Add(SL3 , 0 , wxEXPAND | wxALL , 10)
 		P3vbox.Add(InputRadio , 1 , wxEXPAND | wxALL , 10)
@@ -421,22 +422,36 @@ Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
 				TouchKeyboardEnabled = 0
 				ShowInfoButton = 0
 				ShowScreenButton = 0
+				ShowMenu = 0
+				ShowNavigation = 1
+				ShowSearchBox = 1
 			Case "Keyboard/Mouse"
 				TouchKeyboardEnabled = 0
 				ShowInfoButton = 1
-				ShowScreenButton = 1		
+				ShowScreenButton = 1	
+				ShowMenu = 1
+				ShowNavigation = 1
+				ShowSearchBox = 1
 			Case "Touchscreen"
 				TouchKeyboardEnabled = 1
 				ShowInfoButton = 1
-				ShowScreenButton = 1		
+				ShowScreenButton = 1	
+				ShowMenu = 1
+				ShowNavigation = 1
+				ShowSearchBox = 1									
 			Case "Joystick/Controller"
 				TouchKeyboardEnabled = 1
 				ShowInfoButton = 0
-				ShowScreenButton = 0			
+				ShowScreenButton = 0				ShowMenu = 0
+				ShowNavigation = 1
+				ShowSearchBox = 1	
 			Case "All of the above"
 				TouchKeyboardEnabled = 1
 				ShowInfoButton = 1
-				ShowScreenButton = 1			
+				ShowScreenButton = 1	
+				ShowMenu = 1
+				ShowNavigation = 1
+				ShowSearchBox = 1											
 			Default
 				CustomRuntimeError("Wizard Error: Invalid Input String")
 		End Select
@@ -1442,7 +1457,7 @@ Type PluginsWindow Extends wxFrame
 		Local Panel1:wxPanel = New wxPanel.Create(Self , wxID_ANY)
 		Local P1Hbox:wxBoxSizer = New wxBoxSizer.Create(wxHORIZONTAL)
 		Local BackButton:wxButton = New wxButton.Create(Panel1 , PW_BB , "Back")
-		Local OKButton:wxButton = New wxButton.Create(Panel1, PW_OB , "OK")
+		Local OKButton:wxButton = New wxButton.Create(Panel1, PW_OB , "Save")
 
 		P1Hbox.Add(BackButton , 1 , wxEXPAND | wxALL , 10)
 		P1Hbox.AddStretchSpacer(3)
@@ -1474,30 +1489,32 @@ Type PluginsWindow Extends wxFrame
 		Local ReadSettings:SettingsType
 		Local Configure:String
 		For a = 0 To Len(PluginNameArray) - 1
-			If String(PluginTypeArray[a]) = String(data) Then
-				If wxComboBox(PluginNameArray[a]).GetValue() = "" Then
+			If String(PluginTypeArray[a]) = String(data) then
+				If wxComboBox(PluginNameArray[a]).GetValue() = "" then
 					MessageBox = New wxMessageDialog.Create(Null , "Please select a plugin" , "Info" , wxOK | wxICON_INFORMATION)
 					MessageBox.ShowModal()
 					MessageBox.Free()				
 					Return 		
-				EndIf 
+				EndIf
 				ReadSettings = New SettingsType
 				ReadSettings.ParseFile(APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() +FolderSlash+"PM-CONFIG.xml" , "PluginConfig")
 				Configure = ReadSettings.GetSetting("configurepath")
 				ReadSettings.CloseFile()
-				If Configure = "" Then
+				If Configure = "" then
 					'Print CurrentDir()+APPFOLDER + String(PluginTypeArray[a]) + "\" + wxComboBox(PluginNameArray[a]).GetValue() +"\PM-CONFIG.xml"
-					RunProcess("Notepad.exe "+CurrentDir()+FolderSlash+APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() +FolderSlash+"PM-CONFIG.xml" , 1)
+					RunProcess("Notepad.exe " + CurrentDir() + FolderSlash + APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() + FolderSlash + "PM-CONFIG.xml" , 1)
 				ElseIf Configure = "Internal"
 					'Load internal configure
 					Select String(PluginTypeArray[a])
 						Case "powerplan"
-							Local PowerPlanPlugin:PowerPlanPluginWindow = PowerPlanPluginWindow(New PowerPlanPluginWindow.Create(PluginWin , wxID_ANY , "PowerPlan Settings" , , , 400 , 300) )
-							PowerPlanPlugin.UpdateData(APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue()+FolderSlash+"PM-CONFIG.xml")
+							Local PowerPlanPlugin:PowerPlanPluginWindow = PowerPlanPluginWindow(New PowerPlanPluginWindow.Create(PluginWin , wxID_ANY , "PowerPlan Settings" , , , 500 , 300) )
+							PowerPlanPlugin.UpdateData(APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() + FolderSlash + "PM-CONFIG.xml")
+							PluginWin.Disable()
 						Case "screenshots" , "video"
-							Local HotkeyPlugin:HotkeyPluginWindow = HotkeyPluginWindow(New HotkeyPluginWindow.Create(PluginWin , wxID_ANY , "PowerPlan Settings" , , , 400 , 300))
-							HotkeyPlugin.UpdateData(APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue()+FolderSlash+"PM-CONFIG.xml")						
-					End Select 
+							Local HotkeyPlugin:HotkeyPluginWindow = HotkeyPluginWindow(New HotkeyPluginWindow.Create(PluginWin , wxID_ANY , String(PluginTypeArray[a]) + " Settings" , , , 500 , 150) )
+							HotkeyPlugin.UpdateData(APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() + FolderSlash + "PM-CONFIG.xml")				
+							PluginWin.Disable()
+					End Select
 				Else
 					Configure = Replace(Configure,"[CURRENTDIR]",APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue())
 					RunProcess(Configure,1)
@@ -2543,7 +2560,16 @@ Function LoadGlobalSettings()
 	EndIf		
 	If ReadSettings.GetSetting("ShowScreenButton") <> "" then		
 		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton") )
+	EndIf	
+	If ReadSettings.GetSetting("ShowMenu") <> "" then		
+		ShowMenu = Int(ReadSettings.GetSetting("ShowMenu") )
+	EndIf				
+	If ReadSettings.GetSetting("ShowNavigation") <> "" then		
+		ShowNavigation = Int(ReadSettings.GetSetting("ShowNavigation") )
 	EndIf			
+	If ReadSettings.GetSetting("ShowSearchBox") <> "" then		
+		ShowSearchBox = Int(ReadSettings.GetSetting("ShowSearchBox") )
+	EndIf				
 	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
 		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
 			DebugLogEnabled = 1
@@ -2583,6 +2609,9 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("AntiAlias" , AntiAliasSetting)		
 	SaveSettings.SaveSetting("ShowInfoButton" , ShowInfoButton)	
 	SaveSettings.SaveSetting("ShowScreenButton" , ShowScreenButton)	
+	SaveSettings.SaveSetting("ShowMenu" , ShowMenu)	
+	SaveSettings.SaveSetting("ShowNavigation" , ShowNavigation)	
+	SaveSettings.SaveSetting("ShowSearchBox" , ShowSearchBox)		
 	SaveSettings.SaveSetting("DebugLogEnabled" , DebugLogEnabled)		
 	SaveSettings.SaveSetting("GEAddAllEXEs" , PM_GE_AddAllEXEs)		
 	SaveSettings.SaveSetting("ProcessQueryDelay" , PRProcessQueryDelay)		

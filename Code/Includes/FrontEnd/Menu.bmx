@@ -5,6 +5,8 @@ Type MenuWrapperType Extends GeneralType
 	Field MenuImage3:TImage 	
 	Field FilterImage:TImage
 	Field MenuPix:TPixmap
+	Field MenuPix2:TPixmap
+	Field MenuPix3:TPixmap
 	
 	Field OldFilterType:String = ""
 	Field OldFilterName:String = ""
@@ -26,7 +28,7 @@ Type MenuWrapperType Extends GeneralType
 	
 	Field TouchButton:TImage
 	
-	Field TouchKeySelected:Int
+	Field TouchKeySelected:int
 	Field TouchJoySelected:Int 
 '	Field TouchKeyboardEnabled:Int = True
 	
@@ -36,7 +38,7 @@ Type MenuWrapperType Extends GeneralType
 	Field FilterNameSelected:Int 
 	
 	Field Width80:Int = GWidth * (Float(80) / 800)
-	Field Height75:Int = GHeight * (Float(75) / 600)
+	Field Height75:int = GHeight * (Float(75) / 600)
 	Field Height300:Int = GHeight * (Float(300)/600)
 	
 	Method Init()
@@ -62,21 +64,27 @@ Type MenuWrapperType Extends GeneralType
 		ListAddFirst(UpdateTypeList , Self)
 		
 		FilterPix:TPixmap = LoadPixmap(RESFOLDER + "FilterButton.png")
-		If FilterPix = Null Then RuntimeError "FilterButton.png Missing!"	
-		FilterPix = ResizePixmap(FilterPix , GWidth*(Float(300)/800) , GHeight*(Float(25)/600) )
-		FilterImage = LoadImage(FilterPix)				
-		If FilterImage = Null Then RuntimeError "FilterButton.png Missing!"	
+		If FilterPix = Null then RuntimeError "FilterButton.png Missing!"	
+		'FilterPix = ResizePixmap(FilterPix , GWidth*(Float(300)/800) , GHeight*(Float(25)/600) )
+		FilterImage = LoadImage(ResizeMenuPixmap(FilterPix, GWidth * (Float(300) / 800) , GHeight * (Float(23) / 600) , "FilterButton.png", 1) )				
+		If FilterImage = Null then RuntimeError "FilterButton.png Missing!"	
 		
 		MenuPix = LoadPixmap(RESFOLDER + "MenuButton.png")
-		If MenuPix = Null Then RuntimeError "MenuButton.png Missing!"	
-		MenuPix = ResizePixmap(MenuPix , GWidth * (Float(80) / 800) , GHeight * (Float(25) / 600) )
-		MenuImage = LoadImage(MenuPix)
+		If MenuPix = Null then RuntimeError "MenuButton.png Missing!"	
+				
+		MenuPix2 = LoadPixmap(RESFOLDER + "SubMenuButton.png")
+		If MenuPix2 = Null then RuntimeError "SubMenuButton.png Missing!"	
 		
-		'MenuPix = ResizePixmap(MenuPix , GWidth * (Float(140) / 800) , GHeight * (Float(25) / 600) )		
-		MenuImage2 = LoadImage(MenuPix)
-		MenuImage3 = LoadImage(MenuPix)
-		'If MenuImage2 = Null Then RuntimeError "MenuButton.png Missing!"	
-		If MenuImage = Null Then RuntimeError "MenuButton.png Missing!"	
+		MenuPix3 = LoadPixmap(RESFOLDER + "SubSubMenuButton.png")
+		If MenuPix3 = Null then RuntimeError "SubSubMenuButton.png Missing!"	
+		
+		MenuImage = LoadImage(ResizeMenuPixmap(MenuPix, GWidth * (Float(80) / 800), GHeight * (Float(25) / 600) , "MenuButton.png") )
+		MenuImage2 = LoadImage(ResizeMenuPixmap(MenuPix2, GWidth * (Float(140) / 800) , GHeight * (Float(23) / 600), "SubMenuButton.png" ) )
+		MenuImage3 = LoadImage(ResizeMenuPixmap(MenuPix3, GWidth * (Float(140) / 800) , GHeight * (Float(21) / 600), "SubSubMenuButton.png" ) )
+		
+		If MenuImage = Null then RuntimeError "MenuButton.png Missing!"	
+		If MenuImage2 = Null then RuntimeError "SubMenuButton.png Missing!"	
+		If MenuImage3 = Null then RuntimeError "SubSubMenuButton.png Missing!"			
 		
 		TouchPix:TPixmap = LoadPixmap(RESFOLDER + "TouchButton.png")
 		If TouchPix = Null Then RuntimeError "TouchButton.png Missing!"			
@@ -85,125 +93,172 @@ Type MenuWrapperType Extends GeneralType
 		If TouchButton = Null Then RuntimeError "TouchButton.png Missing!"			
 	End Method
 	
+	Function ResizeMenuPixmap:TPixmap(Pixmap:TPixmap, TargetW:Int, TargetH:Int, Name:String, CropDirection:Int = - 1)
+		'Resize Pixmap to have height TargetH but keep dimensions same
+		Local MenuPixResized:TPixmap = ResizePixmap(Pixmap, Pixmap.width * (Float(TargetH) / Pixmap.height), TargetH )
+		If MenuPixResized.width < TargetW then
+			CustomRuntimeError("ResizeMenuPixmap: Pixmap is too small in length (" + TargetW + ">" + MenuPixResized.width + ") " + Name)
+		EndIf
+		If CropDirection = - 1 then
+			'Crop from right hand side to have correct width
+			Return PixmapWindow(MenuPixResized, MenuPixResized.width - TargetW, 0, TargetW, MenuPixResized.height).Copy()
+		Else
+			'Crop from left hand side to have correct width
+			Return PixmapWindow(MenuPixResized, 0, 0, TargetW, MenuPixResized.height).Copy()
+		EndIf
+	End Function
+	
 	Method Max2D()
 		If OldFilterType <> FilterType Then
 			SetImageFont(SmallMenuButtonFont)
-			MenuImage2 = LoadImage(ResizePixmap(MenuPix , TextWidth(FilterType) + GWidth * (Float(35) / 800)  , GHeight * (Float(23) / 600) ) )
+			MenuImage2 = LoadImage(ResizeMenuPixmap(MenuPix2, TextWidth(FilterType) + GWidth * (Float(35) / 800) , GHeight * (Float(23) / 600) , "SubMenuButton.png") )
 			OldFilterType = FilterType
 		EndIf
 		
-		If OldFilterName <> FilterName Then
+		If OldFilterName <> FilterName then
 			SetImageFont(SmallMenuButtonFont)
-			MenuImage3 = LoadImage(ResizePixmap(MenuPix , TextWidth(FilterName) + GWidth * (Float(35) / 800)  , GHeight * (Float(21) / 600) ) )
+			MenuImage3 = LoadImage(ResizeMenuPixmap(MenuPix3, TextWidth(FilterName) + GWidth * (Float(35) / 800) , GHeight * (Float(21) / 600), "SubSubMenuButton.png" ) )
 			OldFilterName = FilterName
-		EndIf 
-		
-		DrawImage(MenuImage , 0 , 0 )
-		If FilterType <> "" Then
-			DrawImage(MenuImage2 , MenuImage.Width , 0 )
-			If FilterName <> "" Then
-				DrawImage(MenuImage3 , MenuImage.Width + MenuImage2.Width , 0 )
-			EndIf 
 		EndIf
+		
+		If ShowNavigation = True then
+			If FilterType <> "" then
+				If FilterName <> "" then
+					If ShowMenuButton = True then
+						DrawImage(MenuImage3 , MenuImage.width + MenuImage2.width, 0 )
+					Else
+						DrawImage(MenuImage3 , MenuImage2.width, 0 )
+					EndIf
+				EndIf
+				If ShowMenuButton = True then
+					DrawImage(MenuImage2 , MenuImage.width, 0 )
+				Else
+					DrawImage(MenuImage2 , 0, 0 )
+				EndIf
+			EndIf
+		EndIf
+		
 
-		
-		DrawImage(FilterImage , GWidth*(1 - Float(300)/800) , 0 )
-
-		If MenuSelected = True Then
-			If AlphaDir = 1 Then
-				SelectedMenuAlpha = SelectedMenuAlpha - 0.01
-				If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
-			ElseIf AlphaDir = -1
-				SelectedMenuAlpha = SelectedMenuAlpha + 0.01
-				If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
-			EndIf 		
-			SetColor 135 , 153 , 255
-			SetAlpha(SelectedMenuAlpha)
-		Else
-			SetColor 255 , 255 , 255
-		EndIf
-		SetImageFont(MenuButtonFont)
-		DrawText("Menu" , MenuImage.Width/2 - (TextWidth("Menu") / 2)  , (MenuImage.Height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
-		
-		
-		If FilterTypeSelected = True Then
-			If AlphaDir = 1 Then
-				SelectedMenuAlpha = SelectedMenuAlpha - 0.01
-				If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
-			ElseIf AlphaDir = -1
-				SelectedMenuAlpha = SelectedMenuAlpha + 0.01
-				If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
-			EndIf 		
-			SetColor 135 , 153 , 255
-			SetAlpha(SelectedMenuAlpha)
-		Else
-			SetColor 255 , 255 , 255
-			SetAlpha(1)
-		EndIf
-		
-		SetImageFont(SmallMenuButtonFont)
-		If FilterType <> "" Then
-			DrawText(FilterType , MenuImage.Width + MenuImage2.Width/2 - ( (TextWidth(FilterType) / 2) ) , (MenuImage2.Height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
-		EndIf
-		
-		If FilterNameSelected = True Then
-			If AlphaDir = 1 Then
-				SelectedMenuAlpha = SelectedMenuAlpha - 0.01
-				If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
-			ElseIf AlphaDir = -1
-				SelectedMenuAlpha = SelectedMenuAlpha + 0.01
-				If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
-			EndIf 		
-			SetColor 135 , 153 , 255
-			SetAlpha(SelectedMenuAlpha)
-		Else
-			SetColor 255 , 255 , 255
-			SetAlpha(1)
-		EndIf		
-		
-		If FilterType <> "" And FilterName <> "" Then
-			DrawText(FilterName , MenuImage.Width + MenuImage2.Width + MenuImage3.Width/2 - ( (TextWidth(FilterName) / 2) ) , (MenuImage3.Height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
-		EndIf 		
-		
-		SetImageFont(MenuButtonFont)
-		SetColor 255 , 255 , 255
-		SetAlpha(1)
-				
-		If (FilterSelected = False And FilterActive = True) Or (FilterSelected = True And FilterActive = False) Then
-			If AlphaDir = 1 Then
-				SelectedMenuAlpha = SelectedMenuAlpha - 0.01
-				If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
-			ElseIf AlphaDir = -1
-				SelectedMenuAlpha = SelectedMenuAlpha + 0.01
-				If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
-			EndIf 		
-			SetColor 135 , 153 , 255
-			SetAlpha(SelectedMenuAlpha)	
-			SetImageFont(FilterFont)	
-		ElseIf (FilterSelected = False And FilterActive = False) Or (FilterSelected = True And FilterActive = True)
-			SetColor 255 , 255 , 255
+		If ShowMenuButton = True then
+			DrawImage(MenuImage , 0 , 0 )
+			If MenuSelected = True then
+				If AlphaDir = 1 Then
+					SelectedMenuAlpha = SelectedMenuAlpha - 0.01
+					If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
+				ElseIf AlphaDir = -1
+					SelectedMenuAlpha = SelectedMenuAlpha + 0.01
+					If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
+				EndIf 		
+				SetColor 135 , 153 , 255
+				SetAlpha(SelectedMenuAlpha)
+			Else
+				SetColor 255 , 255 , 255
+			EndIf
 			SetImageFont(MenuButtonFont)
+			DrawText("Menu" , MenuImage.width / 2 - (TextWidth("Menu") / 2) , (MenuImage.height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
 		EndIf
 		
-		DrawText("Search: "+Filter , GWidth*(1 - Float(290)/800) , (MenuImage.Height / 2 - (TextHeight("Filter Box:") / 2)) - GHeight*(Float(2)/600))
-		SetAlpha(1)
-		SetColor 255,255,255
 		
-		If FilterActive = True Then
+		
+		If ShowNavigation = True then
+			If FilterTypeSelected = True then
+				If AlphaDir = 1 Then
+					SelectedMenuAlpha = SelectedMenuAlpha - 0.01
+					If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
+				ElseIf AlphaDir = -1
+					SelectedMenuAlpha = SelectedMenuAlpha + 0.01
+					If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
+				EndIf 		
+				SetColor 135 , 153 , 255
+				SetAlpha(SelectedMenuAlpha)
+			Else
+				SetColor 255 , 255 , 255
+				SetAlpha(1)
+			EndIf
+			
+			SetImageFont(SmallMenuButtonFont)
+			If FilterType <> "" then
+				If ShowMenuButton = True then
+					DrawText(FilterType , MenuImage.width + MenuImage2.width / 2 - ( (TextWidth(FilterType) / 2) ) , (MenuImage2.height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
+				Else
+					DrawText(FilterType , MenuImage2.width / 2 - ( (TextWidth(FilterType) / 2) ) , (MenuImage2.height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
+				EndIf
+			EndIf
+			
+			If FilterNameSelected = True then
+				If AlphaDir = 1 Then
+					SelectedMenuAlpha = SelectedMenuAlpha - 0.01
+					If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
+				ElseIf AlphaDir = -1
+					SelectedMenuAlpha = SelectedMenuAlpha + 0.01
+					If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
+				EndIf 		
+				SetColor 135 , 153 , 255
+				SetAlpha(SelectedMenuAlpha)
+			Else
+				SetColor 255 , 255 , 255
+				SetAlpha(1)
+			EndIf		
+			
+			If FilterType <> "" And FilterName <> "" then
+				If ShowMenuButton = True then
+					DrawText(FilterName , MenuImage.width + MenuImage2.width + MenuImage3.width / 2 - ( (TextWidth(FilterName) / 2) ) , (MenuImage3.height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
+				Else
+					DrawText(FilterName , MenuImage2.width + MenuImage3.width / 2 - ( (TextWidth(FilterName) / 2) ) , (MenuImage3.height / 2 - (TextHeight("Menu") / 2) ) - GHeight * (Float(2) / 600) )
+				EndIf
+			EndIf 	
+			SetImageFont(MenuButtonFont)
+			SetColor 255 , 255 , 255
+			SetAlpha(1)							
+		EndIf
+		
 
-			If TouchKeyboardEnabled = True Then
+		
+
+		If ShowSearchBar = True then 
+			DrawImage(FilterImage , GWidth * (1 - Float(300) / 800) , 0 )
+			If (FilterSelected = False And FilterActive = True) Or (FilterSelected = True And FilterActive = False) then
+				If AlphaDir = 1 Then
+					SelectedMenuAlpha = SelectedMenuAlpha - 0.01
+					If SelectedMenuAlpha < 0.3 Then AlphaDir = -1
+				ElseIf AlphaDir = -1
+					SelectedMenuAlpha = SelectedMenuAlpha + 0.01
+					If SelectedMenuAlpha > 0.9 Then AlphaDir = 1		
+				EndIf 		
+				SetColor 135 , 153 , 255
+				SetAlpha(SelectedMenuAlpha)	
+				'SetImageFont(FilterFont)	
+				'SetImageFont(MenuButtonFont)
+				SetImageFont(SmallMenuButtonFont)
+			ElseIf (FilterSelected = False And FilterActive = False) Or (FilterSelected = True And FilterActive = True)
+				SetColor 255 , 255 , 255
+				'SetImageFont(MenuButtonFont)
+				SetImageFont(SmallMenuButtonFont)
+			EndIf
+			
+			DrawText("Search: " + Filter , GWidth * (1 - Float(290) / 800) , (MenuImage.height / 2 - (TextHeight("Filter Box:") / 2) ) - GHeight * (Float(2) / 600) )
+		EndIf
+		
+		SetAlpha(1)
+		SetColor 255, 255, 255
+		
+		Local Gap:Int = GWidth - 10 * Width80
+		
+		If FilterActive = True then
+			
+			If TouchKeyboardEnabled = True then
 				SetImageFont(MenuButtonFont)
 				SetAlpha(0.9)
-				For b=0 To 3			
+				For b = 0 To 3			
 					For a = 0 To 9
-						If TouchKeySelected = b * 10 + a + 1 Or TouchJoySelected = b * 10 + a + 1 Then
+						If TouchKeySelected = b * 10 + a + 1 Or TouchJoySelected = b * 10 + a + 1 then
 							SetColor(150 , 150 , 150)
 						Else
 							SetColor(255 , 255 , 255)
-						EndIf 
-						DrawImage(TouchButton , a * Width80 , Height300 + b * Height75)
-						SetColor(0,0,0)
-						DrawText(KeyboardLayout[b*10+a] , (Float(a+0.5) * Width80) - TextWidth(KeyboardLayout[b*10+a])/2 , Height300 + (Float(b+0.5) * Height75) - TextHeight(KeyboardLayout[b*10+a])/2 )
+						EndIf
+						DrawImage(TouchButton , Gap / 2 + a * Width80 , Height300 + b * Height75)
+						SetColor(255, 255, 255)
+						DrawText(KeyboardLayout[b * 10 + a] , Gap / 2 + (Float(a + 0.5) * Width80) - TextWidth(KeyboardLayout[b * 10 + a]) / 2 , Height300 + (Float(b + 0.5) * Height75) - TextHeight(KeyboardLayout[b * 10 + a]) / 2 )
 					Next
 				Next
 			EndIf
@@ -235,10 +290,12 @@ Type MenuWrapperType Extends GeneralType
 		If UpdateTypeList.First() <> Self Then
 			UpdateTypeList.Remove(Self)
 			ListAddFirst(UpdateTypeList , Self)
-		EndIf 
+		EndIf
+		Local LeftGap:Int = (GWidth - 10 * Width80) / 2
+		Local RightGap:Int = (GWidth - 10 * Width80) - (GWidth - 10 * Width80) / 2
 		Local LineNum:Int 
-		If MouseY() > Height300 Then
-			If MouseY() < Height300 + (1*Height75) Then
+		If MouseY() > Height300 And MouseX() > LeftGap And MouseX() < (GWidth - RightGap - 1) then
+			If MouseY() < Height300 + (1 * Height75) then
 				LineNum = 0
 			ElseIf MouseY() < Height300 + (2*Height75) Then
 				LineNum = 1		
@@ -248,9 +305,9 @@ Type MenuWrapperType Extends GeneralType
 				LineNum = 3
 			EndIf
 			
-			TouchKeySelected = Int(MouseX() / Width80) + 1 + LineNum * 10
+			TouchKeySelected = Int( (MouseX() - (LeftGap / 2) ) / Width80) + 1 + LineNum * 10
 		Else
-			TouchKeySelected = -1
+			TouchKeySelected = - 1
 		EndIf	
 		
 		If GameArrayLen < 1 Then
@@ -279,7 +336,7 @@ Type MenuWrapperType Extends GeneralType
 			Menu1.SelectedMenu = 4
 			FirstMenu1Run = True
 			MenuActivated = False
-			If MouseX() > 0 And MouseX() < MenuImage.Width And MouseY() < MenuImage.Height Then
+			If MouseX() > 0 And MouseX() < MenuImage.width And MouseY() < MenuImage.height And ShowMenuButton = True then
 				MenuSelected = True
 			Else
 				MenuSelected = False 
@@ -287,17 +344,31 @@ Type MenuWrapperType Extends GeneralType
 
 		EndIf
 
-		If MouseX() > MenuImage.Width And MouseX() < MenuImage.Width + MenuImage2.Width And MouseY() < MenuImage2.Height And FilterType <> "" Then
-			FilterTypeSelected = True 
+		If ShowMenuButton = True then
+			If MouseX() > MenuImage.width And MouseX() < MenuImage.width + MenuImage2.width And MouseY() < MenuImage2.height And FilterType <> "" then
+				FilterTypeSelected = True 
+			Else
+				FilterTypeSelected = False 
+			EndIf
+			
+			If MouseX() > MenuImage.Width + MenuImage2.Width And MouseX() < MenuImage.Width + MenuImage2.Width + MenuImage3.Width And MouseY() < MenuImage2.Height And FilterType <> "" And FilterName <> "" Then
+				FilterNameSelected = True 
+			Else
+				FilterNameSelected = False 
+			EndIf
 		Else
-			FilterTypeSelected = False 
+			If MouseX() > 0 And MouseX() < MenuImage2.Width And MouseY() < MenuImage2.Height And FilterType <> "" Then
+				FilterTypeSelected = True 
+			Else
+				FilterTypeSelected = False 
+			EndIf
+			
+			If MouseX() > MenuImage2.width And MouseX() < MenuImage2.width + MenuImage3.width And MouseY() < MenuImage2.height And FilterType <> "" And FilterName <> "" then
+				FilterNameSelected = True 
+			Else
+				FilterNameSelected = False 
+			EndIf		
 		EndIf
-		
-		If MouseX() > MenuImage.Width + MenuImage2.Width And MouseX() < MenuImage.Width + MenuImage2.Width + MenuImage3.Width And MouseY() < MenuImage2.Height And FilterType <> "" And FilterName <> "" Then
-			FilterNameSelected = True 
-		Else
-			FilterNameSelected = False 
-		EndIf		
 		
 		If MouseX() > GWidth*(1 - Float(300)/800) And MouseX() < GWidth And MouseY() < FilterImage.Height - 5 Then
 			FilterSelected = True
@@ -308,14 +379,14 @@ Type MenuWrapperType Extends GeneralType
 	End Method
 	
 	Method UpdateMouse()
-		If FilterActive = True Then
+		If FilterActive = True then
 		
 			If TouchKeyboardEnabled = True Then
 				Local Key:String
-				If MouseClick = 1 And TouchKeySelected <> - 1 Then
+				If MouseClick = 1 And TouchKeySelected <> - 1 then
 					Key = KeyboardLayout[TouchKeySelected - 1]
 					Select Key
-						Case "ESC"
+						Case "Cancel"
 							Filter = ""
 							FilterActive = False					
 						Case "BkSp"
@@ -325,8 +396,8 @@ Type MenuWrapperType Extends GeneralType
 							If Left(Filter , 1) = " " Then
 								Filter = ""
 							EndIf 
-						Case "Enter"
-							If GameArrayLen > 0 Then
+						Case "Go"
+							If GameArrayLen > 0 then
 								
 								FilterActive = False
 							EndIf
@@ -375,7 +446,7 @@ Type MenuWrapperType Extends GeneralType
 				Return True 
 			EndIf 
 		EndIf
-		If FilterNameSelected = True And MouseClick = 1 Then
+		If FilterNameSelected = True And MouseClick = 1 then
 			ChangeInterface(0, True , False )
 			Return True 
 		EndIf		
@@ -387,11 +458,15 @@ Type MenuWrapperType Extends GeneralType
 			BackAlpha = 0
 			Return True 
 		EndIf
-		If FilterSelected = True And MouseClick = 1 Then
-			If FilterActive = False Then
+		If FilterSelected = True And MouseClick = 1 then
+			If FilterActive = False then
 				FilterActive = True
+				TouchJoySelected = - 1
+				TouchKeySelected = - 1		
+				FlushKeys()
+				FlushJoy()
 			Else
-				If GameArrayLen > 0 Then 
+				If GameArrayLen > 0 then
 					FilterActive = False
 				EndIf
 			EndIf
@@ -443,6 +518,8 @@ Type MenuWrapperType Extends GeneralType
 						Case 4 'ScreenShots
 							If GameNode.ScreenShotsAvailable = 1 then
 								ChangeInterface(7, True, 0 )
+								MenuActive = False
+							Else
 								MenuActive = False
 							EndIf
 							'RunProcess(EXPLORERPROGRAM+" -Game "+Chr(34)+GameNode.OrginalName+Chr(34)+" -GameTab ScreenShots",1)		
@@ -514,7 +591,7 @@ Type MenuWrapperType Extends GeneralType
 					If (Tol(JoyHat(J),0.75,0.1) Or Tol(JoyX(J),-1,0.4) ) And MilliSecs() - KeyDelayTimer > 100 Then
 						KeyDelayTimer = MilliSecs()
 						Menu1.SelectedMenu = Menu1.SelectedMenu - 1
-						If Menu1.SelectedMenu < 0 Then
+						If Menu1.SelectedMenu < 0 then
 							Menu1.SelectedMenu = 0
 						EndIf
 					EndIf		
@@ -654,7 +731,7 @@ Type MenuWrapperType Extends GeneralType
 				EndIf 
 			EndIf
 			If FilterActive = True Then
-				If JoyHit(JOY_Cancel,J) Then
+				If JoyHit(JOY_CANCEL, J) then
 					Filter = ""
 					FilterActive = False				
 				EndIf 
@@ -669,7 +746,7 @@ Type MenuWrapperType Extends GeneralType
 					If TouchJoySelected <> - 1 Then
 						Local Key:String = KeyboardLayout[TouchJoySelected - 1]
 						Select Key
-							Case "ESC"
+							Case "Cancel"
 								Filter = ""
 								FilterActive = False	
 								TouchJoySelected = - 1				
@@ -680,7 +757,7 @@ Type MenuWrapperType Extends GeneralType
 								If Left(Filter , 1) = " " Then
 									Filter = ""
 								EndIf 
-							Case "Enter"
+							Case "Go"
 								If GameArrayLen > 0 Then								
 									FilterActive = False
 									TouchJoySelected = - 1
@@ -774,7 +851,7 @@ Type MenuWrapperType Extends GeneralType
 		Local Char:Int
 		If MenuActive = True Then
 			If ActiveMenuNumber = 1 Then 
-				If KeyHit(KEYBOARD_ESC) Then
+				If KeyHit(KEYBOARD_ESC) then
 					MenuActive = False
 				EndIf
 				If KeyHit(KEYBOARD_RIGHT) Then
@@ -930,9 +1007,9 @@ Type MenuWrapperType Extends GeneralType
 				
 			EndIf 
 		EndIf
-		If FilterActive = True Then
-			If KeyHit(KEYBOARD_ESC) Then
-				If TouchJoySelected <> - 1 Then
+		If FilterActive = True then
+			If KeyHit(KEYBOARD_ESC) then
+				If TouchJoySelected <> - 1 then
 					TouchJoySelected = - 1
 				Else
 					Filter = ""
@@ -940,11 +1017,11 @@ Type MenuWrapperType Extends GeneralType
 				EndIf
 				Return True 
 			EndIf		
-			If KeyHit(KEYBOARD_ENTER) Then
+			If KeyHit(KEYBOARD_ENTER) then
 				If TouchJoySelected <> - 1 Then
 					Local Key:String = KeyboardLayout[TouchJoySelected - 1]
 					Select Key
-						Case "ESC"
+						Case "Cancel"
 							Filter = ""
 							FilterActive = False	
 							TouchJoySelected = - 1				
@@ -955,7 +1032,7 @@ Type MenuWrapperType Extends GeneralType
 							If Left(Filter , 1) = " " Then
 								Filter = ""
 							EndIf 
-						Case "Enter"
+						Case "Go"
 							If GameArrayLen > 0 Then								
 								FilterActive = False
 								TouchJoySelected = - 1
@@ -964,7 +1041,7 @@ Type MenuWrapperType Extends GeneralType
 							Filter = Filter + Key
 					End Select 
 				Else
-					If GameArrayLen > 0 Then 
+					If GameArrayLen > 0 then
 						FilterActive = False
 					EndIf
 				EndIf
@@ -1074,8 +1151,11 @@ Type Menu2Type
 	Field TouchButtonsPG:TImage[]
 	
 	Field tempInterfaceImage:TImage
+	Field tempInterfaceBlankImage:TImage
+	Field tempGameExtraBlankImage:TImage
 	Field tempBackImage:TImage
 	Field tempPlayImage:TImage
+	Field tempPlayBlankImage:TImage
 		
 	Method Init()
 		
@@ -1097,8 +1177,18 @@ Type Menu2Type
 		Else
 			tempBackImage = TouchButton
 		EndIf 		
+		
+		If FileType(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Game Extras Blank.png") then
+			TouchPix = LoadPixmap(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Game Extras Blank.png")
+			If TouchPix = Null then RuntimeError "Game Extras Blank.png Missing!"	
+			TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )	
+			tempGameExtraBlankImage = LoadImage(TouchPix)				
+			If tempGameExtraBlankImage = Null then RuntimeError "Game Extras Blank.png Missing!"
+		Else
+			tempGameExtraBlankImage = TouchButton
+		EndIf 		
 
-		If FileType(RESFOLDER + "SubMenu"+FolderSlash+"MainList"+FolderSlash+"Interface.png") Then 
+		If FileType(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Interface.png") then
 			TouchPix = LoadPixmap(RESFOLDER + "SubMenu"+FolderSlash+"MainList"+FolderSlash+"Interface.png")
 			If TouchPix = Null Then RuntimeError "Interface.png Missing!"	
 			TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )	
@@ -1106,17 +1196,37 @@ Type Menu2Type
 			If tempInterfaceImage = Null Then RuntimeError "Interface.png Missing!"
 		Else
 			tempInterfaceImage = TouchButton
-		EndIf 
+		EndIf
 		
-		If FileType(RESFOLDER + "SubMenu"+FolderSlash+"MainList"+FolderSlash+"Play Game.png") Then 
+		If FileType(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Interface Blank.png") then
+			TouchPix = LoadPixmap(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Interface Blank.png")
+			If TouchPix = Null then RuntimeError "Interface Blank.png Missing!"	
+			TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )	
+			tempInterfaceBlankImage = LoadImage(TouchPix)				
+			If tempInterfaceBlankImage = Null then RuntimeError "Interface Blank.png Missing!"
+		Else
+			tempInterfaceBlankImage = TouchButton
+		EndIf 		
+		
+		If FileType(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Play Game.png") then
 			TouchPix = LoadPixmap(RESFOLDER + "SubMenu"+FolderSlash+"MainList"+FolderSlash+"Play Game.png")
 			If TouchPix = Null Then RuntimeError "Play Game.png Missing!"	
-			TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )	
+			TouchPix = ResizePixmap(TouchPix , GWidth * (Float(240) / 800) , GHeight * (Float(75) / 600) )	
 			tempPlayImage = LoadImage(TouchPix)				
 			If tempPlayImage = Null Then RuntimeError "Play Game.png Missing!"
 		Else
 			tempPlayImage = TouchButton
 		EndIf 		
+		
+		If FileType(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Play Game Blank.png") then
+			TouchPix = LoadPixmap(RESFOLDER + "SubMenu" + FolderSlash + "MainList" + FolderSlash + "Play Game Blank.png")
+			If TouchPix = Null then RuntimeError "Play Game Blank.png Missing!"	
+			TouchPix = ResizePixmap(TouchPix , GWidth * (Float(240) / 800) , GHeight * (Float(75) / 600) )	
+			tempPlayBlankImage = LoadImage(TouchPix)				
+			If tempPlayBlankImage = Null then RuntimeError "Play Game Blank.png Missing!"
+		Else
+			tempPlayBlankImage = TouchButton
+		EndIf 			
 
 		PopulateLists()
 	End Method
@@ -1175,24 +1285,36 @@ Type Menu2Type
 			PopulateGameList()
 			OldCurrentGamePos = CurrentGamePos
 		EndIf
-		SetImageFont(MenuButtonFont)
+		SetImageFont(MenuButtonFont2)
 
 		SetAlpha(0.7)
 		
 		Local a:Int = 0
 		Local b:Int = 0
 		For item = EachIn List
-			SetColor(255 , 255 , 255)
+			SetColor(179 , 179 , 179)
 			If b*3+a+1 = SelectedItem Then 
-				SetAlpha(0.3)
+				'SetAlpha(0.3)
+				SetAlpha(1)
 			Else
 				SetAlpha(0.7)			
 			EndIf
-			
+			If item = "ScreenShots" then
+				If GameNode.ScreenShotsAvailable = 0 then
+					item = "No ScreenShots"
+				Else
+					item = "ScreenShots"
+				EndIf
+			EndIf
 
-			DrawImage(TouchArray[b*3+a] , a * GWidth * (Float(260) / 800) + GWidth * (Float(20) / 800) , b * GHeight * (Float(90) / 600) + GHeight * (Float(20) / 600) )
-			SetAlpha(1)					
-			DrawText(item , a * GWidth * (Float(260) / 800) + GWidth * (Float(105) / 800) , b * GHeight * (Float(90) / 600) + GHeight * (Float(57.5) / 600) - TextHeight(item)/2 )
+			DrawImage(TouchArray[b * 3 + a] , a * GWidth * (Float(260) / 800) + GWidth * (Float(20) / 800) , b * GHeight * (Float(90) / 600) + GHeight * (Float(20) / 600) )
+			SetAlpha(1)		
+			If (ActiveMenu = "PlayGame" Or ActiveMenu = "Interface" Or ActiveMenu = "Extras") And (a > 0 Or b > 0) then
+				If TouchArray[b * 3 + a] = tempInterfaceBlankImage Or TouchArray[b * 3 + a] = tempGameExtraBlankImage Or TouchArray[b * 3 + a] = tempPlayBlankImage then
+					DrawText(item , a * GWidth * (Float(260) / 800) + GWidth * (Float(110) / 800) , b * GHeight * (Float(90) / 600) + GHeight * (Float(57.5) / 600) - TextHeight(item) / 2 )
+					
+				EndIf
+			EndIf
 			
 			a = a + 1
 			If a > 2 Then
@@ -1243,8 +1365,8 @@ Type Menu2Type
 		
 		ListAddLast(InterfaceList , "..")
 		ListAddLast(InterfaceList , "CoverFlow")
-		ListAddLast(InterfaceList , "InfoView #1(Covers)")
-		ListAddLast(InterfaceList , "InfoView #2(Banners)")
+		ListAddLast(InterfaceList , "InfoView #1")
+		ListAddLast(InterfaceList , "InfoView #2")
 		ListAddLast(InterfaceList , "ListView")
 		ListAddLast(InterfaceList , "BannerFlow")
 		ListAddLast(InterfaceList , "CoverWall")		
@@ -1257,7 +1379,15 @@ Type Menu2Type
 			If item = ".." Then 
 				TouchButtonsI[a] = tempBackImage
 			Else
-				TouchButtonsI[a] = tempInterfaceImage
+				If FileType(RESFOLDER + "SubMenu" + FolderSlash + "InterfacesList" + FolderSlash + item + ".png") = 1 then
+					TouchPix = LoadPixmap(RESFOLDER + "SubMenu" + FolderSlash + "InterfacesList" + FolderSlash + item + ".png")
+					If TouchPix = Null then RuntimeError item + ".png Missing!"			
+					TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )
+					TouchButtonsI[a] = LoadImage(TouchPix)				
+					If TouchButtonsI[a] = Null then RuntimeError item + ".png Missing!"							
+				Else
+					TouchButtonsI[a] = tempInterfaceBlankImage
+				EndIf
 			EndIf 
 			a = a + 1
 		Next 		
@@ -1265,25 +1395,25 @@ Type Menu2Type
 		ListAddLast(ExtrasList , "..")
 		ListAddLast(ExtrasList , "Patches")
 		ListAddLast(ExtrasList , "Walkthroughs")
-		If GameNode.ScreenShotsAvailable = 1 then
-			ListAddLast(ExtrasList , "ScreenShots")
-		Else
-			ListAddLast(ExtrasList , "No ScreenShots")
-		EndIf
+		ListAddLast(ExtrasList , "ScreenShots")
 		ListAddLast(ExtrasList , "Cheats")	
 		ListAddLast(ExtrasList , "Manuals")
 		
 		a = 0
 		TouchButtonsE = TouchButtonsE[..ExtrasList.Count()]
 		For item = EachIn ExtrasList
-			If FileType(RESFOLDER + "SubMenu"+FolderSlash+"ExtrasList"+FolderSlash + item + ".png") = 1 Then
-				TouchPix = LoadPixmap(RESFOLDER + "SubMenu"+FolderSlash+"ExtrasList"+FolderSlash + item + ".png")
-				If TouchPix = Null Then RuntimeError item+".png Missing!"			
-				TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )
-				TouchButtonsE[a] = LoadImage(TouchPix)				
-				If TouchButtonsE[a] = Null then RuntimeError item + ".png Missing!"							
+			If item = ".." then
+				TouchButtonsE[a] = tempBackImage
 			Else
-				TouchButtonsE[a] = TouchButton
+				If FileType(RESFOLDER + "SubMenu" + FolderSlash + "GameExtrasList" + FolderSlash + item + ".png") = 1 then
+					TouchPix = LoadPixmap(RESFOLDER + "SubMenu" + FolderSlash + "GameExtrasList" + FolderSlash + item + ".png")
+					If TouchPix = Null Then RuntimeError item+".png Missing!"			
+					TouchPix = ResizePixmap(TouchPix , GWidth*(Float(240)/800) , GHeight*(Float(75)/600) )
+					TouchButtonsE[a] = LoadImage(TouchPix)				
+					If TouchButtonsE[a] = Null then RuntimeError item + ".png Missing!"							
+				Else
+					TouchButtonsE[a] = tempGameExtraBlankImage
+				EndIf
 			EndIf
 			a = a + 1
 		Next 									
@@ -1317,7 +1447,7 @@ Type Menu2Type
 			If item = ".." Then 
 				TouchButtonsPG[a] = tempBackImage
 			Else
-				TouchButtonsPG[a] = tempPlayImage
+				TouchButtonsPG[a] = tempPlayBlankImage
 			EndIf 
 			a = a + 1
 		Next 			

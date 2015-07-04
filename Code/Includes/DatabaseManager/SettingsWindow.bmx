@@ -19,6 +19,10 @@ Type SettingsWindow Extends wxFrame
 	Field SW_AntiAlias:wxComboBox
 	Field SW_ShowTouchScreen:wxComboBox
 	Field SW_ShowTouchInfo:wxComboBox
+		
+	Field SW_ShowMenu:wxComboBox
+	Field SW_ShowNavigation:wxComboBox
+	Field SW_ShowSearch:wxComboBox
 	Field SW_ColourPicker1:wxColourPickerCtrl
 	Field SW_ColourPicker2:wxColourPickerCtrl
 	Field SW_Maximize:wxComboBox
@@ -75,6 +79,10 @@ Type SettingsWindow Extends wxFrame
 		Local E159:String = "Show Touchscreen/JoyStick Keyboard ~nWhen searching games in FrontEnd if this option is Yes an onscreen keyboard will appear that you can use with a touchscreen or a controller/joystick. If you have a keyboard connected you probably won't want this hogging screen space."
 		Local E160:String = "Show Touchscreen Info Button ~nShows a round button with an 'i' in it that allows mouse/touchscreens to click it to bring up more information about a game"
 		Local E161:String = "Show Touchscreen Screenshot Button ~n~nShows a round button with a camera in it that allows mouse/touchscreens to click it to bring up a screenshot viewing window"
+		
+		Local E162:String = "Show Menu Button ~n~nShows a button in top left corner which will bring up the menu when clicked on with a mouse or touchscreen."
+		Local E163:String = "Show Navigation ~n~nShows the navigation boxes in the top left corner which show you what filters are currently applied. It can also be clicked on for quick navigation or to bring up the filter menu."
+		Local E164:String = "Show Search Box ~n~nShows the search box in the top right corner of the screen. It can be clicked on with a mouse or touchscreen to filter results by a keyword. It also shows the current filter keyword."
 		
 		Local E201:String = "Enable PhotonRunner ~nDisabling PhotonRunner will will stop Photon from running in the background during games and hence disable post batch, unmount, plugins and cabinet mode. We have tried to make PhotonRunner as resource light as possible so you shouldn't see any performance loss by enabling PhotonRunner but this option is left here for those power users. ~n~nRecommended Setting: Yes"
 		Local E202:String = "Enable Cabinet Mode ~nEnabling this option will cause PhotonFrontend or PhotonExplorer to load back up after you have finished with your game."
@@ -329,6 +337,25 @@ Type SettingsWindow Extends wxFrame
 		
 		SW_ShowTouchScreen = New wxComboHelpBox.Create(ScrollBox4 , SW_STS , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
 		wxComboHelpBox(SW_ShowTouchScreen).SetFields( E161, DefaultHelp, HelpText)
+		
+		Local ST37:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox4 , wxID_ANY , "Show Menu Button: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
+		wxStaticHelpText(ST37).SetFields( E162, DefaultHelp, HelpText)
+		
+		SW_ShowMenu = New wxComboHelpBox.Create(ScrollBox4 , wxID_ANY , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		wxComboHelpBox(SW_ShowMenu).SetFields( E162, DefaultHelp, HelpText)		
+		
+		Local ST38:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox4 , wxID_ANY , "Show Navigation: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
+		wxStaticHelpText(ST38).SetFields( E163, DefaultHelp, HelpText)
+		
+		SW_ShowNavigation = New wxComboHelpBox.Create(ScrollBox4 , wxID_ANY , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		wxComboHelpBox(SW_ShowNavigation).SetFields( E163, DefaultHelp, HelpText)	
+
+		Local ST39:wxStaticHelpText = wxStaticHelpText( New wxStaticHelpText.Create(ScrollBox4 , wxID_ANY , "Show Search Box: " , - 1 , - 1 , - 1 , - 1 , wxALIGN_LEFT) )
+		wxStaticHelpText(ST39).SetFields( E164, DefaultHelp, HelpText)
+		
+		SW_ShowSearch = New wxComboHelpBox.Create(ScrollBox4 , wxID_ANY , "" , ["Yes", "No"] , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )		
+		wxComboHelpBox(SW_ShowNavigation).SetFields( E164, DefaultHelp, HelpText)			
+		
 	
 		'ScrollBoxvbox.Add(SL5, 0 , wxEXPAND | wxALL , 4)
 		'ScrollBoxvbox.Add(SLT3,  0 , wxEXPAND | wxALL , 4)
@@ -357,6 +384,12 @@ Type SettingsWindow Extends wxFrame
 		ScrollBoxvbox4.Add(ST18 , 0 , wxEXPAND | wxALL , 4)
 		ScrollBoxvbox4.Add(SW_ShowTouchScreen , 0 , wxEXPAND | wxALL , 4)	
 
+		ScrollBoxvbox4.Add(ST37 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_ShowMenu , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(ST38 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_ShowNavigation , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(ST39 , 0 , wxEXPAND | wxALL , 4)
+		ScrollBoxvbox4.Add(SW_ShowSearch , 0 , wxEXPAND | wxALL , 4)
 
 		ScrollBox4.SetSizer(ScrollBoxvbox4)
 		
@@ -670,14 +703,30 @@ Type SettingsWindow Extends wxFrame
 			SW_ShowTouchScreen.SetValue("No")
 		EndIf 	
 		
-		If ShowInfoButton = 1 Then 
+		If ShowInfoButton = 1 then
 			SW_ShowTouchInfo.SetValue("Yes")
 		Else
 			SW_ShowTouchInfo.SetValue("No")
 		EndIf 			
 		
-			
-		
+		If ShowMenu = 1 then
+			SW_ShowMenu.SetValue("Yes")
+		Else
+			SW_ShowMenu.SetValue("No")
+		EndIf
+
+		If ShowNavigation = 1 then
+			SW_ShowNavigation.SetValue("Yes")
+		Else
+			SW_ShowNavigation.SetValue("No")
+		EndIf
+
+		If ShowSearchBox = 1 then
+			SW_ShowSearch.SetValue("Yes")
+		Else
+			SW_ShowSearch.SetValue("No")
+		EndIf		
+				
 		If RunnerButtonCloseOnly = 1 Then 
 			SW_ButtonCloseOnly.SetValue("Yes")
 		Else
@@ -848,7 +897,7 @@ Type SettingsWindow Extends wxFrame
 		Local MainWin:MainWindow = SettingsWindow(event.parent).ParentWin
 		?Not Win32
 		Local openFileDialog:wxDirDialog = New wxDirDialog.Create(MainWin.SettingsWindowField, "Select folder" ,MainWin.SettingsWindowField.SW_OverridePath.GetValue() , wxDD_DIR_MUST_EXIST)	
-		If openFileDialog.ShowModal() = wxID_OK Then
+		If openFileDialog.ShowModal() = wxID_OK then
 			MainWin.SettingsWindowField.SW_OverridePath.ChangeValue(openFileDialog.GetPath())
 		EndIf
 		?Win32
@@ -958,7 +1007,7 @@ Type SettingsWindow Extends wxFrame
 				Log1.AddText("Optimizing Artwork for: "+GameNode.Name)
 				GameNode.OptimizeArtwork()			
 			EndIf
-			If Log1.LogClosed = True Then Exit 
+			If Log1.LogClosed = True then Exit
 		Forever
 		CloseDir(GameDir)
 		Self.Show(1)
@@ -1040,7 +1089,25 @@ Type SettingsWindow Extends wxFrame
 			ShowInfoButton = 1
 		Else
 			ShowInfoButton = 0
-		EndIf 		
+		EndIf 	
+				
+		If SW_ShowMenu.GetValue() = "Yes" then
+			ShowMenu = 1
+		Else
+			ShowMenu = 0
+		EndIf
+		
+		If SW_ShowNavigation.GetValue() = "Yes" then
+			ShowNavigation = 1
+		Else
+			ShowNavigation = 0
+		EndIf
+
+		If SW_ShowSearch.GetValue() = "Yes" then
+			ShowSearchBox = 1
+		Else
+			ShowSearchBox = 0
+		EndIf		
 			
 		If SW_ButtonCloseOnly.GetValue() = "Yes"
 			RunnerButtonCloseOnly = 1

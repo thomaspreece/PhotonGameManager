@@ -13,16 +13,19 @@ Function OverrideCheck:String(FolderSlash:String)
 			TempFolderPath = TempFolderPath + FolderSlash
 		EndIf
 	Else
-		'Backwards Compatability: Check for GameManagerV4 Folder and rename to PhotonV4
-		If FileType(UserDocsDir + FolderSlash + "GameManagerV4") = 2 then
-			RenameFile(UserDocsDir + FolderSlash + "GameManagerV4", UserDocsDir + FolderSlash + "PhotonV4")
+		If FileType(UserDocsDir + FolderSlash + "PhotonV4") = 2 then
+			TempFolderPath = UserDocsDir + FolderSlash + "PhotonV4" + FolderSlash		
+		Else
+			'Backwards Compatability: Check for GameManagerV4 Folder and rename to PhotonV4
+			If FileType(UserDocsDir + FolderSlash + "GameManagerV4") = 2 then
+				RenameFile(UserDocsDir + FolderSlash + "GameManagerV4", UserDocsDir + FolderSlash + "PhotonV4")
+			EndIf
+						
+			If FileType(UserDocsDir + FolderSlash + "PhotonV4") <> 2 then	
+				CreateFolder(UserDocsDir + FolderSlash + "PhotonV4")
+			EndIf		
+			TempFolderPath = UserDocsDir + FolderSlash + "PhotonV4" + FolderSlash		
 		EndIf
-				 	
-		If FileType(UserDocsDir + FolderSlash + "PhotonV4") <> 2 then	
-			CreateFolder(UserDocsDir + FolderSlash + "PhotonV4")
-		EndIf
-		TempFolderPath = UserDocsDir + FolderSlash + "PhotonV4" + FolderSlash		
-
 
 	EndIf
 	Return TempFolderPath

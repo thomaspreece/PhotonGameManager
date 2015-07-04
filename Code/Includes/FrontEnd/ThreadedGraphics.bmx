@@ -32,9 +32,9 @@ endrem
 'MARK: MAIN CORE - Texture Operations
 Function FrameLimiter()
 		
-	ProcessGraphicsQueue(1)'NEW
+	ProcessGraphicsQueue(1) 'NEW
 	
-	While MilliSecs() + OverProcessTime - FrameTimer < 1000 / (FRAMERATE+1)
+	While MilliSecs() + OverProcessTime - FrameTimer < 1000 / (FRAMERATE + 1)
 	'	ProcessGraphicsQueue(1)
 	'	RendersWithoutProcess = RendersWithoutProcess - 1
 	'Delay 1'NEW
