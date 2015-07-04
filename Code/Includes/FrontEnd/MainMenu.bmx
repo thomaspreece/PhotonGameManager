@@ -210,13 +210,14 @@ Type MainMenuType Extends GeneralType
 							FilterType = "Certificate"
 							FilterName = ""								
 					End Select
-				Case "Platforms"	
-					If MenuFlow.MenuArray[item] = "Sort By Platform" Then
+				Case "PlatformNums"	
+					If MenuFlow.MenuArray[item] = "Sort By Platform" then
 						FilterName = ""
 						GamesSortFilter = "Platform"
 					Else
-						GamesPlatformFilter = GlobalPlatforms.GetPlatformByName(MenuFlow.MenuArray[item]).ID
-						FilterName = MenuFlow.MenuArray[item]
+						GamesPlatformFilter = Int(MenuFlow.MenuArray[item])
+						'GamesPlatformFilter = GlobalPlatforms.GetPlatformByName(MenuFlow.MenuArray[item]).ID
+						FilterName = MenuFlow.MenuNameArray[item]
 					EndIf
 					PopulateGames()
 					ChangeInterface(CurrentInterfaceNumber, 1, 0)

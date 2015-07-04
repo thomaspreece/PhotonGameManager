@@ -34,7 +34,7 @@ Const FRAMERATE:Int = 60
 Const RENDERRATE:Float = 0.5
 Global RenderLoop:Int = False 
 Global RenderFrameNumber:Float = 0
-Global GAMECACHELIMIT:Int = 10
+Global GAMECACHELIMIT:int = 10
 Global LowMemory:Int = False
 Global TempLowMemoryControl:Int = False 
 Global MaxFrontCovers:Int = 50
@@ -58,13 +58,16 @@ Global AntiAliasSetting:Int = 0
 
 Global ForceTextureReset:Int = False 
 Global TouchKeyboardEnabled:Int = True
-Global ShowScreenButton:Int = True
-Global ShowInfoButton:Int = True 
+Global ShowScreenButton:int = True
+Global ShowInfoButton:int = True
+Global ShowMenuButton:int = True
+Global ShowSearchBar:int = True
+Global ShowNavigation:int = True
 
 Global KeyboardLayout:String[] = ["1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" , "0" ,..
-			"q" , "w" , "e" , "r" , "t" , "y" , "u" , "i" , "o" , "p" ,..
-			"a" , "s" , "d" , "f" , "g" , "h" , "j" , "k" , "l" , "BkSp"  ,..
-			"ESC" , "z" , "x" , "c" , "v" , "b" , "n" , "m" ,  "Space" , "Enter" ]
+			"Q" , "W" , "E" , "R" , "T" , "Y" , "U" , "I" , "O" , "P" , ..
+			"A" , "S" , "D" , "F" , "G" , "H" , "J" , "K" , "L" , "BkSp" , ..
+			"Cancel" , "Z" , "X" , "C" , "V" , "B" , "N" , "M" , "Space" , "Go" ]
 
 'MARK: Game
 Global GameArray:String[0]
@@ -110,6 +113,7 @@ Global GameNode:GameReadType = New GameReadType
 Global NameFont:TImageFont
 Global MainTextFont:TImageFont
 Global MenuButtonFont:TImageFont
+Global MenuButtonFont2:TImageFont
 Global MenuFont:TImageFont
 Global BigMenuFont:TImageFont
 Global FilterFont:TImageFont
@@ -147,7 +151,7 @@ Global Mutex_TextureQueue:TMutex = CreateMutex()
 Global Mutex_ProcessStack:TMutex = CreateMutex()
 Global Mutex_ThreadStatus:TMutex = CreateMutex()
 Global ResetTextureThread:Int = 0
-Global CloseTextureThread:Int = 0
+Global CloseTextureThread:int = 0
 Global ThreadStatus:Int = 0
 
 Global WaitingThread2:TSemaphore = CreateSemaphore(0)

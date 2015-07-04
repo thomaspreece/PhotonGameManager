@@ -89,7 +89,7 @@ Type KeyboardInputWindow Extends wxFrame
 		EndIf 	
 		
 		If FrontEndSettingFile.GetSetting("KEYBOARD_DOWN") <> "" Then
-			temp = Int(FrontEndSettingFile.GetSetting("KEYBOARD_DOWN"))
+			temp = Int(FrontEndSettingFile.GetSetting("KEYBOARD_DOWN") )
 			InputBoxes[5].ChangeValue(temp+" ("+getKeyCodeChar(temp)+")")
 		Else
 			InputBoxes[5].ChangeValue(KEY_DOWN+" ("+getKeyCodeChar(KEY_DOWN)+")")			
@@ -151,7 +151,7 @@ Type KeyboardInputWindow Extends wxFrame
 			InputBoxes[13].ChangeValue(KEY_ESCAPE+" ("+getKeyCodeChar(KEY_ESCAPE)+")")			
 		EndIf																			
 		
-		KeyCountdown = New wxTimer.Create(Self,KIW_T)
+		KeyCountdown = New wxTimer.Create(Self, KIW_T)
 			
 		Connect(KIW_T , wxEVT_TIMER , KeyTimeout)	
 		
@@ -160,7 +160,7 @@ Type KeyboardInputWindow Extends wxFrame
 
 		Connect(KIW_BB , wxEVT_COMMAND_BUTTON_CLICKED , ShowSettingsWindows)
 		Connect(KIW_OB , wxEVT_COMMAND_BUTTON_CLICKED , SaveInputFun)
-
+		ConnectAny(wxEVT_CLOSE , ShowSettingsWindows)
 		SetSizer(vbox)
 		
 	End Method
@@ -273,7 +273,7 @@ Type KeyboardInputButton Extends wxButton
 		If KeyboardInputWin.ActiveField = - 1 then
 		
 		Else
-			KeyboardInputWin.InputBoxes[KeyboardInputWin.ActiveField].ChangeValue(MapWxKeyCodeToBlitz(evt.GetKeyCode())+" ("+getKeyCodeChar(MapWxKeyCodeToBlitz(evt.GetKeyCode()))+")")
+			KeyboardInputWin.InputBoxes[KeyboardInputWin.ActiveField].ChangeValue(MapWxKeyCodeToBlitz(evt.GetKeyCode() ) + " (" + getKeyCodeChar(MapWxKeyCodeToBlitz(evt.GetKeyCode() ) ) + ")")
 			For b=0 To 10
 				If b=KeyboardInputWin.ActiveField Then 
 				
@@ -435,7 +435,7 @@ Type JoyStickInputWindow Extends wxFrame
 
 		Connect(KIW_BB , wxEVT_COMMAND_BUTTON_CLICKED , ShowSettingsWindows)
 		Connect(KIW_OB , wxEVT_COMMAND_BUTTON_CLICKED , SaveInputFun)
-
+		ConnectAny(wxEVT_CLOSE , ShowSettingsWindows)
 		SetSizer(vbox)
 		
 	End Method

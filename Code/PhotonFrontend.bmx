@@ -1,3 +1,6 @@
+'TODO: FrontEnd Debug Seems to idle at 100%: Added in Delay, make sure Frontend still smooth
+
+
 Framework BRL.FileSystem
 Import BRL.StandardIO
 Import BRL.Threads
@@ -12,7 +15,6 @@ Import Bah.Regex
 Import BaH.Volumes
 Import PUB.FreeProcess
 Import Pub.FreeJoy
-
 'NOTHING IMPORTANT HERE!
 'Max2D - MouseX,MouseY incorrect on Ubuntu V.M - Fine on native Ubuntu!
 'BUG: Windows 8 Doesn't work - Believed to be fixed
@@ -176,11 +178,11 @@ Delay(StartWait)
 Graphics3D GWidth , GHeight , Depth , GMode , FRAMERATE , GRAPHICS_BACKBUFFER|GRAPHICS_DEPTHBUFFER|GRAPHICS_ACCUMBUFFER|GRAPHICS_MULTISAMPLE
 
 ?Win32
-If ForceFront=1 Then
+If ForceFront = 1 then
 	hWnd=GetActiveWindow()
 	OurThreadID = GetCurrentThreadId()
 	
-	Local ahwnd:Byte Ptr 
+	Local ahwnd:Byte Ptr
 	CurrentThreadID = GetWindowThreadProcessId(GetForegroundWindow(),ahwnd)
 	
 	PrintF("Our Thread: "+OurThreadID)
@@ -507,13 +509,13 @@ Repeat
 	EndMax2D()
 	If RenderLoop = True 	
 		Flip	
-	EndIf 
+	EndIf
 	FrameLimiter()
 	RenderLimiter()
 	MemoryLimiter()
 	
-	If MouseDown(1) Then
-		If SwipeMode = True Then	
+	If MouseDown(1) then
+		If SwipeMode = True then	
 			If MilliSecs() - StartMouseTimer > 100 Then
 				StartMouseTimer = MilliSecs()
 				MouseStart[0] = MouseX()
@@ -571,7 +573,7 @@ Repeat
 		If obj.UpdateKeyboard()=True Then Exit
 	Next
 	For obj = EachIn UpdateTypeList	
-		If obj.UpdateMouse()= True Then Exit 
+		If obj.UpdateMouse() = True then Exit
 	Next		
 	For obj = EachIn UpdateTypeList	
 		If obj.UpdateJoy()= True Then Exit 
@@ -650,7 +652,7 @@ Repeat
 		SecondTimer = MilliSecs()
 	EndIf
 	
-
+	Delay(10)
 	If ExitProgramCall = True then Exit
 	If AppTerminate() then Exit
 Forever
@@ -1043,7 +1045,7 @@ Function GetBoundingBox:Float[](ent:TMesh)
 	leftmost#=10000
 	rightmost#=-10000
 	topmost#=10000
-	bottommost#=-10000
+	bottommost# = - 10000
 	For i=1 To CountSurfaces(ent)
 		s=GetSurface(ent,1)
 		For v=0 To CountVertices(s)-1
@@ -1065,12 +1067,14 @@ End Function
 Function LoadFonts()
 	NameFont = LoadImageFont(RESFOLDER + "ariblk.ttf" , (Float(30) / 768) * GHeight)
 	MenuButtonFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(20) / 768) * GHeight)
+	
+	MenuButtonFont2 = LoadImageFont(RESFOLDER + "ariblk.ttf" , (Float(20) / 768) * GHeight)
 	MainTextFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(18) / 768) * GHeight)
 	SmallMenuButtonFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(17)/768)*GHeight)
 
 	MenuFont = LoadImageFont(RESFOLDER + "ariblk.ttf" , (Float(20) / 768) * GHeight)
 	FilterFont = LoadImageFont(RESFOLDER + "arial.ttf" , (Float(22) / 768) * GHeight)
-	BigMenuFont = LoadImageFont(RESFOLDER + "ariblk.ttf" , (Float(25) / 768) * GHeight) 
+	BigMenuFont = LoadImageFont(RESFOLDER + "ariblk.ttf" , (Float(25) / 768) * GHeight)
 	If FilterFont = Null Or MainTextFont = Null Or NameFont = Null Or MenuButtonFont = Null Or MenuFont = Null Or BigMenuFont = Null  Then
 		RuntimeError "Font Load Error"
 	EndIf
@@ -1107,12 +1111,22 @@ Function LoadGlobalSettings()
 		TouchKeyboardEnabled = Int(ReadSettings.GetSetting("TouchKey"))
 	EndIf	
 	
-	If ReadSettings.GetSetting("ShowInfoButton") <> "" Then		
+	If ReadSettings.GetSetting("ShowInfoButton") <> "" then		
 		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton"))
 	EndIf		
 	If ReadSettings.GetSetting("ShowScreenButton") <> "" Then		
 		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton"))
 	EndIf		
+		
+	If ReadSettings.GetSetting("ShowMenu") <> "" then		
+		ShowMenuButton = Int(ReadSettings.GetSetting("ShowMenu") )
+	EndIf		
+	If ReadSettings.GetSetting("ShowNavigation") <> "" then		
+		ShowNavigation = Int(ReadSettings.GetSetting("ShowNavigation") )
+	EndIf		
+	If ReadSettings.GetSetting("ShowSearchBox") <> "" then		
+		ShowSearchBar = Int(ReadSettings.GetSetting("ShowSearchBox") )
+	EndIf	
 		
 	If ReadSettings.GetSetting("AntiAlias") <> "" Then		
 		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))

@@ -32,7 +32,11 @@ Global LowMemory:Int = 0
 Global LowProcessor:Int = 0
 Global TouchKeyboardEnabled:Int = True 
 Global ShowScreenButton:Int = True
-Global ShowInfoButton:Int = True 
+Global ShowInfoButton:int = True
+Global ShowMenu:int = True
+Global ShowNavigation:int = True
+Global ShowSearchBox:int = True
+
 Global RunnerButtonCloseOnly:Int = False 
 Global OriginWaitEnabled = True 
 Global AntiAliasSetting:Int = 0
@@ -292,6 +296,9 @@ Const PW_OB = 601
 Const PPPW_SB = 650
 Const HKPW_KCB = 651
 Const HKPW_SB = 652
+Const HKPW_BB = 653
+Const HKPW_T = 654
+Const PPPW_BB = 655
 
 '700-799 Reserved
 

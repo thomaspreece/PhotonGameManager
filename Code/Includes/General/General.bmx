@@ -1737,7 +1737,7 @@ End Function
 
 Function getKeyCodeChar:String(inNum:Int)
 
-If inNum=8  Then Return "Backspace"
+If inNum = 8 then Return "Backspace"
 If inNum=9  Then Return "Tab"
 If inNum=12 Then Return "Clear"
 If inNum=13 Then Return "Return"
