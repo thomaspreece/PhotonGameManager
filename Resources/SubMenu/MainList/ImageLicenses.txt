@@ -1,9 +1,0 @@
-Interface - LGPL
-Filter - Free for commercial use(do not redistro)
-Extras - Free for commercial use(do not redistro)
-Install from CD - LGPL
-Play Game - Free for commercial use(do not redistro)
-Exit Program - LGPL
-Exit Menu - LGPL
-Edit Game - LGPL
-Back - LGPL
