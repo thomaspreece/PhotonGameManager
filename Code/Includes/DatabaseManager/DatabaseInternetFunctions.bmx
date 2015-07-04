@@ -30,7 +30,7 @@ Function CheckEXEDatabaseStatus:Int()
 		Line$ = ReadLine(testEXEStatus)
 		PrintF("PGM Status: "+Line)
 		If Line="OFF" Then
-			EXEDatabaseOff = True 
+			EXEDatabaseOff = True
 			CloseFile(testEXEStatus)
 			Return 0
 		EndIf

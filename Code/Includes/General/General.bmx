@@ -1355,11 +1355,7 @@ End Type
 
 Function CheckInternet:Int()
 	'Connected Needs to be Global
-	
-	'FIX: remove this after
-	Connected = 1
-	Return 1
-	
+		
 	Local ReturnValue:String 
 	Local temp_proc:TProcess
 	?Win32	
@@ -1622,7 +1618,7 @@ Function CheckVersion:Int()
 	curl.setWriteStream(TempVersionFile)
 	?Win32
 	curl.setOptString(CURLOPT_URL, "http://photongamemanager.com/PackageManager/LatestVersionWin.txt")
-	?Not Win32
+	?Linux
 	curl.setOptString(CURLOPT_URL, "http://photongamemanager.com/PackageManager/LatestVersionLinux.txt")
 	?	
 	Error = curl.perform()
