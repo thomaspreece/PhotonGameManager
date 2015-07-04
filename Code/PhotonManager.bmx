@@ -265,7 +265,6 @@ Function Thread_Startup:Object(obj:Object)
 	Splash.SetStatusText("Loading resources")
 	SearchBeep = LoadSound("Resources" + FolderSlash + "BEEP.wav")
 
-	
 	WindowsCheck()
 	
 	Splash.SetStatusText("Loading platforms")
@@ -276,7 +275,8 @@ Function Thread_Startup:Object(obj:Object)
 	CheckInternet()
 	'CheckPGMInternet()
 	CheckVersion()
-	CheckEXEDatabaseStatus()
+	EXEDatabaseOff = True
+	'CheckEXEDatabaseStatus()
 
 	Splash.SetStatusText("Checking game database")
 	'ValidateGames()
