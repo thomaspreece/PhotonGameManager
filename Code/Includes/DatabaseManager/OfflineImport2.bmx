@@ -66,26 +66,26 @@ Type OfflineImport2 Extends wxFrame
 		HelpPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local HelpPanelSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(HelpPanel, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			HelpText.Hide()
 		EndIf 		
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		HelpPanelSizer.Add(HelpText, 1, wxEXPAND | wxALL, 10)
 		HelpPanel.SetSizer(HelpPanelSizer)
 		
-		vbox.Add(HelpPanel, 0 , wxEXPAND, 0)
+		vbox.Add(HelpPanel, 1 , wxEXPAND, 0)
 		vbox.Add(Panel1 , 0 , wxEXPAND , 0)
 		'vbox.Add(Panel3 , 0 , wxEXPAND , 0)
 		'vbox.Add(SourceItemsList , 1 , wxEXPAND , 0)
 		
 		
-		vbox.Add(ScrollBox, 1, wxEXPAND , 0)
+		vbox.Add(ScrollBox, 3, wxEXPAND , 0)
 		vbox.Add(sl2 , 0 , wxEXPAND , 0)
 		vbox.Add(BackButtonPanel, 0 , wxEXPAND, 0)		
 		SetSizer(vbox)
 		Centre()		
 		Hide()
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			Self.Maximize(1)
 		EndIf
 		
@@ -153,14 +153,14 @@ Type OfflineImport2 Extends wxFrame
 		Local OnlineWin:OfflineImport2 = OfflineImport2(event.parent)
 		Local MainWin:MainWindow = OfflineImport2(event.parent).ParentWin
 		Local MessageBox:wxMessageDialog
-		If OnlineWin.UnSavedChanges = True then
+		If OnlineWin.UnSavedChanges = True Then
 			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes, are you sure you wish to clear them?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 			If MessageBox.ShowModal() = wxID_NO Then
 				MessageBox.Free()
 				PrintF("Unsaved changes, exit")
 				Return
 				
-			else
+			Else
 				PrintF("Unsaved changes, continue")
 				MessageBox.Free()
 			End If
@@ -185,7 +185,7 @@ Type OfflineImport2 Extends wxFrame
 		
 		Local tempVbox:wxBoxSizer
 		Local tempPanel:wxPanel	
-							Local tempPanel1:wxPanel, tempPanel2:wxPanel	, tempPanel3:wxPanel	, tempPanel4:wxPanel	
+							Local tempPanel1:wxPanel, tempPanel2:wxPanel	, tempPanel3:wxPanel	, tempPanel4:wxPanel	
 		Local tempVbox1:wxBoxSizer, tempVbox2:wxBoxSizer, tempVbox3:wxBoxSizer, tempVbox4:wxBoxSizer
 		
 		Local gridbox:wxFlexGridSizer
@@ -233,7 +233,7 @@ Type OfflineImport2 Extends wxFrame
 		
 		
 		tempPanel = New wxPanel.Create(ScrollBox , - 1)
-		gridbox = New wxFlexGridSizer.CreateRC(0, 3, 10, 10)		gridbox.SetFlexibleDirection(wxHORIZONTAL)
+		gridbox = New wxFlexGridSizer.CreateRC(0, 3, 10, 10)		gridbox.SetFlexibleDirection(wxHORIZONTAL)
 		gridbox.AddGrowableCol(2, 1)
 
 		tempStaticText = New wxStaticText.Create(tempPanel , wxID_ANY , "Import?", - 1, - 1, - 1, - 1, wxALIGN_CENTER)
@@ -248,8 +248,8 @@ Type OfflineImport2 Extends wxFrame
 		
 		Repeat
 			File = NextFile(ReadGDFFolder)
-			If File = "" then Exit
-			If File = "." Or File = ".." then Continue
+			If File = "" Then Exit
+			If File = "." Or File = ".." Then Continue
 			PrintF(File)
 			If FileType(TEMPFOLDER + "GDF\" + File + "\Data.txt") = 0 Then
 				DeleteDir(TEMPFOLDER + "GDF\" + File , 0)
@@ -277,10 +277,10 @@ Type OfflineImport2 Extends wxFrame
 			
 			b=1
 			For a = 1 To Len(GDFEXEs)
-				If Mid(GDFEXEs , a , 2) = "||" then
+				If Mid(GDFEXEs , a , 2) = "||" Then
 					tempString = Mid(GDFEXEs , b , a - b)
 					For c = 1 To Len(tempString)
-						If Mid(tempString, c , 1) = "|" then
+						If Mid(tempString, c , 1) = "|" Then
 							tempString = Left(tempString, c - 1)
 							Exit
 						EndIf
@@ -293,7 +293,7 @@ Type OfflineImport2 Extends wxFrame
 			
 			tempString = Mid(GDFEXEs , b)
 			For c = 1 To Len(tempString)
-				If Mid(tempString, c , 1) = "|" then
+				If Mid(tempString, c , 1) = "|" Then
 					tempString = Left(tempString, c - 1)
 					Exit
 				EndIf
@@ -303,7 +303,7 @@ Type OfflineImport2 Extends wxFrame
 			
 		
 			CloseFile(ReadGDFFile)
-			If Log1.LogClosed = True then Exit
+			If Log1.LogClosed = True Then Exit
 		Forever		
 		CloseDir(ReadGDFFolder)
 		gridbox.SetFlexibleDirection(wxHORIZONTAL)
@@ -410,26 +410,26 @@ Type OfflineImport2 Extends wxFrame
 				
 				GameNode.RunEXE = Chr(34) + EXE + Chr(34)
 				
-				If PM_GE_AddAllEXEs = True then
+				If PM_GE_AddAllEXEs = True Then
 					b = 1
 					For d = 1 To Len(EXEs)
-						If Mid(EXEs , d , 2) = "||" then
+						If Mid(EXEs , d , 2) = "||" Then
 							tempString = Mid(EXEs , b , d - b)
 							Print tempString
 							tempEXE = ""
 							tempName = ""
 							For e = 1 To Len(tempString)
-								If Mid(tempString, e , 1) = "|" then
+								If Mid(tempString, e , 1) = "|" Then
 									tempEXE = Chr(34) + Left(tempString, e - 1) + Chr(34)
 									tempName = Right(tempString , Len(tempString) - e )
 									Exit
 								EndIf
 							Next
-							If tempEXE = "" then tempEXE = Chr(34) + tempString + Chr(34)
+							If tempEXE = "" Then tempEXE = Chr(34) + tempString + Chr(34)
 							
-							If tempEXE = GameNode.RunEXE then
+							If tempEXE = GameNode.RunEXE Then
 							
-							else
+							Else
 								ListAddLast(GameNode.OEXEs , tempEXE )
 								ListAddLast(GameNode.OEXEsName , tempName )
 							EndIf 
@@ -440,24 +440,24 @@ Type OfflineImport2 Extends wxFrame
 				
 					tempString = Mid(EXEs , b)
 					Print tempString
-					If tempString = "" Or tempString = " " then
+					If tempString = "" Or tempString = " " Then
 					
-					else
+					Else
 						
 						tempEXE = ""
 						tempName = ""
 						For e = 1 To Len(tempString)
-							If Mid(tempString, e , 1) = "|" then
+							If Mid(tempString, e , 1) = "|" Then
 								tempEXE = Chr(34) + Left(tempString, e - 1) + Chr(34)
 								tempName = Right(tempString , Len(tempString) - e )
 								Exit
 							EndIf
 						Next
-						If tempEXE = "" then tempEXE = Chr(34) + tempString + Chr(34)
+						If tempEXE = "" Then tempEXE = Chr(34) + tempString + Chr(34)
 						
-						If tempEXE = GameNode.RunEXE then
+						If tempEXE = GameNode.RunEXE Then
 							
-						else
+						Else
 							ListAddLast(GameNode.OEXEs , tempEXE )
 							ListAddLast(GameNode.OEXEsName , tempName )		
 						EndIf

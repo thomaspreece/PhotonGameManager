@@ -1,3 +1,7 @@
+'TODO: Separate file for name+platform to allow much faster parsing of games for large lists
+'TODO: Crashes when you turn debug log on (debuglog OFF when PHotnManager started)
+
+
 'TODO: Update Backup and Restore Functions
 'NOTE: PhotonTray dont load GeneralSettings and hence don't load DebugLog Setting
 'TODO: Implement plugins for joystick?
@@ -69,9 +73,9 @@ Import wx.wxPlatformInfo
 Import wx.wxSplitterWindow
 Import wx.wxMouseEvent
 Import wx.wxHyperlinkCtrl
-Import wx.wxgauge
-Import wx.wxcolourpickerctrl
-Import wx.wxradiobox
+Import wx.wxGauge
+Import wx.wxColourPickerCtrl
+Import wx.wxRadioBox
 
 Import BaH.libcurlssl
 Import Bah.libxml
@@ -112,7 +116,6 @@ Include "ManagerGlue.bmx"
 'GenerateGlueCode("ManagerGlue.bmx")
 'End
 
-
 ?Not Win32
 Global FolderSlash:String = "/"
 ?Win32
@@ -144,10 +147,10 @@ Incbin "Version/OverallVersion.txt"
 SubVersion = ExtractSubVersion(LoadText("incbin::Version/PM-Version.txt"), 1)
 OSubVersion = ExtractSubVersion(LoadText("incbin::Version/OverallVersion.txt"), 1)
 
-Print "Version = " + CurrentVersion
-Print "SubVersion = " + SubVersion
-Print "OSubVersion = " + OSubVersion
-
+PrintF "Version = " + CurrentVersion
+PrintF "SubVersion = " + SubVersion
+PrintF "OSubVersion = " + OSubVersion
+PrintF "Folder = " + GAMEDATAFOLDER
 
 Local PastArgument:String
 For Argument$ = EachIn AppArgs$
@@ -156,7 +159,7 @@ For Argument$ = EachIn AppArgs$
 			EditGameName = Argument
 			PastArgument = ""
 		Case "-Debug","Debug"
-			If int(Argument) = 1 then
+			If Int(Argument) = 1 Then
 				DebugLogEnabled = True
 			EndIf 
 			PastArgument = ""
@@ -211,11 +214,11 @@ Type DatabaseManager Extends wxApp
 		Thread_Download(DM.Splash)
 		?
 
-		If DebugLogEnabled = False then
+		If DebugLogEnabled = False Then
 			DeleteFile(LOGFOLDER + LogName)
 		EndIf
 
-		If EvaluationMode = True then
+		If EvaluationMode = True Then
 			Notify "You are running in evaluation mode, this limits you to the first 5 games added to the database in FrontEnd and PhotonExplorer"
 		EndIf
 		
@@ -223,7 +226,7 @@ Type DatabaseManager Extends wxApp
 	End Function	
 	
 	Method StartupMain()
-		If FileType(SETTINGSFOLDER + "GeneralSettings.xml") = 1 then
+		If FileType(SETTINGSFOLDER + "GeneralSettings.xml") = 1 Then
 			Menu = MainWindow(New MainWindow.Create(Null , wxID_ANY, "DatabaseManager", - 1, - 1, 600, 400, wxDEFAULT_FRAME_STYLE ) )
 			Splash.Destroy()			
 		Else
@@ -292,7 +295,7 @@ Function Thread_Startup:Object(obj:Object)
 End Function
 
 
-Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
+Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
 	
 	
 	
@@ -363,7 +366,7 @@ Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
 		
 			GetGraphicsMode(a , wid , hei , dep , hert)
 			If dep => 32 And wid => 640 And hei >= 480 Then
-				If ResolutionCombo.FindString(wid + "x" + hei) = - 1 then
+				If ResolutionCombo.FindString(wid + "x" + hei) = - 1 Then
 					ResolutionCombo.Append(wid + "x" + hei)
 				EndIf
 			EndIf
@@ -410,7 +413,7 @@ Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
 		Country = Wizard.DateCombo.GetValue()
 		
 		For a = 1 To Len(Wizard.ResolutionCombo.GetValue() )
-			If Mid(Wizard.ResolutionCombo.GetValue() , a , 1) = "x" then
+			If Mid(Wizard.ResolutionCombo.GetValue() , a , 1) = "x" Then
 				GraphicsW = Int(Left(Wizard.ResolutionCombo.GetValue() , a - 1) )
 				GraphicsH = Int(Right(Wizard.ResolutionCombo.GetValue() , Len(Wizard.ResolutionCombo.GetValue() ) - a) )
 				Exit
@@ -442,7 +445,7 @@ Type FirstRunWizard Extends wxWizard	Field Page1:wxWizardPageSimple
 			Case "Joystick/Controller"
 				TouchKeyboardEnabled = 1
 				ShowInfoButton = 0
-				ShowScreenButton = 0				ShowMenu = 0
+				ShowScreenButton = 0				ShowMenu = 0
 				ShowNavigation = 1
 				ShowSearchBox = 1	
 			Case "All of the above"
@@ -667,10 +670,12 @@ Type MainWindow Extends wxFrame
 		PrintF("----------------------------Show Emulator List----------------------------")
 		
 		'MainWin.EmulatorsListField = EmulatorsList(New EmulatorsList.Create(MainWin , wxID_ANY , "Emulator List" , , , 800 , 600) )	
+		MainWin.Disable()
 		MainWin.PlatformsListField = PlatformsList(New PlatformsList.Create(MainWin , wxID_ANY , "Platform List" , , , 800 , 600) )	
 		'MainWin.EmulatorsListField.Show(True)
 		MainWin.PlatformsListField.Show(True)
 		MainWin.Hide()
+		MainWin.Enable()
 		'MainWin.EmulatorsListField.Raise()
 		MainWin.PlatformsListField.Raise()
 	End Function		
@@ -686,10 +691,12 @@ Type MainWindow Extends wxFrame
 	Function ShowEditGameList(event:wxEvent)
 		Local MainWin:MainWindow = MainWindow(event.parent)
 		PrintF("----------------------------Show Edit Game List----------------------------")
+		MainWin.Disable()
 		MainWin.EditGameListField = EditGameList(New EditGameList.Create(MainWin, wxID_ANY, "Games", , , 950, 850, wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL) )	
 		MainWin.EditGameListField.PopulateGameList()		
+		MainWin.Show(False)
+		MainWin.Enable()
 		MainWin.EditGameListField.Show(True)
-		MainWin.Hide()
 		MainWin.EditGameListField.Raise()
 	End Function
 
@@ -825,7 +832,7 @@ Type AddGamesMenu Extends wxFrame
 		Local MessageBox:wxMessageDialog	
 		PrintF("----------------------------Online Game Add Selected----------------------------")
 		Local MainWin:MainWindow = AddGamesMenu(event.parent).ParentWin
-		If Connected = False then
+		If Connected = False Then
 			CheckInternet()		
 		EndIf 	
 		If Connected = True Then 
@@ -960,13 +967,13 @@ Type SteamCustomAdd Extends wxFrame
 	Function SaveCustomSteamGame(event:wxEvent)
 		Local MainWin:MainWindow = SteamCustomAdd(event.parent).ParentWin
 		Local MessageBox:wxMessageDialog
-		If IsntNull(MainWin.SteamCustomAddField.NameTextBox.GetValue() ) = False then
+		If IsntNull(MainWin.SteamCustomAddField.NameTextBox.GetValue() ) = False Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please enter a name for the steam game" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()	
 			Return
 		EndIf
-		If Int(MainWin.SteamCustomAddField.IDTextBox.GetValue() ) < 1 then
+		If Int(MainWin.SteamCustomAddField.IDTextBox.GetValue() ) < 1 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please enter a number for the steam game" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()	
@@ -1355,7 +1362,7 @@ Type PluginsWindow Extends wxFrame
 		
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, "Plugins", - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			HelpText.Hide()
 		EndIf 		
 		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
@@ -1374,7 +1381,7 @@ Type PluginsWindow Extends wxFrame
 			File = NextFile(ReadPlugins)
 			If File = "" Then Exit
 			If File="." Or File=".." Then Continue 
-			If FileType(APPFOLDER + File) = 2 And File <> "critical" then
+			If FileType(APPFOLDER + File) = 2 And File <> "critical" Then
 				'temphbox = New wxBoxSizer.Create(wxHORIZONTAL)
 				'temphbox2 = New wxBoxSizer.Create(wxHORIZONTAL)
 				'temphbox3 = New wxBoxSizer.Create(wxHORIZONTAL)
@@ -1410,7 +1417,7 @@ Type PluginsWindow Extends wxFrame
 				ReadSettings.ParseFile(APPFOLDER + File + FolderSlash+"PM-CONFIG.xml" , "PluginSelection")
 				tempcombobox.SetValue(ReadSettings.GetSetting("plugin") )
 				tempcombobox2.SetValue(ReadSettings.GetSetting("enabled") )
-				If tempcombobox2.GetValue() = "" Or tempcombobox.GetValue() = "" then
+				If tempcombobox2.GetValue() = "" Or tempcombobox.GetValue() = "" Then
 					tempcombobox.SelectItem(0)
 					tempcombobox2.SetValue("No")
 				EndIf
@@ -1450,7 +1457,7 @@ Type PluginsWindow Extends wxFrame
 		Self.Update()
 		ScrollBox.Update()
 		
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			Self.Maximize(1)
 		EndIf 		
 		
@@ -1489,8 +1496,8 @@ Type PluginsWindow Extends wxFrame
 		Local ReadSettings:SettingsType
 		Local Configure:String
 		For a = 0 To Len(PluginNameArray) - 1
-			If String(PluginTypeArray[a]) = String(data) then
-				If wxComboBox(PluginNameArray[a]).GetValue() = "" then
+			If String(PluginTypeArray[a]) = String(data) Then
+				If wxComboBox(PluginNameArray[a]).GetValue() = "" Then
 					MessageBox = New wxMessageDialog.Create(Null , "Please select a plugin" , "Info" , wxOK | wxICON_INFORMATION)
 					MessageBox.ShowModal()
 					MessageBox.Free()				
@@ -1500,7 +1507,7 @@ Type PluginsWindow Extends wxFrame
 				ReadSettings.ParseFile(APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() +FolderSlash+"PM-CONFIG.xml" , "PluginConfig")
 				Configure = ReadSettings.GetSetting("configurepath")
 				ReadSettings.CloseFile()
-				If Configure = "" then
+				If Configure = "" Then
 					'Print CurrentDir()+APPFOLDER + String(PluginTypeArray[a]) + "\" + wxComboBox(PluginNameArray[a]).GetValue() +"\PM-CONFIG.xml"
 					RunProcess("Notepad.exe " + CurrentDir() + FolderSlash + APPFOLDER + String(PluginTypeArray[a]) + FolderSlash + wxComboBox(PluginNameArray[a]).GetValue() + FolderSlash + "PM-CONFIG.xml" , 1)
 				ElseIf Configure = "Internal"
@@ -1651,7 +1658,7 @@ Type SettingsMenu Extends wxFrame
 		Local MessageBox:wxMessageDialog
 		Local temp:String
 		MessageBox = New wxMessageDialog.Create(Null, "Restoring a backup will delete all current games saved in your database, are you sure you wish to continue?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-		If MessageBox.ShowModal() = wxID_NO then
+		If MessageBox.ShowModal() = wxID_NO Then
 			Return
 		EndIf
 		
@@ -1699,8 +1706,8 @@ Type SettingsMenu Extends wxFrame
 		If IsntNull(BakFilename) = False Then
 			Return
 		EndIf
-		If Check7zip() = True then
-			If FileType(BakFilename) = 1 then DeleteFile(BakFilename)
+		If Check7zip() = True Then
+			If FileType(BakFilename) = 1 Then DeleteFile(BakFilename)
 			'Local Log1:LogWindow = LogWindow(New LogWindow.Create(Null , wxID_ANY , "Database Backup" , , , 300 , 400) )
 			Log1.Show(1)
 			Local tempdir:String = CurrentDir()
@@ -1813,7 +1820,7 @@ Type LogWindow Extends wxFrame
 		LockMutex(LogOpenMutex)
 		?
 		
-		If LogOpen = 1 then
+		If LogOpen = 1 Then
 			LogWin.UpdateTimer.Start(100)
 		Else
 			LogWin.UpdateTimer.Stop()
@@ -1827,7 +1834,7 @@ Type LogWindow Extends wxFrame
 	Function UpdateTexts(event:wxEvent)
 		LogWin:LogWindow = LogWindow(event.parent)
 		?Threaded
-		If TryLockMutex(LogWinListMutex) = 0 then Return
+		If TryLockMutex(LogWinListMutex) = 0 Then Return
 		?
 		While CountList(LogWinList) > 0
 			LogWin.LogBox.AppendText(String(LogWinList.RemoveFirst() ) + Chr(10) )
@@ -2189,7 +2196,7 @@ Type wxColourPickerHelpCtrl Extends wxColourPickerCtrl
 	
 	Function Outside(event:wxEvent)
 		Local Button:wxColourPickerHelpCtrl = wxColourPickerHelpCtrl(event.parent)
-		If Button.TextBox = Null then
+		If Button.TextBox = Null Then
 		
 		Else
 			Button.TextBox.SetValue(Button.OldDescriptionText)
@@ -2216,7 +2223,7 @@ Type wxStaticHelpText Extends wxStaticText
 	
 	Function Inside(event:wxEvent)
 		Local Button:wxStaticHelpText = wxStaticHelpText(event.parent)
-		If Button.TextBox = Null Or Button.DescriptionText = Null then
+		If Button.TextBox = Null Or Button.DescriptionText = Null Then
 		
 		Else
 			Button.TextBox.SetValue(Button.DescriptionText)
@@ -2253,7 +2260,7 @@ Type wxButtonHelp Extends wxButton
 	
 	Function Inside(event:wxEvent)
 		Local Button:wxButtonHelp = wxButtonHelp(event.parent)
-		If Button.TextBox = Null Or Button.DescriptionText = Null then
+		If Button.TextBox = Null Or Button.DescriptionText = Null Then
 		
 		Else
 			Button.TextBox.SetValue(Button.DescriptionText)
@@ -2262,7 +2269,7 @@ Type wxButtonHelp Extends wxButton
 	
 	Function Outside(event:wxEvent)
 		Local Button:wxButtonHelp = wxButtonHelp(event.parent)
-		If Button.TextBox = Null then
+		If Button.TextBox = Null Then
 		
 		Else
 			Button.TextBox.SetValue(Button.OldDescriptionText)
@@ -2289,7 +2296,7 @@ Type wxTextHelpCtrl Extends wxTextCtrl
 	
 	Function Inside(event:wxEvent)
 		Local Button:wxTextHelpCtrl = wxTextHelpCtrl(event.parent)
-		If Button.TextBox = Null Or Button.DescriptionText = Null then
+		If Button.TextBox = Null Or Button.DescriptionText = Null Then
 		
 		Else
 			Button.TextBox.SetValue(Button.DescriptionText)
@@ -2298,7 +2305,7 @@ Type wxTextHelpCtrl Extends wxTextCtrl
 	
 	Function Outside(event:wxEvent)
 		Local Button:wxTextHelpCtrl = wxTextHelpCtrl(event.parent)
-		If Button.TextBox = Null then
+		If Button.TextBox = Null Then
 		
 		Else
 			Button.TextBox.SetValue(Button.OldDescriptionText)
@@ -2361,7 +2368,7 @@ Function GetGameIcon(EXEPath:String , GameName:String)
 		EndIf
 	Forever
 	CloseDir(ReadIcons)		
-	If temp = "" then
+	If temp = "" Then
 
 	Else
 		CopyFile(TEMPFOLDER + "Icons" + FolderSlash + File , GAMEDATAFOLDER + GameName + FolderSlash + "Icon.ico")
@@ -2372,45 +2379,45 @@ Function LoadManagerSettings()
 	Local ReadSettings:SettingsType = New SettingsType
 	ReadSettings.ParseFile(SETTINGSFOLDER + "Manager.xml" , "Manager")
 
-	If ReadSettings.GetSetting("OnlineAddSource") <> "" then
+	If ReadSettings.GetSetting("OnlineAddSource") <> "" Then
 		OnlineAddSource = ReadSettings.GetSetting("OnlineAddSource")
 	EndIf
-	If ReadSettings.GetSetting("OnlineAddPlatform") <> "" then
+	If ReadSettings.GetSetting("OnlineAddPlatform") <> "" Then
 		OnlineAddPlatform = ReadSettings.GetSetting("OnlineAddPlatform")
 	EndIf	
-	If ReadSettings.GetSetting("Red1") <> "" then
+	If ReadSettings.GetSetting("Red1") <> "" Then
 		PMRed = Int(ReadSettings.GetSetting("Red1") )
 	EndIf
-	If ReadSettings.GetSetting("Green1") <> "" then
+	If ReadSettings.GetSetting("Green1") <> "" Then
 		PMGreen = Int(ReadSettings.GetSetting("Green1") )
 	EndIf	
-	If ReadSettings.GetSetting("Blue1") <> "" then
+	If ReadSettings.GetSetting("Blue1") <> "" Then
 		PMBlue = Int(ReadSettings.GetSetting("Blue1") )
 	EndIf		
 	
-	If ReadSettings.GetSetting("Red2") <> "" then
+	If ReadSettings.GetSetting("Red2") <> "" Then
 		PMRed2 = Int(ReadSettings.GetSetting("Red2") )
 	EndIf
-	If ReadSettings.GetSetting("Green2") <> "" then
+	If ReadSettings.GetSetting("Green2") <> "" Then
 		PMGreen2 = Int(ReadSettings.GetSetting("Green2") )
 	EndIf	
-	If ReadSettings.GetSetting("Blue2") <> "" then
+	If ReadSettings.GetSetting("Blue2") <> "" Then
 		PMBlue2 = Int(ReadSettings.GetSetting("Blue2") )
 	EndIf		
 
-	If ReadSettings.GetSetting("Maximize") <> "" then
+	If ReadSettings.GetSetting("Maximize") <> "" Then
 		PMMaximize = Int(ReadSettings.GetSetting("Maximize") )
 	EndIf	
 	
-	If ReadSettings.GetSetting("DefaultGameLua") <> "" then
+	If ReadSettings.GetSetting("DefaultGameLua") <> "" Then
 		PMDefaultGameLua = ReadSettings.GetSetting("DefaultGameLua")
 	EndIf		
 	
-	If ReadSettings.GetSetting("FetchAllArt") <> "" then
+	If ReadSettings.GetSetting("FetchAllArt") <> "" Then
 		PMFetchAllArt = Int(ReadSettings.GetSetting("FetchAllArt") )
 	EndIf			
 	
-	If ReadSettings.GetSetting("HideHelp") <> "" then
+	If ReadSettings.GetSetting("HideHelp") <> "" Then
 		PMHideHelp = Int(ReadSettings.GetSetting("HideHelp") )
 	EndIf
 	
@@ -2470,31 +2477,31 @@ Function LoadExplorerSettings()
 	ReadSettings.ParseFile(SETTINGSFOLDER + "PhotonExplorer.xml" , "Settings")
 	
 	
-	If ReadSettings.GetSetting("Red1") <> "" then
+	If ReadSettings.GetSetting("Red1") <> "" Then
 		PERed = Int(ReadSettings.GetSetting("Red1") )
 	EndIf
-	If ReadSettings.GetSetting("Green1") <> "" then
+	If ReadSettings.GetSetting("Green1") <> "" Then
 		PEGreen = Int(ReadSettings.GetSetting("Green1") )
 	EndIf	
-	If ReadSettings.GetSetting("Blue1") <> "" then
+	If ReadSettings.GetSetting("Blue1") <> "" Then
 		PEBlue = Int(ReadSettings.GetSetting("Blue1") )
 	EndIf		
-	If ReadSettings.GetSetting("Red2") <> "" then
+	If ReadSettings.GetSetting("Red2") <> "" Then
 		PERed2 = Int(ReadSettings.GetSetting("Red2") )
 	EndIf
-	If ReadSettings.GetSetting("Green2") <> "" then
+	If ReadSettings.GetSetting("Green2") <> "" Then
 		PEGreen2 = Int(ReadSettings.GetSetting("Green2") )
 	EndIf	
-	If ReadSettings.GetSetting("Blue2") <> "" then
+	If ReadSettings.GetSetting("Blue2") <> "" Then
 		PEBlue2 = Int(ReadSettings.GetSetting("Blue2") )
 	EndIf	
-	If ReadSettings.GetSetting("Red3") <> "" then
+	If ReadSettings.GetSetting("Red3") <> "" Then
 		PERed3 = Int(ReadSettings.GetSetting("Red3") )
 	EndIf
-	If ReadSettings.GetSetting("Green3") <> "" then
+	If ReadSettings.GetSetting("Green3") <> "" Then
 		PEGreen3 = Int(ReadSettings.GetSetting("Green3") )
 	EndIf	
-	If ReadSettings.GetSetting("Blue3") <> "" then
+	If ReadSettings.GetSetting("Blue3") <> "" Then
 		PEBlue3 = Int(ReadSettings.GetSetting("Blue3") )
 	EndIf		
 	
@@ -2504,7 +2511,7 @@ End Function
 Function LoadGlobalSettings()	
 	ReadSettings:SettingsType = New SettingsType
 	ReadSettings.ParseFile(SETTINGSFOLDER + "GeneralSettings.xml" , "GeneralSettings")
-	If ReadSettings.GetSetting("SteamFolder") <> "" then
+	If ReadSettings.GetSetting("SteamFolder") <> "" Then
 		SteamFolder = ReadSettings.GetSetting("SteamFolder")
 	EndIf
 	If ReadSettings.GetSetting("SteamID")<>"" Then
@@ -2525,7 +2532,7 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("GraphicsHeight") <> "" Then	
 		GraphicsH = Int(ReadSettings.GetSetting("GraphicsHeight"))
 	EndIf 		
-	If ReadSettings.GetSetting("GraphicsMode") <> "" then	
+	If ReadSettings.GetSetting("GraphicsMode") <> "" Then	
 		GMode = Int(ReadSettings.GetSetting("GraphicsMode") )
 	EndIf	
 	If ReadSettings.GetSetting("SilentRunOff") <> "" Then	
@@ -2537,16 +2544,16 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("RunnerButtonCloseOnly") <> "" Then	
 		RunnerButtonCloseOnly = Int(ReadSettings.GetSetting("RunnerButtonCloseOnly"))
 	EndIf 	
-	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" then	
+	If ReadSettings.GetSetting("OriginWaitEnabled") <> "" Then	
 		OriginWaitEnabled = Int(ReadSettings.GetSetting("OriginWaitEnabled"))
 	EndIf 	
-	If ReadSettings.GetSetting("GameCache") <> "" then	
+	If ReadSettings.GetSetting("GameCache") <> "" Then	
 		GAMECACHELIMIT = Int(ReadSettings.GetSetting("GameCache"))
 	EndIf 	
 	If ReadSettings.GetSetting("LowMem") <> "" Then		
 		LowMemory = Int(ReadSettings.GetSetting("LowMem"))
 	EndIf
-	If ReadSettings.GetSetting("LowProc") <> "" then		
+	If ReadSettings.GetSetting("LowProc") <> "" Then		
 		LowProcessor = Int(ReadSettings.GetSetting("LowProc"))
 	EndIf	
 	If ReadSettings.GetSetting("TouchKey") <> "" Then		
@@ -2558,30 +2565,31 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("ShowInfoButton") <> "" Then		
 		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton") )
 	EndIf		
-	If ReadSettings.GetSetting("ShowScreenButton") <> "" then		
+	If ReadSettings.GetSetting("ShowScreenButton") <> "" Then		
 		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton") )
 	EndIf	
-	If ReadSettings.GetSetting("ShowMenu") <> "" then		
+	If ReadSettings.GetSetting("ShowMenu") <> "" Then		
 		ShowMenu = Int(ReadSettings.GetSetting("ShowMenu") )
 	EndIf				
-	If ReadSettings.GetSetting("ShowNavigation") <> "" then		
+	If ReadSettings.GetSetting("ShowNavigation") <> "" Then		
 		ShowNavigation = Int(ReadSettings.GetSetting("ShowNavigation") )
 	EndIf			
-	If ReadSettings.GetSetting("ShowSearchBox") <> "" then		
+	If ReadSettings.GetSetting("ShowSearchBox") <> "" Then		
 		ShowSearchBox = Int(ReadSettings.GetSetting("ShowSearchBox") )
 	EndIf				
-	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
-		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" Then		
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 Then
 			DebugLogEnabled = 1
+			TempDebugLogEnabled = 1
 		EndIf
 	EndIf				
-	If ReadSettings.GetSetting("GEAddAllEXEs") <> "" then		
+	If ReadSettings.GetSetting("GEAddAllEXEs") <> "" Then		
 		PM_GE_AddAllEXEs = Int(ReadSettings.GetSetting("GEAddAllEXEs") )
 	EndIf
-	If ReadSettings.GetSetting("ProcessQueryDelay") <> "" then		
+	If ReadSettings.GetSetting("ProcessQueryDelay") <> "" Then		
 		PRProcessQueryDelay = Int(ReadSettings.GetSetting("ProcessQueryDelay") )
 	EndIf	
-	If ReadSettings.GetSetting("PluginQueryDelay") <> "" then		
+	If ReadSettings.GetSetting("PluginQueryDelay") <> "" Then		
 		PRPluginQueryDelay = Int(ReadSettings.GetSetting("PluginQueryDelay") )
 	EndIf		
 	ReadSettings.CloseFile()
@@ -2612,7 +2620,7 @@ Function SaveGlobalSettings()
 	SaveSettings.SaveSetting("ShowMenu" , ShowMenu)	
 	SaveSettings.SaveSetting("ShowNavigation" , ShowNavigation)	
 	SaveSettings.SaveSetting("ShowSearchBox" , ShowSearchBox)		
-	SaveSettings.SaveSetting("DebugLogEnabled" , DebugLogEnabled)		
+	SaveSettings.SaveSetting("DebugLogEnabled" , TempDebugLogEnabled)		
 	SaveSettings.SaveSetting("GEAddAllEXEs" , PM_GE_AddAllEXEs)		
 	SaveSettings.SaveSetting("ProcessQueryDelay" , PRProcessQueryDelay)		
 	SaveSettings.SaveSetting("PluginQueryDelay" , PRPluginQueryDelay)	
@@ -2655,7 +2663,7 @@ Function WindowsCheck()
 	WinDir = GetEnv("WINDIR")
 	PrintF("Windows Folder: " + WinDir)
 	
-	If wxIsPlatform64Bit() = 1 then
+	If wxIsPlatform64Bit() = 1 Then
 		PrintF("Detected 64bit")
 		WinBit = 64
 	Else
@@ -2664,7 +2672,7 @@ Function WindowsCheck()
 	EndIf
 
 	Local OSMajor:Int
-	Local OSMinor:int
+	Local OSMinor:Int
 	wxGetOsVersion(OSMajor, OSMinor)
 
 	PrintF("Detected Win Version: "+OSMajor+"."+OSMinor)
@@ -2691,7 +2699,7 @@ Include "Includes\DatabaseManager\InputSettings.bmx"
 Include "Includes\General\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\LuaFunctions.bmx"
 Include "Includes\DatabaseManager\DatabaseSearchPanelType.bmx"
-Include "Includes\General\Compress.bmx"
+'Include "Includes\General\Compress.bmx"
 Include "Includes\DatabaseManager\StartupChecks.bmx"
 Include "Includes\DatabaseManager\DBUpdates.bmx"
 Include "Includes\General\SplashApp.bmx"

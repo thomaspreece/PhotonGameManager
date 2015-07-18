@@ -1,5 +1,21 @@
-Local Version:String = "1"
-Local SubVersion:String = "2"
+
+
+Local ReadVersion:TStream = ReadFile("../Code/Version/OverallVersion.txt")
+Local VersionRead:String = ReadLine(ReadVersion)
+CloseFile(ReadVersion)
+
+Local Version:String
+Local SubVersion:String
+If Len(VersionRead) > 1 then
+	Version = Left(VersionRead, 1)
+	SubVersion = Right(VersionRead,1)
+Else If Len(VersionRead) = 1 then
+	Version = "0"
+	SubVersion = Right(VersionRead, 1)
+Else
+	Notify "Incorrect Version File"
+EndIf
+
 Local SubSubVersion:String = "0"
 Local BlitzFolder:String = "C:/BlitzMax/mod/wx.mod/"
 Local MinGW:String = "C:\MinGW32\bin"

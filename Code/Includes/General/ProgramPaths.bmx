@@ -33,6 +33,8 @@ Global RESFOLDER:String = "Resources" + FolderSlash
 Global APPFOLDER:String = "Plugins" + FolderSlash
 Global LUAFOLDER:String = "Lua" + FolderSlash
 
+Global CERTIFICATEBUNDLE:String = RESFOLDER + "ca-bundle.crt"
+
 ?Win32
 Global SevenZipPath:String = APPFOLDER + "critical\7zip\7z.exe"
 ?Not Win32

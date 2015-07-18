@@ -13,18 +13,23 @@ function BuildWin(){
 		;;
 	"Explorer")
 		$BmaxBin/bmk.exe makeapp $buildDebug $buildRun -t gui -h -o Releases/$platform/PhotonExplorer.exe Code/PhotonExplorer.bmx 
+		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonExplorer.exe"
 		;;
 	"Frontend")
 		$BmaxBin/bmk.exe makeapp $buildDebug $buildRun -t gui -h -o Releases/$platform/PhotonFrontend.exe Code/PhotonFrontend.bmx 
+		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonFrontend.exe"
 		;;
 	"Manager")
 		$BmaxBin/bmk.exe makeapp $buildDebug $buildRun -t gui -h -o Releases/$platform/PhotonManager.exe Code/PhotonManager.bmx 
+		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonManager.exe"
 		;;
 	"Updater")
-		$BmaxBin/bmk.exe makeapp $buildDebug $buildRun -t gui -o Releases/$platform/PhotonUpdater.exe Code/PhotonUpdater.bmx 
+		$BmaxBin/bmk.exe makeapp $buildDebug $buildRun -t gui -h -o Releases/$platform/PhotonUpdater.exe Code/PhotonUpdater.bmx
+		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonUpdater.exe"		
 		;;
 	"Runner")
 		$BmaxBin/bmk.exe makeapp $buildDebug $buildRun -t gui -h -o Releases/$platform/PhotonRunner.exe Code/PhotonRunner.bmx 
+		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonRunner.exe"
 		;;		
 	*)
 		echo "Invalid forth argument. Run BuildExecutable.sh to see argument descriptions."
@@ -95,23 +100,18 @@ case $platform in
 	if [ $buildFile == "all" ]; then
 		buildRun=""
 		
-		#buildFile="Download"
-		#BuildWin
+		./Icons/GenerateFiles.exe
+
 		buildFile="Explorer"
 		BuildWin
 		buildFile="Frontend"
 		BuildWin
 		buildFile="Manager"
-		#BuildWin
-		#buildFile="Updater"
+		BuildWin
+		buildFile="Updater"
 		BuildWin		
 		buildFile="Runner"
 		BuildWin	
-		
-		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonManager.exe"
-		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonFrontend.exe"
-		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonRunner.exe"
-		./Other/Win32_Manifest/mt -manifest "Other/Win32_Manifest/manifest.txt" -outputresource:"Releases/Windows/PhotonExplorer.exe"
 	else
 		BuildWin
 	fi

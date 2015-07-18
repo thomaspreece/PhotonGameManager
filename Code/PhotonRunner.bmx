@@ -120,6 +120,8 @@ WindowsCheck()
 SetupPlatforms()
 OldPlatformListChecks()
 
+LoadInExclusionList()
+
 If FileType(GAMEDATAFOLDER + RunnerGameName) <> 2 then
 	Notify "Invalid Game"
 	End

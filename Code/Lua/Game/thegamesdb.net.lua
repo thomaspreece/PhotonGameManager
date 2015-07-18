@@ -17,13 +17,13 @@ end
 -- Description
 -- Takes 	1. ID of the GM platform
 --		 	2: Takes List to add platforms to
+--			3: Path to Lua Folder
 -- Returns 	1. Return status of function: 0 for success, 1 for visible error, 2 for invisible error
 --			2. Error Text
 --			3. The Source platform that matches the GM platform
 --			4. The input List
 --			Auto returns List to program
-function GetPlatforms(PlatformID,List)
-	print(PlatformID)
+function GetPlatforms(PlatformID,List,LuaFolder)
 	ReturnPlatform = ""
 	List:LuaListAddLast("3DO","3DO")
 	if PlatformID == 1 then
@@ -285,16 +285,16 @@ end
 --			4. This function may require the user to select a item from lists that go multiple selections deep, this is the current depth of user (1-inf)
 --			5. Internet type to get data from net
 --			6. The list to populate with results
+--			7: Path to Lua Folder
 -- Returns	1. Return status of function: 0 for success
 --			2. Error text
 --			3. The next depth to provide SearchGame or 0 for finished selecting
 --			4. The List
-function SearchGame(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
-	
+function SearchGame(SearchText,PreviousClientData,Platform,ListDepth,Internet,List,LuaFolder)
 	wordList = {}
 	gameList = {}
 	for word in SearchText:gmatch("%w+") do 
-		wordList[word] = true 
+		wordList[word:lower()] = true 
 	end
 	
 	ListDepth = tonumber(ListDepth)
@@ -336,13 +336,13 @@ function SearchGame(SearchText,PreviousClientData,Platform,ListDepth,Internet,Li
 		
 		for k,v in pairs(gameList) do
 			for word in v[1]:gmatch("%w+") do
-				if wordList[word] == true then 
+				if wordList[word:lower()] == true then 
 					v[3] = v[3] + 1
 				else
 					v[4] = v[4] + 1
 				end 
 			end 
-			v[5] = lcs(v[1],SearchText)
+			v[5] = lcs(v[1]:lower(),SearchText:lower())
 		end 
 		
 		table.sort(gameList, SearchGameCompare)
@@ -411,10 +411,11 @@ end
 -- Takes	1. GameType to write game data to
 --			2. Internet type to get data from net
 --			3. ID data to identify which game to get
+--			4: Path to Lua Folder
 -- Returns	1. Return status of function: 0 for success
 --			2. Error Text
 --			3. The GameContainer with data in it
-function GetGame(GameContainer,Internet,LuaIDData)
+function GetGame(GameContainer,Internet,LuaIDData,LuaFolder)
 	ReturnedFile = Internet:GET("http://thegamesdb.net/api/GetGame.php?id="..LuaIDData,"GetGame.xml")
 	if ReturnedFile == "-1" then 
 		return 1,Internet.LastError,GameContainer

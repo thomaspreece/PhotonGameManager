@@ -1,20 +1,20 @@
 Type AddEditPlatformsList Extends wxFrame
 	Field PlatformWindow:PlatformsList
-	Field ItemNumber:int
+	Field ItemNumber:Int
 	
 	Field IDTextBox:wxTextCtrl
 	Field NameTextBox:wxTextCtrl
 	Field TypeDropdown:wxComboBox
 	Field EmulatorTextBox:wxTextCtrl
 	Field EmulatorButton:wxButton 
-	Field Edit:int 'Is it an edit box or an add new box? 1-edit, 0-add
+	Field Edit:Int 'Is it an edit box or an add new box? 1-edit, 0-add
 	
 	Method SetValues(Item:Int, Edit:Int = 0)
 		Self.Edit = Edit
 		
 		Local col1:wxListItem, col2:wxListItem, col3:wxListItem, col4:wxListItem
 		
-		If Self.Edit = 1 then
+		If Self.Edit = 1 Then
 			Self.ItemNumber = Item
 			col1 = New wxListItem.Create()
 			col2 = New wxListItem.Create()
@@ -42,13 +42,13 @@ Type AddEditPlatformsList Extends wxFrame
 			Self.TypeDropdown.SetValue(col2.GetText() )
 			Self.EmulatorTextBox.SetValue(col4.GetText() )
 			
-			If col2.GetText() = "Native" then
+			If col2.GetText() = "Native" Then
 				Self.EmulatorTextBox.Disable()
 				Self.EmulatorButton.Disable()
 			EndIf
 			
 			'Don't Allow ID edit if it is a default platform
-			If Int(col1.GetText() ) > 0 And Int(col1.GetText() ) < DEFAULTPLATFORMNUM + 1 then
+			If Int(col1.GetText() ) > 0 And Int(col1.GetText() ) < DEFAULTPLATFORMNUM + 1 Then
 				Self.IDTextBox.Disable()
 			EndIf
 		Else
@@ -61,19 +61,19 @@ Type AddEditPlatformsList Extends wxFrame
 				NumberUsed = 0
 				Repeat
 					ItemLoop = Self.PlatformWindow.PlatformListCtrl.GetNextItem( ItemLoop , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-					If ItemLoop = - 1 then Exit
+					If ItemLoop = - 1 Then Exit
 					col1 = New wxListItem.Create()
 					col1.SetId(ItemLoop)
 					col1.SetColumn(0)
 					col1.SetMask(wxLIST_MASK_TEXT)
 					Self.PlatformWindow.PlatformListCtrl.GetItem(col1)
-					If a = Int(col1.GetText() ) then
+					If a = Int(col1.GetText() ) Then
 						NumberUsed = 1
 						Exit
 					EndIf
 				Forever
 				
-				If NumberUsed = 0 then Exit
+				If NumberUsed = 0 Then Exit
 				a = a + 1
 			Forever
 			
@@ -92,8 +92,8 @@ Type AddEditPlatformsList Extends wxFrame
 	Function SaveFun(event:wxEvent)
 		Local Window:AddEditPlatformsList = AddEditPlatformsList(event.parent)
 		Local MessageBox:wxMessageDialog
-		If Window.Edit = 0 then
-			If Int(Window.IDTextBox.GetValue() ) > 0 And Int(Window.IDTextBox.GetValue() ) < DEFAULTPLATFORMNUM + 1 then
+		If Window.Edit = 0 Then
+			If Int(Window.IDTextBox.GetValue() ) > 0 And Int(Window.IDTextBox.GetValue() ) < DEFAULTPLATFORMNUM + 1 Then
 				MessageBox = New wxMessageDialog.Create(Null , "The Numbers Between 1 and " + DEFAULTPLATFORMNUM + " are reserved" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()			
@@ -104,9 +104,9 @@ Type AddEditPlatformsList Extends wxFrame
 		Local col1:wxListItem, col2:wxListItem
 		Repeat
 			item = Window.PlatformWindow.PlatformListCtrl.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 then Exit
-			If Window.Edit = 1 then
-				If item = Window.ItemNumber then Continue
+			If item = - 1 Then Exit
+			If Window.Edit = 1 Then
+				If item = Window.ItemNumber Then Continue
 			EndIf
 			col1 = New wxListItem.Create()
 			col2 = New wxListItem.Create()
@@ -119,14 +119,14 @@ Type AddEditPlatformsList Extends wxFrame
 			Window.PlatformWindow.PlatformListCtrl.GetItem(col1)
 			Window.PlatformWindow.PlatformListCtrl.GetItem(col2)
 			
-			If Window.IDTextBox.GetValue() = col1.GetText() then
+			If Window.IDTextBox.GetValue() = col1.GetText() Then
 				MessageBox = New wxMessageDialog.Create(Null , "Another platform already exists with that ID" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()			
 				Return			
 			EndIf
 			
-			If Window.NameTextBox.GetValue() = col2.GetText() then
+			If Window.NameTextBox.GetValue() = col2.GetText() Then
 				MessageBox = New wxMessageDialog.Create(Null , "Another platform already exists with that name" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()			
@@ -137,10 +137,10 @@ Type AddEditPlatformsList Extends wxFrame
 		Local ItemLoop:Int = - 1
 		Local InsertPoint:Int = Window.PlatformWindow.PlatformListCtrl.GetItemCount()
 		
-		If Window.Edit = 0 then
+		If Window.Edit = 0 Then
 			Repeat
 				ItemLoop = Window.PlatformWindow.PlatformListCtrl.GetNextItem( ItemLoop , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-				If ItemLoop = - 1 then Exit
+				If ItemLoop = - 1 Then Exit
 				col1 = New wxListItem.Create()
 				col2 = New wxListItem.Create()
 				col1.SetId(ItemLoop)
@@ -151,7 +151,7 @@ Type AddEditPlatformsList Extends wxFrame
 				col2.SetMask(wxLIST_MASK_TEXT)
 				Window.PlatformWindow.PlatformListCtrl.GetItem(col1)
 				Window.PlatformWindow.PlatformListCtrl.GetItem(col2)
-				If col2.GetText() = "-" Or Int(Window.IDTextBox.GetValue() ) < Int(col1.GetText() ) then
+				If col2.GetText() = "-" Or Int(Window.IDTextBox.GetValue() ) < Int(col1.GetText() ) Then
 					InsertPoint = ItemLoop
 					Exit
 				EndIf
@@ -160,7 +160,7 @@ Type AddEditPlatformsList Extends wxFrame
 			index = Window.PlatformWindow.PlatformListCtrl.InsertStringItem( InsertPoint , Window.IDTextBox.GetValue() )
 			Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 1 , Window.TypeDropdown.GetValue() )
 			Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 2 , Window.NameTextBox.GetValue() )
-			If Window.TypeDropdown.GetValue() = "Emulated" then
+			If Window.TypeDropdown.GetValue() = "Emulated" Then
 				Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 3 , Window.EmulatorTextBox.GetValue() )
 			Else
 				Window.PlatformWindow.PlatformListCtrl.SetStringItem(index , 3 , "" )
@@ -170,7 +170,7 @@ Type AddEditPlatformsList Extends wxFrame
 			Local Count:Int = 0
 
 			For PlatformC = EachIn Window.PlatformWindow.PlatformCountList
-				If PlatformC.ID = Int(Window.IDTextBox.GetValue() ) then
+				If PlatformC.ID = Int(Window.IDTextBox.GetValue() ) Then
 					Count = PlatformC.Count
 					Exit
 				EndIf
@@ -200,12 +200,12 @@ Type AddEditPlatformsList Extends wxFrame
 		Local Window:AddEditPlatformsList = AddEditPlatformsList(event.parent)
 		?Not Win32	
 		Local openFileDialog:wxFileDialog = New wxFileDialog.Create(EmuWin, "Select emulator path for: " + Window.NameTextBox.GetValue() )	
-		If openFileDialog.ShowModal() = wxID_OK then
+		If openFileDialog.ShowModal() = wxID_OK Then
 			Window.EmulatorTextBox.ChangeValue(Chr(34)+openFileDialog.GetPath()+Chr(34)+" [ROMPATH] [EXTRA-CMD]")
 		EndIf
 		?Win32
 		tempFile:String = RequestFile("Select emulator path for: " + Window.NameTextBox.GetValue() )
-		If tempFile <> "" then
+		If tempFile <> "" Then
 			Window.EmulatorTextBox.ChangeValue(Chr(34)+tempFile+Chr(34)+" [ROMPATH] [EXTRA-CMD]")
 		EndIf
 		? 	
@@ -214,7 +214,7 @@ Type AddEditPlatformsList Extends wxFrame
 	
 	Function PlatTypeUpdatedFun(event:wxEvent)
 		Local Window:AddEditPlatformsList = AddEditPlatformsList(event.parent)
-		If Window.TypeDropdown.GetValue() = "Native" then
+		If Window.TypeDropdown.GetValue() = "Native" Then
 			Window.EmulatorTextBox.Disable()
 			Window.EmulatorButton.Disable()		
 		Else
@@ -281,7 +281,7 @@ End Type
 Type PlatformsList Extends wxFrame
 	Field ParentWin:MainWindow
 	Field PlatformListCtrl:wxListCtrl
-	Field Changes:int = False
+	Field Changes:Int = False
 	Field DeleteButton:wxButton
 	Field PlatformCountList:TList = CreateList()
 	
@@ -361,7 +361,7 @@ Type PlatformsList Extends wxFrame
 		'tempstatictext = New wxStaticText.Create(Panel2 , wxID_ANY , ExplainText)
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE )
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			HelpText.Hide()
 		EndIf 
 		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
@@ -374,9 +374,9 @@ Type PlatformsList Extends wxFrame
 		Local sl2:wxStaticLine = New wxStaticLine.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)		
 		Local sl3:wxStaticLine = New wxStaticLine.Create(Self, wxID_ANY, - 1, - 1, - 1, - 1, wxLI_HORIZONTAL)		
 		
-		vbox.Add(Panel2 , 0 , wxEXPAND , 0)
+		vbox.Add(Panel2 , 1 , wxEXPAND , 0)
 		vbox.Add(sl1 , 0, wxEXPAND , 0)
-		vbox.Add(PlatformListCtrl , 20 , wxEXPAND , 0)
+		vbox.Add(PlatformListCtrl , 3 , wxEXPAND , 0)
 		vbox.Add(sl2 , 0, wxEXPAND , 0)
 		vbox.Add(Panel3, 0 , wxEXPAND , 0)
 		vbox.Add(sl3 , 0, wxEXPAND , 0)
@@ -388,7 +388,7 @@ Type PlatformsList Extends wxFrame
 		Self.PopulatePlatformCount()
 		Self.LoadPlatforms()
 		
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			Self.Maximize(1)
 		EndIf
 		Centre()		
@@ -410,9 +410,9 @@ Type PlatformsList Extends wxFrame
 	Function BackFun(event:wxEvent)
 		Local PlatList:PlatformsList = PlatformsList(event.parent)
 		Local MessageBox:wxMessageDialog
-		If PlatList.Changes = True then
+		If PlatList.Changes = True Then
 			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes. Are you sure you wish to discard them?" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-			If MessageBox.ShowModal() = wxID_YES then	
+			If MessageBox.ShowModal() = wxID_YES Then	
 				PlatList.ShowMainMenu(event)
 			EndIf
 		Else
@@ -426,7 +426,7 @@ Type PlatformsList Extends wxFrame
 		Local item:Int = PlatList.PlatformListCtrl.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
 		Local Platform:PlatformType
 		PrintF("Delete item: " + item)
-		If item = - 1 then
+		If item = - 1 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select an item to restore to default settings" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()				
@@ -441,20 +441,20 @@ Type PlatformsList Extends wxFrame
 			col2.SetMask(wxLIST_MASK_TEXT)
 			PlatList.PlatformListCtrl.GetItem(col1)
 			PlatList.PlatformListCtrl.GetItem(col2)
-			If col2.GetText() = "-" then
+			If col2.GetText() = "-" Then
 				MessageBox = New wxMessageDialog.Create(Null , "Please restore item first" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()					
 			Else
 				Platform = DefaultPlatforms.GetPlatformByID(Int(col1.GetText() ) )
-				If Platform.ID = 0 then
+				If Platform.ID = 0 Then
 					MessageBox = New wxMessageDialog.Create(Null , "Not a built in platform so has no default settings" , "Error" , wxOK | wxICON_ERROR)
 					MessageBox.ShowModal()
 					MessageBox.Free()				
 				Else
-					If Platform.PlatType = "Folder" then
+					If Platform.PlatType = "Folder" Then
 						PlatList.PlatformListCtrl.SetStringItem(item , 1 , "Native" )
-					ElseIf Platform.PlatType = "File" then
+					ElseIf Platform.PlatType = "File" Then
 						PlatList.PlatformListCtrl.SetStringItem(item , 1 , "Emulated" )
 					EndIf
 					PlatList.PlatformListCtrl.SetStringItem(item , 2 , Platform.Name )
@@ -472,7 +472,7 @@ Type PlatformsList Extends wxFrame
 		Local PlatList:PlatformsList = PlatformsList(event.parent)
 		Local item:Int = PlatList.PlatformListCtrl.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
 		
-		If item = - 1 then
+		If item = - 1 Then
 			CustomRuntimeError("PlatformList - SelectedItemFun: Invalid item selection")
 		EndIf
 		
@@ -486,10 +486,10 @@ Type PlatformsList Extends wxFrame
 		col1.SetMask(wxLIST_MASK_TEXT)
 		PlatList.PlatformListCtrl.GetItem(col2)
 		PlatList.PlatformListCtrl.GetItem(col1)
-		If col2.GetText() = "-" then
+		If col2.GetText() = "-" Then
 			PlatList.DeleteButton.SetLabel("Restore")
 		Else
-			If Int(col1.GetText() ) > 0 And Int(col1.GetText() ) < DEFAULTPLATFORMNUM + 1 then
+			If Int(col1.GetText() ) > 0 And Int(col1.GetText() ) < DEFAULTPLATFORMNUM + 1 Then
 				PlatList.DeleteButton.SetLabel("Hide")
 			Else
 				PlatList.DeleteButton.SetLabel("Delete")
@@ -510,7 +510,7 @@ Type PlatformsList Extends wxFrame
 		Local MessageBox:wxMessageDialog
 		Local item:Int = PlatList.PlatformListCtrl.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
 		PrintF("Delete item: " + item)
-		If item = - 1 then
+		If item = - 1 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select a item to delete" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()				
@@ -520,7 +520,7 @@ Type PlatformsList Extends wxFrame
 			col2.SetColumn(1)
 			col2.SetMask(wxLIST_MASK_TEXT)
 			PlatList.PlatformListCtrl.GetItem(col2)
-			If col2.GetText() = "-" then
+			If col2.GetText() = "-" Then
 				MessageBox = New wxMessageDialog.Create(Null , "Item is hidden. You must restore the item first before making any changes" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()			
@@ -537,7 +537,7 @@ Type PlatformsList Extends wxFrame
 		Local MessageBox:wxMessageDialog
 		Local item:Int = PlatList.PlatformListCtrl.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
 		PrintF("Delete item: " + item)
-		If item = - 1 then
+		If item = - 1 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select an item to delete" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()				
@@ -551,7 +551,7 @@ Type PlatformsList Extends wxFrame
 			col2.SetColumn(1)
 			col2.SetMask(wxLIST_MASK_TEXT)
 			PlatList.PlatformListCtrl.GetItem(col2)
-			If col2.GetText() = "-" then
+			If col2.GetText() = "-" Then
 				PlatList.Changes = True
 				col1 = New wxListItem.Create()
 				col1.SetId(item)
@@ -567,7 +567,7 @@ Type PlatformsList Extends wxFrame
 				
 				Repeat
 					ItemLoop = PlatList.PlatformListCtrl.GetNextItem( ItemLoop , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-					If ItemLoop = - 1 then Exit
+					If ItemLoop = - 1 Then Exit
 					col1 = New wxListItem.Create()
 					col2 = New wxListItem.Create()
 					col1.SetId(ItemLoop)
@@ -578,7 +578,7 @@ Type PlatformsList Extends wxFrame
 					col2.SetMask(wxLIST_MASK_TEXT)
 					PlatList.PlatformListCtrl.GetItem(col1)
 					PlatList.PlatformListCtrl.GetItem(col2)
-					If col2.GetText() = "-" Or Platform.ID < Int(col1.GetText() ) then
+					If col2.GetText() = "-" Or Platform.ID < Int(col1.GetText() ) Then
 						InsertPoint = ItemLoop
 						Exit
 					EndIf
@@ -586,9 +586,9 @@ Type PlatformsList Extends wxFrame
 				
 							
 				index = PlatList.PlatformListCtrl.InsertStringItem( InsertPoint , Platform.ID )
-				If Platform.PlatType = "Folder" then
+				If Platform.PlatType = "Folder" Then
 					PlatList.PlatformListCtrl.SetStringItem(index , 1 , "Native" )
-				ElseIf Platform.PlatType = "File" then
+				ElseIf Platform.PlatType = "File" Then
 					PlatList.PlatformListCtrl.SetStringItem(index , 1 , "Emulated" )
 				EndIf
 				PlatList.PlatformListCtrl.SetStringItem(index , 2 , Platform.Name )
@@ -598,7 +598,7 @@ Type PlatformsList Extends wxFrame
 				Local Count:Int = 0
 
 				For PlatformC = EachIn PlatList.PlatformCountList
-					If PlatformC.ID = Platform.ID then
+					If PlatformC.ID = Platform.ID Then
 						Count = PlatformC.Count
 						Exit
 					EndIf
@@ -611,9 +611,9 @@ Type PlatformsList Extends wxFrame
 				col1.SetColumn(4)
 				col1.SetMask(wxLIST_MASK_TEXT)
 				PlatList.PlatformListCtrl.GetItem(col1)
-				If Int(col1.GetText() ) > 0 then
+				If Int(col1.GetText() ) > 0 Then
 					MessageBox = New wxMessageDialog.Create(Null, "There are games associated with this Platform. Removing this platform will cause those games to no longer have a valid platform. Are you sure you wish to continue?" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-					If MessageBox.ShowModal() = wxID_NO then	
+					If MessageBox.ShowModal() = wxID_NO Then	
 						Return
 					EndIf
 				EndIf
@@ -634,7 +634,7 @@ Type PlatformsList Extends wxFrame
 		Local col1:wxListItem
 		Repeat
 			item = Self.PlatformListCtrl.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 then Exit
+			If item = - 1 Then Exit
 			col1 = New wxListItem.Create()
 			col1.SetId(item)
 			col1.SetColumn(0)
@@ -644,7 +644,7 @@ Type PlatformsList Extends wxFrame
 		Forever
 		
 		For Platform:PlatformType = EachIn DefaultPlatforms.PlatformList
-			If ListContains(IDList, String(Platform.ID) ) then
+			If ListContains(IDList, String(Platform.ID) ) Then
 				Continue
 			Else
 				index = Self.PlatformListCtrl.InsertStringItem( Self.PlatformListCtrl.GetItemCount() , Platform.ID)
@@ -656,7 +656,7 @@ Type PlatformsList Extends wxFrame
 				Local Count:Int = 0
 
 				For PlatformC = EachIn Self.PlatformCountList
-					If PlatformC.ID = Platform.ID then
+					If PlatformC.ID = Platform.ID Then
 						Count = PlatformC.Count
 						Exit
 					EndIf
@@ -688,7 +688,7 @@ Type PlatformsList Extends wxFrame
 			Count = 0
 			
 			index = Self.PlatformListCtrl.InsertStringItem( a , Platform.ID)
-			If Platform.PlatType = "File" then
+			If Platform.PlatType = "File" Then
 				Self.PlatformListCtrl.SetStringItem(index , 1 , "Emulated")
 			Else
 				Self.PlatformListCtrl.SetStringItem(index , 1 , "Native")
@@ -697,7 +697,7 @@ Type PlatformsList Extends wxFrame
 			Self.PlatformListCtrl.SetStringItem(index , 3 , Platform.Emulator)
 			
 			For PlatformC = EachIn Self.PlatformCountList
-				If PlatformC.ID = Platform.ID then
+				If PlatformC.ID = Platform.ID Then
 					Count = PlatformC.Count
 					Exit
 				EndIf
@@ -727,7 +727,7 @@ Type PlatformsList Extends wxFrame
 		Local col1:wxListItem, col2:wxListItem, col3:wxListItem, col4:wxListItem
 		Repeat
 			ItemLoop = Self.PlatformListCtrl.GetNextItem( ItemLoop , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If ItemLoop = - 1 then Exit
+			If ItemLoop = - 1 Then Exit
 			col1 = New wxListItem.Create()
 			col2 = New wxListItem.Create()
 			col3 = New wxListItem.Create()
@@ -749,12 +749,12 @@ Type PlatformsList Extends wxFrame
 			Self.PlatformListCtrl.GetItem(col3)
 			Self.PlatformListCtrl.GetItem(col4)	
 								
-			If col2.GetText() = "-" then
+			If col2.GetText() = "-" Then
 			
 			Else
-				If col2.GetText() = "Native" then
+				If col2.GetText() = "Native" Then
 					Platform = New PlatformType.Init(Int(col1.GetText() ), col3.GetText(), "Folder", col4.GetText() )
-				ElseIf col2.GetText() = "Emulated" then
+				ElseIf col2.GetText() = "Emulated" Then
 					Platform = New PlatformType.Init(Int(col1.GetText() ), col3.GetText(), "File", col4.GetText() )
 				EndIf
 				ListAddLast(GlobalPlatforms.PlatformList, Platform)
@@ -818,26 +818,27 @@ EndRem
 		ReadGamesDir = ReadDir(GAMEDATAFOLDER)
 		Repeat
 			Dir = NextFile(ReadGamesDir)
-			If Dir = "" then Exit
-			If Dir = "." Or Dir = ".." then Continue
+			If Dir = "" Then Exit
+			If Dir = "." Or Dir = ".." Then Continue
 			
 			GameNode = New GameType
-			If GameNode.GetGame(Dir) = - 1 then
+			If GameNode.GetGame(Dir) = - 1 Then
 			
 			Else
 				Counted = False
 				For PlatformC = EachIn Self.PlatformCountList
-					If PlatformC.ID = GameNode.PlatformNum then
+					If PlatformC.ID = GameNode.PlatformNum Then
 						PlatformC.Count = PlatformC.Count + 1
 						Counted = True
 						Exit
 					EndIf
 				Next
-				If Counted = False then
+				If Counted = False Then
 					PlatformC = New PlatformCount.Init(GameNode.PlatformNum, 1)
 					ListAddLast(Self.PlatformCountList, PlatformC)
 				EndIf
 			EndIf
+			DatabaseApp.Yield()
 		Forever
 		CloseDir(ReadGamesDir)	
 	
@@ -846,8 +847,8 @@ EndRem
 End Type
 
 Type PlatformCount
-	Field ID:int
-	Field Count:int
+	Field ID:Int
+	Field Count:Int
 	
 	Function Init:PlatformCount(PID:Int, PCount:Int )
 		PC:PlatformCount = New PlatformCount

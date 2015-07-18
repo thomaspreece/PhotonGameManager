@@ -1,5 +1,7 @@
 'TODO: Fix LuaInternet to check for meta refreshes
 'TODO: Fix Explorer/Frontends ability to handle files, webpages etc as Other Executables
+'TODO: Speedup startup with 1000+ games
+
 
 'FIX: Steam ScreenShots!
 
@@ -1227,16 +1229,17 @@ Type GameExplorerFrame Extends wxFrame
 		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
 		lua_pushinteger( LuaVM , GameNode.PlatformNum)
 		lua_pushbmaxobject( LuaVM, LuaList )
+		lua_pushbmaxobject( LuaVM, LUAFOLDER )
 		LuaMutexUnlock()
 		
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 4, "SourceChanged")
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 3, 4, "SourceChanged")
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
 		LuaMutexLock()
-		If LuaHelper_pcall(LuaVM, 2, 4) <> 0 then
+		If LuaHelper_pcall(LuaVM, 3, 4) <> 0 then
 			Return
 			LuaMutexUnlock()
 		Else
@@ -1457,16 +1460,17 @@ Type GameExplorerFrame Extends wxFrame
 		lua_pushinteger( LuaVM , Self.DownloadListDepth)
 		lua_pushbmaxobject( LuaVM, LuaInternet )
 		lua_pushbmaxobject( LuaVM, LuaList )
+		lua_pushbmaxobject( LuaVM, LUAFOLDER )
 		'Call Lua Function
 		
 		LuaMutexUnlock()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "FurtherSearch" )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 7, 4, "FurtherSearch" )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		?Not Threaded
 		LuaMutexLock()
-		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+		If LuaHelper_pcall(LuaVM, 7, 4) <> 0 then
 			Return
 			LuaMutexUnlock()
 		Else
@@ -1596,17 +1600,18 @@ Type GameExplorerFrame Extends wxFrame
 		lua_pushinteger( LuaVM , Self.DownloadListDepth)
 		lua_pushbmaxobject( LuaVM, LuaInternet )
 		lua_pushbmaxobject( LuaVM, LuaList )
+		lua_pushbmaxobject( LuaVM, LUAFOLDER )
 		'Call Lua Function
 		
 		LuaMutexUnlock()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "Search" )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 7, 4, "Search" )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
 		LuaMutexLock()
-		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+		If LuaHelper_pcall(LuaVM, 7, 4) <> 0 then
 			Return
 			LuaMutexUnlock()
 		Else

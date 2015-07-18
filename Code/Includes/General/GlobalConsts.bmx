@@ -46,11 +46,11 @@ Global WinBit:int
 Global WinExplorer:int
 
 Global Country:String = "UK"
-Global Debug:Int = False
+Global Debug:int = False
 ?Debug
-	Debug=True
+	Debug = True
 ?	
-Global DebugLogEnabled:Int = False
+Global DebugLogEnabled:int = False
 
 Global CabinateEnable:Int = False 
 Global SilentRunnerEnabled:Int = True 

@@ -51,8 +51,9 @@ Function Thread_AutoSearch_SOI:Object(Obj:Object)
 	lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
 	lua_pushinteger( LuaVM , GPlatNum)
 	lua_pushbmaxobject( LuaVM, LuaPlatformList )
+	lua_pushbmaxobject( LuaVM, LUAFOLDER )
 	
-	Result = lua_pcall(LuaVM, 2, 4, 0)
+	Result = lua_pcall(LuaVM, 3, 4, 0)
 			
 	If (Result <> 0) then
 		ErrorMessage = luaL_checkstring(LuaVM, - 1)
@@ -152,15 +153,16 @@ Function Thread_AutoSearch_SOI:Object(Obj:Object)
 			lua_pushinteger( LuaVM , NextDepth)
 			lua_pushbmaxobject( LuaVM, LuaInternet )
 			lua_pushbmaxobject( LuaVM, LuaSearchList )
+			lua_pushbmaxobject( LuaVM, LUAFOLDER )
 			
-			Result = lua_pcall(LuaVM, 6, 4, 0)
+			Result = lua_pcall(LuaVM, 7, 4, 0)
 				
 			If (Result <> 0) then
 				ErrorMessage = luaL_checkstring(LuaVM, - 1)
 				Log1.AddText("Nothing Found")
 				Log1.AddText("(Lua Runtime error " + Result + ": " + ErrorMessage + ")")	
 				Log1.AddText("")	
-				PrintF("Lua Search pcall Error")
+				PrintF("Lua Search pcall Error " + Result + ": " + ErrorMessage)
 				SkipRepeat = 1
 				Exit
 			EndIf
@@ -177,11 +179,11 @@ Function Thread_AutoSearch_SOI:Object(Obj:Object)
 					ErrorMessage = "Lua code did not return int @1 or/and string @2"
 				Else
 					ErrorMessage = luaL_checkstring(LuaVM , 2)
-				EndIf 
+				EndIf
 				Log1.AddText("Nothing Found")
 				Log1.AddText("(Lua Error " + Error + ": " + ErrorMessage + ")")
 				Log1.AddText("")	
-				PrintF("Lua Search Error")
+				PrintF("Lua Search Error " + Error + ": " + ErrorMessage)
 				SkipRepeat = 1
 				Exit
 			EndIf	
@@ -190,7 +192,7 @@ Function Thread_AutoSearch_SOI:Object(Obj:Object)
 				Log1.AddText("Nothing Found")
 				Log1.AddText("(Lua Error 199: Lua code did not return int @3)")				
 				Log1.AddText("")	
-				PrintF("Lua Search Error")
+				PrintF("Lua Search Error 199")
 				SkipRepeat = 1
 				Exit
 			EndIf				
@@ -214,8 +216,10 @@ Function Thread_AutoSearch_SOI:Object(Obj:Object)
 			EndIf
 			
 		Forever
-		If SkipRepeat = 1 then Continue
-					
+		If SkipRepeat = 1 then
+			If Log1.LogClosed = True then Exit
+			Continue
+		EndIf 		
 		OnlineWin.SourceItemsList.SetStringItem(item , 0 , "True")
 		OnlineWin.SourceItemsList.SetStringItem(item , 1 , NextLuaName)	
 		OnlineWin.SourceItemsList.SetItemData(item, AutoSearchLuaFile + "||" + NextLuaData)

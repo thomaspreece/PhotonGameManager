@@ -256,7 +256,7 @@ Type GameType Extends GameReadType
 	
 	
 	Method DownloadGameArtWork()
-
+		
 		Local Override:Int = Self.OverideArtwork
 		
 		Local ArtworkListItem:DownloadArtworkListItemType

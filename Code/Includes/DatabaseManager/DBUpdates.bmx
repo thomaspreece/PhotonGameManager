@@ -7,7 +7,6 @@ Function DBUpdate1()
 		item = NextFile(GameDir)
 		If item = "" then Exit
 		If item = "." Or item = ".." then Continue
-		
 		newitem = Lower(GameReadType.GameNameDirFilter(item) )
 		PrintF("Comparing " + item + " and " + newitem)
 		If newitem = item then

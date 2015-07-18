@@ -19,7 +19,7 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 	
 	Repeat
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-		If item = - 1 then Exit
+		If item = - 1 Then Exit
 		
 		TotalGames = TotalGames + 1
 	Forever
@@ -39,7 +39,7 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 	Local LuaList:LuaListType = New LuaListType.Create()
 
 	Local LuaFile:String = LUAFOLDER + "Game" + FolderSlash + AutoSearchLuaFile + ".lua"
-	If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+	If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 Then
 		LuaMutexUnlock()
 		LuaHelper_FunctionError(LuaVM, - 1, "Could Not Load Lua File")
 		Log1.Show(0)
@@ -52,10 +52,11 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 	lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
 	lua_pushinteger( LuaVM , GPlatNum)
 	lua_pushbmaxobject( LuaVM, LuaPlatformList )
+	lua_pushbmaxobject( LuaVM, LUAFOLDER )
 	
-	Result = lua_pcall(LuaVM, 2, 4, 0)
+	Result = lua_pcall(LuaVM, 3, 4, 0)
 			
-	If (Result <> 0) then
+	If (Result <> 0) Then
 		ErrorMessage = luaL_checkstring(LuaVM, - 1)
 	
 		LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
@@ -66,14 +67,14 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 		Return
 	EndIf
 	
-	If lua_isnumber(LuaVM, 1) = False then
+	If lua_isnumber(LuaVM, 1) = False Then
 		Error = 198
 	Else		
 		Error = luaL_checkint( LuaVM, 1 )
 	EndIf
 		
-	If Error <> 0 then
-		If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+	If Error <> 0 Then
+		If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False Then
 			ErrorMessage = "Lua code did not return int @1 or/and string @2"
 		Else
 			ErrorMessage = luaL_checkstring(LuaVM , 2)
@@ -85,7 +86,7 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 		Return
 	EndIf	
 
-	If lua_isstring(LuaVM, 3) = False then
+	If lua_isstring(LuaVM, 3) = False Then
 		LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string @3")
 		LuaMutexUnlock()
 		Log1.Show(0)
@@ -97,13 +98,13 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 	Local Platform:LuaListItemType
 	
 	For Platform = EachIn LuaPlatformList.List
-		If Platform.ItemName = PlatformName then
+		If Platform.ItemName = PlatformName Then
 			PlatformData = Platform.ClientData
 			Exit
 		EndIf
 	Next
 	
-	If PlatformData = "" then
+	If PlatformData = "" Then
 		LuaHelper_FunctionError(LuaVM, - 1 , "Could not get a platform match")
 		LuaMutexUnlock()
 		Log1.Show(0)
@@ -122,7 +123,7 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 	'Repeat through list
 	Repeat	
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-		If item = - 1 then Exit
+		If item = - 1 Then Exit
 		col2 = New wxListItem.Create()
 		col2.SetId(item)
 		col2.SetColumn(2)
@@ -151,27 +152,28 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 			lua_pushinteger( LuaVM , NextDepth)
 			lua_pushbmaxobject( LuaVM, LuaInternet )
 			lua_pushbmaxobject( LuaVM, LuaSearchList )
+			lua_pushbmaxobject( LuaVM, LUAFOLDER )
 			
-			Result = lua_pcall(LuaVM, 6, 4, 0)
+			Result = lua_pcall(LuaVM, 7, 4, 0)
 				
-			If (Result <> 0) then
+			If (Result <> 0) Then
 				ErrorMessage = luaL_checkstring(LuaVM, - 1)
 				Log1.AddText("Nothing Found")
 				Log1.AddText("(Lua Runtime error " + Result + ": " + ErrorMessage + ")")	
 				Log1.AddText("")
-				PrintF("Lua Search pcall Error")
+				PrintF("Lua Search pcall Error "+ Result + ": " + ErrorMessage)
 				SkipRepeat = 1
 				Exit
 			EndIf
 			
-			If lua_isnumber(LuaVM, 1) = False then
+			If lua_isnumber(LuaVM, 1) = False Then
 				Error = 198
 			Else		
 				Error = luaL_checkint( LuaVM, 1 )
 			EndIf
 				
-			If Error <> 0 then
-				If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+			If Error <> 0 Then
+				If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False Then
 					ErrorMessage = "Lua code did not return int @1 or/and string @2"
 				Else
 					ErrorMessage = luaL_checkstring(LuaVM , 2)
@@ -179,16 +181,16 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 				Log1.AddText("Nothing Found")
 				Log1.AddText("(Lua Error " + Error + ": " + ErrorMessage + ")")
 				Log1.AddText("")	
-				PrintF("Lua Search Error")
+				PrintF("Lua Search Error " + Error + ": " + ErrorMessage)
 				SkipRepeat = 1
 				Exit
 			EndIf	
 
-			If lua_isnumber(LuaVM, 3) = False then
+			If lua_isnumber(LuaVM, 3) = False Then
 				Log1.AddText("Nothing Found")
 				Log1.AddText("(Lua Error 199: Lua code did not return int @3)")				
 				Log1.AddText("")	
-				PrintF("Lua Search Error")
+				PrintF("Lua Search Error 199")
 				SkipRepeat = 1
 				Exit
 			EndIf				
@@ -196,7 +198,7 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 
 			LuaHelper_CleanStack(LuaVM)
 			
-			If LuaSearchList.List.Count() > 0 then
+			If LuaSearchList.List.Count() > 0 Then
 				NextLuaData = LuaListItemType(LuaSearchList.List.First() ).ClientData
 				NextLuaName = LuaListItemType(LuaSearchList.List.First() ).ItemName
 			Else
@@ -207,18 +209,21 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 				Exit
 			EndIf
 			
-			If NextDepth = 0 then
+			If NextDepth = 0 Then
 				Exit 			
 			EndIf
 			
 		Forever
-		If SkipRepeat = 1 then Continue
+		If SkipRepeat = 1 then
+			If Log1.LogClosed = True then Exit
+			Continue
+		EndIf 	
 					
 		EXEList = OnlineWin.EXEList.ToArray()
 		
 		SubEXEList = TList(EXEList[item])
 		
-		If SubEXEList.Count() > 0 then
+		If SubEXEList.Count() > 0 Then
 			OnlineWin.SourceItemsList.SetStringItem(item , 3 , EXENameType(SubEXEList.First() ).EXE )
 		Else
 			Log1.AddText("Nothing Found")
@@ -238,7 +243,7 @@ Function Thread_AutoSearch_OI:Object(Obj:Object)
 		SavedGames = SavedGames + 1
 		Log1.Progress.SetValue( (100 * SavedGames) / TotalGames)
 		
-		If Log1.LogClosed = True then Exit
+		If Log1.LogClosed = True Then Exit
 	Forever
 	LuaMutexUnlock()
 	
@@ -271,9 +276,9 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 	
 	Repeat
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-		If item = - 1 then Exit
+		If item = - 1 Then Exit
 		
-		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" Then
 			TotalGames = TotalGames + 1
 		EndIf
 	Forever
@@ -281,9 +286,9 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 	item = - 1
 	Repeat	
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-		If item = - 1 then Exit
+		If item = - 1 Then Exit
 		
-		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" Then
 			SubEXEList = TList(EXEArray[item])
 			col1 = New wxListItem.Create()
 			col1.SetId(item)
@@ -299,7 +304,7 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 			
 			GName = col1.GetText()
 			Local GameNode:GameType = New GameType
-			If Left(col3.GetText(), 1) = Chr(34) then
+			If Left(col3.GetText(), 1) = Chr(34) Then
 				GameNode.RunEXE = col3.GetText()
 			Else
 				GameNode.RunEXE = Chr(34) + col3.GetText() + Chr(34)
@@ -319,7 +324,7 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 			ClientData = String(OnlineWin.SourceItemsList.GetItemData(item) )
 			
 			For a = 1 To Len(ClientData)
-				If Mid(ClientData, a, 2) = "||" then
+				If Mid(ClientData, a, 2) = "||" Then
 					GameNode.LuaFile = Left(ClientData, a - 1) + ".lua"
 					GameNode.LuaIDData = Right(ClientData, Len(ClientData) - a - 1)
 					Exit
@@ -328,14 +333,14 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 			
 			GameNode.OEXEs = CreateList()
 			GameNode.OEXEsName = CreateList()
-			If PM_GE_AddAllEXEs = True then
+			If PM_GE_AddAllEXEs = True Then
 				For EXEName = EachIn SubEXEList
 					?Win32
-					If Lower(col3.GetText() ) = Lower(EXEName.EXE) then Continue
+					If Lower(col3.GetText() ) = Lower(EXEName.EXE) Then Continue
 					?Not Win32
-					If col3.GetText() = EXEName.Name then Continue
+					If col3.GetText() = EXEName.Name Then Continue
 					?
-					If Left(EXEName.EXE, 1) = Chr(34) then
+					If Left(EXEName.EXE, 1) = Chr(34) Then
 						ListAddLast(GameNode.OEXEs , EXEName.EXE )
 					Else
 						ListAddLast(GameNode.OEXEs , Chr(34)+EXEName.EXE+Chr(34) )
@@ -359,10 +364,10 @@ Function Thread_SaveGames_OI:Object(obj:Object)
 			
 			Log1.Progress.SetValue( (100 * SavedGames) / TotalGames)	
 		EndIf
-		If Log1.LogClosed = True then Exit
+		If Log1.LogClosed = True Then Exit
 	Forever
 	
-	If SavedGames = TotalGames then
+	If SavedGames = TotalGames Then
 		OnlineWin.UnSavedChanges = False
 	EndIf
 	MessageBox = New wxMessageDialog.Create(Null , "Saved " + String(SavedGames) + "/" + String(TotalGames) + " Successfully", "Info" , wxOK | wxICON_INFORMATION)
@@ -434,23 +439,23 @@ Type OnlineImport2 Extends wxFrame
 		HelpPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local HelpPanelSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(HelpPanel, wxID_ANY, ExplainText, - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			HelpText.Hide()
 		EndIf 		
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		HelpPanelSizer.Add(HelpText, 1, wxEXPAND | wxALL, 10)
 		HelpPanel.SetSizer(HelpPanelSizer)
 		
-		vbox.Add(HelpPanel, 0 , wxEXPAND, 0)
+		vbox.Add(HelpPanel, 1 , wxEXPAND, 0)
 		vbox.Add(Panel1 , 0 , wxEXPAND , 0)
-		vbox.Add(SourceItemsList , 1 , wxEXPAND , 0)
+		vbox.Add(SourceItemsList , 3 , wxEXPAND , 0)
 		vbox.Add(Panel3 , 0 , wxEXPAND , 0)
 		vbox.Add(sl2 , 0 , wxEXPAND , 0)
 		vbox.Add(BackButtonPanel,  0 , wxEXPAND, 0)		
 		SetSizer(vbox)
 		Centre()		
 		Hide()
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			Self.Maximize(1)
 		EndIf
 		
@@ -485,7 +490,7 @@ Type OnlineImport2 Extends wxFrame
 		SourceItemsList.InsertColumn(3 , "Executable")
 		SourceItemsList.SetColumnWidth(3 , 200)	
 
-		If FileType(TEMPFOLDER + "GDF") = 2 then
+		If FileType(TEMPFOLDER + "GDF") = 2 Then
 	
 			Local SubEXEList:TList
 			Local ReadGDFFolder:Int = ReadDir(TEMPFOLDER + "GDF")
@@ -498,8 +503,8 @@ Type OnlineImport2 Extends wxFrame
 						
 			Repeat
 				File = NextFile(ReadGDFFolder)
-				If File = "" then Exit
-				If File = "." Or File = ".." then Continue
+				If File = "" Then Exit
+				If File = "." Or File = ".." Then Continue
 				PrintF(File)
 				If FileType(TEMPFOLDER + "GDF\" + File + "\Data.txt") = 0 Then
 					DeleteDir(TEMPFOLDER + "GDF\" + File , 0)
@@ -515,18 +520,18 @@ Type OnlineImport2 Extends wxFrame
 				
 				b = 1
 				For a = 1 To Len(GDFEXEs)
-					If Mid(GDFEXEs , a , 2) = "||" then
+					If Mid(GDFEXEs , a , 2) = "||" Then
 						tempString = Mid(GDFEXEs , b , a - b)
 						EXENameSet = 0
 						For c = 1 To Len(tempString)
-							If Mid(tempString, c , 1) = "|" then
+							If Mid(tempString, c , 1) = "|" Then
 								tempEXE = Left(tempString, c - 1)
 								tempName = Right(tempString , Len(tempString) - c )
 								EXENameSet = 1
 								Exit
 							EndIf
 						Next
-						If EXENameSet = 0 then
+						If EXENameSet = 0 Then
 							tempEXE = tempString
 							tempName = "Default"
 						EndIf
@@ -537,7 +542,7 @@ Type OnlineImport2 Extends wxFrame
 				
 				tempString = Mid(GDFEXEs , b)
 				For c = 1 To Len(tempString)
-					If Mid(tempString, c , 1) = "|" then
+					If Mid(tempString, c , 1) = "|" Then
 						tempEXE = Left(tempString, c - 1)
 						tempName = Right(tempString , Len(tempString) - c )
 						Exit
@@ -599,7 +604,7 @@ Type OnlineImport2 Extends wxFrame
 		Local MessageBox:wxMessageDialog
 		Local item:Int
 		item = OnlineWin.SourceItemsList.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
-		If item = - 1 then
+		If item = - 1 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select an item" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()
@@ -770,13 +775,13 @@ Type ManualSearch Extends wxFrame
 	Function FinishButtonFun(event:wxEvent)
 		Local MessageBox:wxMessageDialog
 		Local ManualSearchWin:ManualSearch = ManualSearch(event.parent)
-		If ManualSearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
+		If ManualSearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select an item" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()	
 			Return
 		Else
-			If ManualSearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
+			If ManualSearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" Then
 				MessageBox = New wxMessageDialog.Create(Null , "Please select an item" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()		
