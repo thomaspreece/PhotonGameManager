@@ -1,3 +1,27 @@
+Function Thread_OptimizeAllArt:Object(obj:Object)
+
+	Log1.AddText("Optimizing Artwork")
+
+	GameDir = ReadDir(GAMEDATAFOLDER)
+	Repeat
+		item$=NextFile(GameDir)
+		If item = "" Then Exit
+		If item="." Or item=".." Then Continue
+		GameNode:GameType = New GameType
+		If GameNode.GetGame(item) = - 1 Then
+		
+		Else
+			Log1.AddText("")
+			Log1.AddText("Optimizing Artwork for: " + GameNode.Name)
+			GameNode.OptimizeArtwork()			
+		EndIf
+		If Log1.LogClosed = True Then Exit
+	Forever
+	CloseDir(GameDir)
+		
+End Function
+
+
 Type SettingsWindow Extends wxFrame
 	Field ParentWin:MainWindow
 	
@@ -133,7 +157,7 @@ Type SettingsWindow Extends wxFrame
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(Panel2, wxID_ANY, DefaultHelp, - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_READONLY)
 		P2Hbox.Add(HelpText , 1 , wxEXPAND | wxALL , 10)
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			HelpText.Hide()
 		EndIf
 		Panel2.SetSizer(P2Hbox)
@@ -676,7 +700,7 @@ Type SettingsWindow Extends wxFrame
 			SW_Cabinate.SetValue("No")
 		EndIf	
 		
-		If LowMemory = True then
+		If LowMemory = True Then
 			SW_LowMem.SetValue("Yes")
 		Else
 			SW_LowMem.SetValue("No")
@@ -703,25 +727,25 @@ Type SettingsWindow Extends wxFrame
 			SW_ShowTouchScreen.SetValue("No")
 		EndIf 	
 		
-		If ShowInfoButton = 1 then
+		If ShowInfoButton = 1 Then
 			SW_ShowTouchInfo.SetValue("Yes")
 		Else
 			SW_ShowTouchInfo.SetValue("No")
 		EndIf 			
 		
-		If ShowMenu = 1 then
+		If ShowMenu = 1 Then
 			SW_ShowMenu.SetValue("Yes")
 		Else
 			SW_ShowMenu.SetValue("No")
 		EndIf
 
-		If ShowNavigation = 1 then
+		If ShowNavigation = 1 Then
 			SW_ShowNavigation.SetValue("Yes")
 		Else
 			SW_ShowNavigation.SetValue("No")
 		EndIf
 
-		If ShowSearchBox = 1 then
+		If ShowSearchBox = 1 Then
 			SW_ShowSearch.SetValue("Yes")
 		Else
 			SW_ShowSearch.SetValue("No")
@@ -733,7 +757,7 @@ Type SettingsWindow Extends wxFrame
 			SW_ButtonCloseOnly.SetValue("No")
 		EndIf 
 		
-		If OriginWaitEnabled = 1 then
+		If OriginWaitEnabled = 1 Then
 			SW_OriginWait.SetValue("Yes")
 		Else
 			SW_OriginWait.SetValue("No")
@@ -753,32 +777,32 @@ Type SettingsWindow Extends wxFrame
 		End Select
 			
 								
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			SW_Maximize.SetValue("Yes")
 		Else
 			SW_Maximize.SetValue("No")
 		EndIf
 		
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			SW_HideHelp.SetValue("Yes")
 		Else
 			SW_HideHelp.SetValue("No")
 		EndIf
 		
-		If PMFetchAllArt = 1 then
+		If PMFetchAllArt = 1 Then
 			SW_DownloadAllArtwork.SetValue("Yes")
 		Else
 			SW_DownloadAllArtwork.SetValue("No")
 		EndIf
 		
-		If DebugLogEnabled then
+		If TempDebugLogEnabled then
 			SW_DebugLog.SetValue("Yes")
 		Else
 			SW_DebugLog.SetValue("No")
 		EndIf
 		
 		
-		If PM_GE_AddAllEXEs then
+		If PM_GE_AddAllEXEs Then
 			SW_GEAddAllEXEs.SetValue("Yes")
 		Else
 			SW_GEAddAllEXEs.SetValue("No")
@@ -786,12 +810,15 @@ Type SettingsWindow Extends wxFrame
 		'--------------------------------------------------------------------
 		
 		
-		
+		?Win32
 		vbox.Add(Panel2, 0 , wxEXPAND , 0)		
-		vbox.Add(SettingsNotebook, 8, wxEXPAND, 0)
+		?Not Win32
+		vbox.Add(Panel2, 1 , wxEXPAND , 0)
+		?
+		vbox.Add(SettingsNotebook, 3, wxEXPAND, 0)
 		vbox.Add(Panel1, 0 , wxEXPAND , 0)		
 		SetSizer(vbox)
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			Self.Maximize(1)
 		EndIf
 		Centre()		
@@ -897,7 +924,7 @@ Type SettingsWindow Extends wxFrame
 		Local MainWin:MainWindow = SettingsWindow(event.parent).ParentWin
 		?Not Win32
 		Local openFileDialog:wxDirDialog = New wxDirDialog.Create(MainWin.SettingsWindowField, "Select folder" ,MainWin.SettingsWindowField.SW_OverridePath.GetValue() , wxDD_DIR_MUST_EXIST)	
-		If openFileDialog.ShowModal() = wxID_OK then
+		If openFileDialog.ShowModal() = wxID_OK Then
 			MainWin.SettingsWindowField.SW_OverridePath.ChangeValue(openFileDialog.GetPath())
 		EndIf
 		?Win32
@@ -916,7 +943,7 @@ Type SettingsWindow Extends wxFrame
 	Method ValidateInput()
 		Local MessageBox:wxMessageDialog
 		?Win32
-		If FileType(SW_SteamPath.GetValue() + FolderSlash + "Steam.exe") = 0 then
+		If FileType(SW_SteamPath.GetValue() + FolderSlash + "Steam.exe") = 0 Then
 			If SW_SteamPath.GetValue() = "" Then
 			
 			Else
@@ -969,7 +996,7 @@ Type SettingsWindow Extends wxFrame
 	End Function
 
 	Method PopulateSettings()	
-		If FileType("SaveLocationOverride.txt") = 1 Then 
+		If FileType("SaveLocationOverride.txt") = 1 then
 			ReadLocationOverride = ReadFile("SaveLocationOverride.txt")
 			Local TempFolderPath:String = ReadLine(ReadLocationOverride)
 			CloseFile(ReadLocationOverride)	
@@ -984,35 +1011,29 @@ Type SettingsWindow Extends wxFrame
 	Function OptimizeAllArtFun(event:wxEvent)
 		Local SettingsWin:SettingsWindow = SettingsWindow(event.parent)
 		Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null, "This optimizes the artwork so that FrontEnd runs better for the set resolution and compression level. Continue? (recommended only if resolution or compression level changed)" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-		If MessageBox.ShowModal() = wxID_YES Then
-			SettingsWin.OptimizeAllArt()
+		If MessageBox.ShowModal() = wxID_YES then
+			SettingsWin.OptimizeAllArt()		
 		EndIf
 		MessageBox.Free()	
 	End Function
-
+	
 	Method OptimizeAllArt()
 		Self.Show(0)
-		Log1.Show(1)
-		Log1.AddText("Optimizing Artwork")
+		Log1.Show(1)		
 	
-		GameDir = ReadDir(GAMEDATAFOLDER)
-		Repeat
-			item$=NextFile(GameDir)
-			If item = "" then Exit
-			If item="." Or item=".." Then Continue
-			GameNode:GameType = New GameType
-			If GameNode.GetGame(item) = - 1 then
-			
-			Else
-				Log1.AddText("Optimizing Artwork for: "+GameNode.Name)
-				GameNode.OptimizeArtwork()			
-			EndIf
-			If Log1.LogClosed = True then Exit
-		Forever
-		CloseDir(GameDir)
+		?Threaded
+		Local OptimizeArtThread:TThread = CreateThread(Thread_OptimizeAllArt, Null)
+		While OptimizeArtThread.Running()
+			DatabaseApp.Yield()
+			Delay 100
+		Wend
+		?Not Threaded
+		Thread_OptimizeAllArt(Null)
+		?			
+		
 		Self.Show(1)
-		Log1.Show(0)		 	
-	End Method 	
+		Log1.Show(0)		
+	End Method
 
 	Method SaveSettings()
 		Local OptimizeArt = False
@@ -1091,19 +1112,19 @@ Type SettingsWindow Extends wxFrame
 			ShowInfoButton = 0
 		EndIf 	
 				
-		If SW_ShowMenu.GetValue() = "Yes" then
+		If SW_ShowMenu.GetValue() = "Yes" Then
 			ShowMenu = 1
 		Else
 			ShowMenu = 0
 		EndIf
 		
-		If SW_ShowNavigation.GetValue() = "Yes" then
+		If SW_ShowNavigation.GetValue() = "Yes" Then
 			ShowNavigation = 1
 		Else
 			ShowNavigation = 0
 		EndIf
 
-		If SW_ShowSearch.GetValue() = "Yes" then
+		If SW_ShowSearch.GetValue() = "Yes" Then
 			ShowSearchBox = 1
 		Else
 			ShowSearchBox = 0
@@ -1141,14 +1162,14 @@ Type SettingsWindow Extends wxFrame
 		EndIf 	
 			
 		If SW_HideHelp.GetValue() = "Yes"
-			If PMHideHelp <> 1 then
+			If PMHideHelp <> 1 Then
 				MessageBox = New wxMessageDialog.Create(Null , "Not all help boxes will be hiden until PhotonManager is restarted" , "Info" , wxOK | wxICON_INFORMATION)
 				MessageBox.ShowModal()
 				MessageBox.Free()				
 			EndIf
 			PMHideHelp = 1
 		Else
-			If PMHideHelp <> 0 then
+			If PMHideHelp <> 0 Then
 				MessageBox = New wxMessageDialog.Create(Null , "Not all help boxes will be shown until PhotonManager is restarted" , "Info" , wxOK | wxICON_INFORMATION)
 				MessageBox.ShowModal()
 				MessageBox.Free()				
@@ -1156,19 +1177,19 @@ Type SettingsWindow Extends wxFrame
 			PMHideHelp = 0
 		EndIf
 		
-		If SW_DownloadAllArtwork.GetValue() = "Yes" then
+		If SW_DownloadAllArtwork.GetValue() = "Yes" Then
 			PMFetchAllArt = 1
 		Else
 			PMFetchAllArt = 0
 		EndIf
 		
-		If SW_DebugLog.GetValue() = "Yes" then
-			DebugLogEnabled = 1
+		If SW_DebugLog.GetValue() = "Yes" Then
+			TempDebugLogEnabled = 1
 		Else
-			DebugLogEnabled = 0
+			TempDebugLogEnabled = 0
 		EndIf
 		
-		If SW_GEAddAllEXEs.GetValue() = "Yes" then
+		If SW_GEAddAllEXEs.GetValue() = "Yes" Then
 			PM_GE_AddAllEXEs = 1
 		Else
 			PM_GE_AddAllEXEs = 0
@@ -1179,11 +1200,11 @@ Type SettingsWindow Extends wxFrame
 		
 		
 		PRPluginQueryDelay = Int(SW_PluginQueryDelay.GetValue() )
-		If PRPluginQueryDelay < 10 then
+		If PRPluginQueryDelay < 10 Then
 			PRPluginQueryDelay = 10
 		EndIf
 		PRProcessQueryDelay = Int(SW_ProcessQueryDelay.GetValue() )
-		If PRProcessQueryDelay < 10 then
+		If PRProcessQueryDelay < 10 Then
 			PRProcessQueryDelay = 10
 		EndIf
 		
@@ -1208,7 +1229,7 @@ Type SettingsWindow Extends wxFrame
 		PEBlue3 = SW_ColourPickerE3.GetColour().Blue()
 		
 		Local TempFolderPath:String
-		If FileType("SaveLocationOverride.txt") = 1 then
+		If FileType("SaveLocationOverride.txt") = 1 Then
 			ReadLocationOverride = ReadFile("SaveLocationOverride.txt")
 			TempFolderPath = ReadLine(ReadLocationOverride)
 			CloseFile(ReadLocationOverride)	
@@ -1216,7 +1237,7 @@ Type SettingsWindow Extends wxFrame
 			TempFolderPath = ""
 		EndIf
 		
-		If SW_OverridePath.GetValue() = "" then
+		If SW_OverridePath.GetValue() = "" Then
 			DeleteFile("SaveLocationOverride.txt")
 		Else
 			DeleteFile("SaveLocationOverride.txt")
@@ -1229,7 +1250,7 @@ Type SettingsWindow Extends wxFrame
 		SaveManagerSettings()
 		SaveExplorerSettings()
 
-		If SW_OverridePath.GetValue() = TempFolderPath then
+		If SW_OverridePath.GetValue() = TempFolderPath Then
 		
 		Else
 			PrintF("Old SaveFolder:" + TempFolderPath)
@@ -1240,7 +1261,7 @@ Type SettingsWindow Extends wxFrame
 			MessageBox.Free()	
 		EndIf
 		
-		If OptimizeArt = True then
+		If OptimizeArt = True Then
 			Self.OptimizeAllArt()
 		EndIf 
 		

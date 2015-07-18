@@ -1,4 +1,4 @@
-Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = OnlineAdd(obj)
+Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = OnlineAdd(obj)
 		OnlineWin.Hide()
 		Log1.Show(1)
 		Local item = - 1
@@ -15,7 +15,7 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		
 		Repeat
 			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 then Exit
+			If item = - 1 Then Exit
 			
 			TotalGames = TotalGames + 1
 		Forever
@@ -27,7 +27,7 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		Local LuaList:LuaListType = New LuaListType.Create()
 	
 		Local LuaFile:String = LUAFOLDER + "Game" + FolderSlash + AutoSearchLuaFile + ".lua"
-		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 Then
 			LuaMutexUnlock()
 			Log1.Show(0)
 			OnlineWin.Show()
@@ -39,10 +39,11 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
 		lua_pushinteger( LuaVM , GlobalPlatforms.GetPlatformByName(GPlat ).ID)
 		lua_pushbmaxobject( LuaVM, LuaPlatformList )
+		lua_pushbmaxobject( LuaVM, LUAFOLDER )
 		
-		Result = lua_pcall(LuaVM, 2, 4, 0)
+		Result = lua_pcall(LuaVM, 3, 4, 0)
 				
-		If (Result <> 0) then
+		If (Result <> 0) Then
 			ErrorMessage = luaL_checkstring(LuaVM, - 1)
 		
 			LuaHelper_FunctionError(LuaVM, Result , ErrorMessage)
@@ -54,14 +55,14 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		EndIf
 		
 		
-		If lua_isnumber(LuaVM, 1) = False then
+		If lua_isnumber(LuaVM, 1) = False Then
 			Error = 198
 		Else		
 			Error = luaL_checkint( LuaVM, 1 )
 		EndIf
 			
-		If Error <> 0 then
-			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+		If Error <> 0 Then
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False Then
 				ErrorMessage = "Lua code did not return int @1 or/and string @2"
 			Else
 				ErrorMessage = luaL_checkstring(LuaVM , 2)
@@ -73,7 +74,7 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 			Return
 		EndIf	
 
-		If lua_isstring(LuaVM, 3) = False then
+		If lua_isstring(LuaVM, 3) = False Then
 			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string @3")
 			LuaMutexUnlock()
 			Log1.Show(0)
@@ -86,13 +87,13 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		Local Platform:LuaListItemType
 		
 		For Platform = EachIn LuaPlatformList.List
-			If Platform.ItemName = PlatformName then
+			If Platform.ItemName = PlatformName Then
 				PlatformData = Platform.ClientData
 				Exit
 			EndIf
 		Next
 		
-		If PlatformData = "" then
+		If PlatformData = "" Then
 			LuaHelper_FunctionError(LuaVM, - 1 , "Could not get a platform match")
 			LuaMutexUnlock()
 			Log1.Show(0)
@@ -111,7 +112,7 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 		'Repeat through list
 		Repeat	
 			item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-			If item = - 1 then Exit
+			If item = - 1 Then Exit
 			col2 = New wxListItem.Create()
 			col2.SetId(item)
 			col2.SetColumn(1)
@@ -141,27 +142,28 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 				lua_pushinteger( LuaVM , NextDepth)
 				lua_pushbmaxobject( LuaVM, LuaInternet )
 				lua_pushbmaxobject( LuaVM, LuaSearchList )
+				lua_pushbmaxobject( LuaVM, LUAFOLDER )
 				
-				Result = lua_pcall(LuaVM, 6, 4, 0)
+				Result = lua_pcall(LuaVM, 7, 4, 0)
 					
-				If (Result <> 0) then
+				If (Result <> 0) Then
 					ErrorMessage = luaL_checkstring(LuaVM, - 1)
 					Log1.AddText("Nothing Found")
 					Log1.AddText("(Lua Runtime error " + Result + ": " + ErrorMessage + ")")	
 					Log1.AddText("")	
-					PrintF("Lua Search pcall Error")
+					PrintF("Lua Search pcall Error "+ Result + ": " + ErrorMessage)
 					SkipRepeat = 1
 					Exit
 				EndIf
 				
-				If lua_isnumber(LuaVM, 1) = False then
+				If lua_isnumber(LuaVM, 1) = False Then
 					Error = 198
 				Else		
 					Error = luaL_checkint( LuaVM, 1 )
 				EndIf
 					
-				If Error <> 0 then
-					If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+				If Error <> 0 Then
+					If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False Then
 						ErrorMessage = "Lua code did not return int @1 or/and string @2"
 					Else
 						ErrorMessage = luaL_checkstring(LuaVM , 2)
@@ -169,16 +171,16 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 					Log1.AddText("Nothing Found")
 					Log1.AddText("(Lua Error " + Error + ": " + ErrorMessage + ")")
 					Log1.AddText("")	
-					PrintF("Lua Search Error")
+					PrintF("Lua Search Error " + Error + ": " + ErrorMessage)
 					SkipRepeat = 1
 					Exit
 				EndIf	
 
-				If lua_isnumber(LuaVM, 3) = False then
+				If lua_isnumber(LuaVM, 3) = False Then
 					Log1.AddText("Nothing Found")
 					Log1.AddText("(Lua Error 199: Lua code did not return int @3)")				
 					Log1.AddText("")	
-					PrintF("Lua Search Error")
+					PrintF("Lua Search Error 199")
 					SkipRepeat = 1
 					Exit
 				EndIf				
@@ -186,7 +188,7 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 					
 				LuaHelper_CleanStack(LuaVM)
 				
-				If LuaSearchList.List.Count() > 0 then
+				If LuaSearchList.List.Count() > 0 Then
 					NextLuaData = LuaListItemType(LuaSearchList.List.First() ).ClientData
 					NextLuaName = LuaListItemType(LuaSearchList.List.First() ).ItemName
 				Else
@@ -197,23 +199,26 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 					Exit
 				EndIf
 				
-				If NextDepth = 0 then
+				If NextDepth = 0 Then
 					Exit 			
 				EndIf
 				
 			Forever
-			If SkipRepeat = 1 then Continue
+			If SkipRepeat = 1 then
+				If Log1.LogClosed = True then Exit
+				Continue
+			EndIf 	
 					
-			If GlobalPlatforms.GetPlatformByName(GPlat ).PlatType = "Folder" then
+			If GlobalPlatforms.GetPlatformByName(GPlat ).PlatType = "Folder" Then
 				EXEList = GetEXEList(GPath , NextLuaName)
-				If CountList(EXEList) < 1 then
+				If CountList(EXEList) < 1 Then
 					Log1.AddText("Nothing Found")
 					Log1.AddText("")	
 					PrintF("No EXE")			
 					Continue
 				EndIf
 				EXE = String(EXEList.First() )
-				If IsntNull(EXE) = False then
+				If IsntNull(EXE) = False Then
 					Log1.AddText("Nothing Found")
 					Log1.AddText("")
 					PrintF("Null EXE")
@@ -235,12 +240,12 @@ Function Thread_AutoSearch:Object(obj:Object)		Local OnlineWin:OnlineAdd = Onli
 			SavedGames = SavedGames + 1
 			Log1.Progress.SetValue( (100 * SavedGames) / TotalGames)
 			
-			If Log1.LogClosed = True then Exit
+			If Log1.LogClosed = True Then Exit
 		Forever
 		LuaMutexUnlock()
 		
 		OnlineWin.SourceItemsList.SetColumnWidth(2 , wxLIST_AUTOSIZE)
-		If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" then
+		If GlobalPlatforms.GetPlatformByName(GPlat).PlatType = "Folder" Then
 			OnlineWin.SourceItemsList.SetColumnWidth(3 , wxLIST_AUTOSIZE)
 		EndIf		
 		
@@ -271,9 +276,9 @@ Function Thread_SaveGames:Object(obj:Object)
 	
 	Repeat
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-		If item = - 1 then Exit
+		If item = - 1 Then Exit
 		
-		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" Then
 			TotalGames = TotalGames + 1
 		EndIf
 	Forever
@@ -282,9 +287,9 @@ Function Thread_SaveGames:Object(obj:Object)
 	
 	Repeat	
 		item = OnlineWin.SourceItemsList.GetNextItem( item , wxLIST_NEXT_ALL , wxLIST_STATE_DONTCARE)
-		If item = - 1 then Exit
+		If item = - 1 Then Exit
 		
-		If OnlineWin.SourceItemsList.GetItemText(item) = "True" then
+		If OnlineWin.SourceItemsList.GetItemText(item) = "True" Then
 			col2 = New wxListItem.Create()
 			col2.SetId(item)
 			col2.SetColumn(1)
@@ -296,7 +301,7 @@ Function Thread_SaveGames:Object(obj:Object)
 			col3.SetMask(wxLIST_MASK_TEXT)
 			OnlineWin.SourceItemsList.GetItem(col3)
 			
-			If GPlatType.PlatType = "Folder" then
+			If GPlatType.PlatType = "Folder" Then
 				col4 = New wxListItem.Create()
 				col4.SetId(item)
 				col4.SetColumn(3)
@@ -307,7 +312,7 @@ Function Thread_SaveGames:Object(obj:Object)
 			GName = col3.GetText()
 			Local GameNode:GameType = New GameType
 			
-			If GPlatType.PlatType = "Folder" then
+			If GPlatType.PlatType = "Folder" Then
 				GameNode.RunEXE = Chr(34)+col2.GetText() + FolderSlash + col4.GetText()+Chr(34)
 			Else
 				GameNode.ROM = col2.GetText()
@@ -319,7 +324,7 @@ Function Thread_SaveGames:Object(obj:Object)
 			ClientData = String(OnlineWin.SourceItemsList.GetItemData(item) )
 			
 			For a = 1 To Len(ClientData)
-				If Mid(ClientData, a, 2) = "||" then
+				If Mid(ClientData, a, 2) = "||" Then
 					GameNode.LuaFile = Left(ClientData, a - 1) + ".lua"
 					GameNode.LuaIDData = Right(ClientData, Len(ClientData) - a - 1)
 					Exit
@@ -344,10 +349,10 @@ Function Thread_SaveGames:Object(obj:Object)
 			
 			Log1.Progress.SetValue( (100 * SavedGames) / TotalGames)		
 		EndIf
-		If Log1.LogClosed = True then Exit
+		If Log1.LogClosed = True Then Exit
 	Forever
 	
-	If SavedGames = TotalGames then
+	If SavedGames = TotalGames Then
 		OnlineWin.UnSavedChanges = False
 	EndIf
 	'OnlineWin.SourceUpdate()
@@ -385,7 +390,7 @@ Type OnlineAdd Extends wxFrame
 		Local OA_PlatText:wxStaticText = New wxStaticText.Create(Panel1 , wxID_ANY , "Platform: " , - 1 , - 1 , - 1 , - 1)
 		OA_PlatCombo = New wxComboBox.Create(Panel1, OA_PC , GlobalPlatforms.GetPlatformByID(24).Name , GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY )	
 							
-		If OnlineAddPlatform = "" then 					
+		If OnlineAddPlatform = "" Then 					
 			OA_PlatCombo.SetValue(GlobalPlatforms.GetPlatformByID(24).Name)
 		Else
 			OA_PlatCombo.SetValue(OnlineAddPlatform)
@@ -444,26 +449,26 @@ Type OnlineAdd Extends wxFrame
 		HelpPanel.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		Local HelpPanelSizer:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		Local HelpText:wxTextCtrl = New wxTextCtrl.Create(HelpPanel, wxID_ANY, "Online Add", - 1, - 1, - 1, - 1, wxTE_READONLY | wxTE_MULTILINE | wxTE_CENTER)
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			HelpText.Hide()
 		EndIf 		
 		HelpText.SetBackgroundColour(New wxColour.Create(PMRed2, PMGreen2, PMBlue2) )
 		HelpPanelSizer.Add(HelpText, 1, wxEXPAND | wxALL, 10)
 		HelpPanel.SetSizer(HelpPanelSizer)
 		
-		vbox.Add(HelpPanel, 0 , wxEXPAND, 0)
+		vbox.Add(HelpPanel, 1 , wxEXPAND, 0)
 		
 		vbox.Add(Panel1, 0 , wxEXPAND , 0)
 		vbox.Add(Panel2 , 0 , wxEXPAND , 0)
 		vbox.Add(sl1 , 0 , wxEXPAND , 0)
-		vbox.Add(SourceItemsList , 1 , wxEXPAND , 0)
+		vbox.Add(SourceItemsList , 3 , wxEXPAND , 0)
 		vbox.Add(Panel3 , 0 , wxEXPAND , 0)
 		vbox.Add(sl2 , 0 , wxEXPAND , 0)
 		vbox.Add(BackButtonPanel, 0 , wxEXPAND, 0)		
 		SetSizer(vbox)
 		Centre()		
 		Hide()
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			Self.Maximize(1)
 		EndIf 		
 		
@@ -518,7 +523,7 @@ Type OnlineAdd Extends wxFrame
 	Method UpdateListWithGameData(Game:String , Obj:Object, EXE:String = Null)
 		PrintF("Updating Game - OnlineAdd")
 		item = Self.SourceItemsList.GetNextItem( - 1 , wxLIST_NEXT_ALL , wxLIST_STATE_SELECTED)
-		If GlobalPlatforms.GetPlatformByName(OA_PlatCombo.GetValue() ).PlatType = "Folder" then
+		If GlobalPlatforms.GetPlatformByName(OA_PlatCombo.GetValue() ).PlatType = "Folder" Then
 			SourceItemsList.SetStringItem(item , 0 , "True")
 			SourceItemsList.SetStringItem(item , 2 , Game )
 			SourceItemsList.SetStringItem(item , 3 , EXE)
@@ -545,14 +550,14 @@ Type OnlineAdd Extends wxFrame
 		Local MessageBox:wxMessageDialog
 		Local index:Int
 		Local a:Int = 0
-		If Self.UnSavedChanges = True then
+		If Self.UnSavedChanges = True Then
 			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes, are you sure you wish to clear them?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-			If MessageBox.ShowModal() = wxID_NO then
+			If MessageBox.ShowModal() = wxID_NO Then
 				MessageBox.Free()
 				PrintF("Unsaved Changes, exit")
 				Return
 				
-			else
+			Else
 				PrintF("Unsaved Changes, continue")
 				MessageBox.Free()
 			End If
@@ -560,18 +565,18 @@ Type OnlineAdd Extends wxFrame
 		Self.UnSavedChanges = False
 		
 		Folder = Self.OA_SourcePath.GetValue()
-		If Right(Folder , 1) = "/" Or Right(Folder , 1) = "\" then
+		If Right(Folder , 1) = "/" Or Right(Folder , 1) = "\" Then
 			Folder = Left(Folder , Len(Folder) - 1)
 		EndIf
-		If IsntNull(Folder) = False then
+		If IsntNull(Folder) = False Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select a folder" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()
 			PrintF("No Folder, exit")
 			Return
 		EndIf
-		If FileType(Folder) = 2 then
-		else
+		If FileType(Folder) = 2 Then
+		Else
 			MessageBox = New wxMessageDialog.Create(Null , "Source is not a folder" , "Error" , wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
 			MessageBox.Free()
@@ -586,30 +591,30 @@ Type OnlineAdd Extends wxFrame
 		Self.SourceItemsList.InsertColumn(1 , "Path")
 		Self.SourceItemsList.InsertColumn(2 , "Game Name")
 		Self.SourceItemsList.SetColumnWidth(2 , 200)
-		If GlobalPlatforms.GetPlatformByName(Self.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
+		If GlobalPlatforms.GetPlatformByName(Self.OA_PlatCombo.GetValue() ).PlatType = "Folder" Then
 			Self.SourceItemsList.InsertColumn(3 , "Executable")
 			Self.SourceItemsList.SetColumnWidth(3 , 200)	
 		EndIf
 		
 
 		
-		If Right(Folder , 1) = "\" Or Right(Folder , 1) = "/" then
+		If Right(Folder , 1) = "\" Or Right(Folder , 1) = "/" Then
 			Folder = Left(Folder, Len(Folder) - 1)
 		EndIf
 		
 		ReadFiles = ReadDir(Folder )
 		Repeat
 			File = NextFile(ReadFiles)
-			If File = "" then Exit
-			If File = "." Or File = ".." then Continue
-			If GlobalPlatforms.GetPlatformByName(Self.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
-				If FileType(Folder + FolderSlash + File) = 2 then
+			If File = "" Then Exit
+			If File = "." Or File = ".." Then Continue
+			If GlobalPlatforms.GetPlatformByName(Self.OA_PlatCombo.GetValue() ).PlatType = "Folder" Then
+				If FileType(Folder + FolderSlash + File) = 2 Then
 					index = Self.SourceItemsList.InsertStringItem( a , "")
 					Self.SourceItemsList.SetStringItem(index , 1 , Folder + FolderSlash + File)
 					PrintF("Add to List: " + Folder + FolderSlash + File)
 				EndIf
-			else
-				If FileType(Folder + FolderSlash + File) = 1 then
+			Else
+				If FileType(Folder + FolderSlash + File) = 1 Then
 					index = Self.SourceItemsList.InsertStringItem( a , "")
 					Self.SourceItemsList.SetStringItem(index , 1 , Folder + FolderSlash + File)
 					PrintF("Add to List: " + Folder + FolderSlash + File)
@@ -672,7 +677,7 @@ Type OnlineAdd Extends wxFrame
 		PrintF("Delete item: " + item)
 		OnlineWin.SourceItemsList.SetStringItem(item , 0 , "")
 		OnlineWin.SourceItemsList.SetStringItem(item , 2 , "")
-		If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" then
+		If GlobalPlatforms.GetPlatformByName(OnlineWin.OA_PlatCombo.GetValue() ).PlatType = "Folder" Then
 			OnlineWin.SourceItemsList.SetStringItem(item , 3 , "")
 		EndIf
 
@@ -711,7 +716,7 @@ Type OnlineAdd Extends wxFrame
 				PrintF("Unsaved changes, exit")
 				Return
 				
-			else
+			Else
 				PrintF("Unsaved changes, continue")
 				MessageBox.Free()
 			End If
@@ -846,7 +851,7 @@ Type ManualGESearch Extends wxFrame
 		Self.SetTitle("Searching for: " + val2 + " (" + val3 + ")")
 		Self.Update()
 		PrintF("FilePath: " + val2 + " Plat: " + val3)
-		If GlobalPlatforms.GetPlatformByID(Self.PlatformNum).PlatType = "Folder" then
+		If GlobalPlatforms.GetPlatformByID(Self.PlatformNum).PlatType = "Folder" Then
 		
 		Else
 			Self.RP_SText.SetLabel("")
@@ -864,15 +869,15 @@ Type ManualGESearch Extends wxFrame
 		Local item:Int = - 1
 		Local EXEitem:Int
 		
-		If GlobalPlatforms.GetPlatformByID(ManualGESearchWin.PlatformNum ).PlatType = "Folder" then	
-			If ManualGESearchWin.GameSelected = False then
-				If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
+		If GlobalPlatforms.GetPlatformByID(ManualGESearchWin.PlatformNum ).PlatType = "Folder" Then	
+			If ManualGESearchWin.GameSelected = False Then
+				If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND Then
 					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
 					MessageBox.ShowModal()
 					MessageBox.Free()	
 					Return
 				Else
-					If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
+					If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" Then
 						MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
 						MessageBox.ShowModal()
 						MessageBox.Free()		
@@ -884,13 +889,13 @@ Type ManualGESearch Extends wxFrame
 				EndIf
 			Else
 			
-				If ManualGESearchWin.EXEList.GetSelection() = wxNOT_FOUND then
+				If ManualGESearchWin.EXEList.GetSelection() = wxNOT_FOUND Then
 					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
 					MessageBox.ShowModal()
 					MessageBox.Free()		
 					Return
-				else
-					If ManualGESearchWin.EXEList.GetStringSelection() = "No Executables Found" then
+				Else
+					If ManualGESearchWin.EXEList.GetStringSelection() = "No Executables Found" Then
 						MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the right box" , "Error" , wxOK | wxICON_ERROR)
 						MessageBox.ShowModal()
 						MessageBox.Free()		
@@ -908,13 +913,13 @@ Type ManualGESearch Extends wxFrame
 		Else
 		
 		
-			If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND then
+			If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetSelection() = wxNOT_FOUND Then
 				MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
 				MessageBox.ShowModal()
 				MessageBox.Free()	
 				Return
 			Else
-				If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" then
+				If ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection() = "No Search Results Returned" Then
 					MessageBox = New wxMessageDialog.Create(Null , "Please select a item in the left box" , "Error" , wxOK | wxICON_ERROR)
 					MessageBox.ShowModal()
 					MessageBox.Free()		
@@ -946,7 +951,7 @@ Type ManualGESearch Extends wxFrame
 		PrintF("GameSelectedFun - ManualGESearch")
 		Local ManualGESearchWin:ManualGESearch = ManualGESearch(event.parent)
 		Local MessageBox:wxMessageDialog
-		If GlobalPlatforms.GetPlatformByID(ManualGESearchWin.PlatformNum ).PlatType = "Folder" then
+		If GlobalPlatforms.GetPlatformByID(ManualGESearchWin.PlatformNum ).PlatType = "Folder" Then
 			Rem
 			Local item:Int = ManualGESearchWin.DatabaseSearchPanel.SearchList.GetStringSelection()
 			If item = - 1 Or ManualGESearchWin.SearchList.GetString(item) = "No Search Results Returned" then
@@ -984,7 +989,7 @@ Type ManualGESearch Extends wxFrame
 			For EXE:String = EachIn ManualGESearchWin.EXETList
 				ManualGESearchWin.EXEList.Append(EXE)
 			Next
-			If CountList(ManualGESearchWin.EXETList) < 1 then
+			If CountList(ManualGESearchWin.EXETList) < 1 Then
 				ManualGESearchWin.EXEList.Append("No Executables Found")
 			EndIf
 		Else

@@ -25,7 +25,7 @@ WXCURSOR_PLEFT          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/
 WXCURSOR_PRIGHT         CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/pntright.cur"
 WXCURSOR_BLANK          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/blank.cur"
 WXCURSOR_CROSS          CURSOR  DISCARDABLE     "C:/BlitzMax/mod/wx.mod/include/wx/msw/cross.cur"
-wxICON_AAA                      ICON "Runner.ico"
+wxICON_AAA                      ICON "Runner2.ico"
 wxICON_SMALL_CLOSED_FOLDER      ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/folder1.ico"
 wxICON_SMALL_OPEN_FOLDER        ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/folder2.ico"
 wxICON_SMALL_FILE               ICON "C:/BlitzMax/mod/wx.mod/include/wx/msw/file1.ico"
@@ -56,8 +56,8 @@ wxMANIFEST_ID 24 "C:/BlitzMax/mod/wx.mod/include/wx/msw/wx.manifest"
 #endif
 
 1 VERSIONINFO 
-FILEVERSION 4,1,2,0 
-PRODUCTVERSION 4,1,2,0 
+FILEVERSION 4,1,5,0 
+PRODUCTVERSION 4,1,5,0 
 FILEOS 0x40004
 FILETYPE 0x1
 { 
@@ -67,14 +67,14 @@ BLOCK "StringFileInfo"
  { 
   VALUE "Comments", "Use PhotonManager to add games to GameManagers database. It is part of the Photon GameManager Suite."
   VALUE "CompanyName", "Photon Software" 
-  VALUE "FileVersion", "4.1.2.0" 
+  VALUE "FileVersion", "4.1.5.0" 
   VALUE "FileDescription", "PhotonManager" 
   VALUE "InternalName", "PhotonManager" 
   VALUE "LegalCopyright", "" 
   VALUE "LegalTrademarks", "" 
   VALUE "OriginalFilename", "PhotonManager.exe" 
   VALUE "ProductName", "Photon GameManager" 
-  VALUE "ProductVersion", "4.1.2.0" 
+  VALUE "ProductVersion", "4.1.5.0" 
  } 
 }
 BLOCK "VarFileInfo"

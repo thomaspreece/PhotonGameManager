@@ -29,13 +29,13 @@ Function FolderSizeStringString:String(FolderPath:String)
 	Local Size:Int = FolderSize(FolderPath)
 	Local SizeF:Float
 	Local SizeString:String = ""
-	If Size > (1000000000) then
+	If Size > (1000000000) Then
 		SizeF = Float(Size) / 1000000000
 		SizeString = Left(SizeF, Instr(SizeF, ".") + 2) + " GB"
-	ElseIf Size > (1000000) then
+	ElseIf Size > (1000000) Then
 		SizeF = Float(Size) / 1000000
 		SizeString = Left(SizeF, Instr(SizeF, ".") + 2) + " MB"
-	ElseIf Size > (1000) then
+	ElseIf Size > (1000) Then
 		SizeF = Float(Size) / 1000
 		SizeString = Left(SizeF, Instr(SizeF, ".") + 2) + " KB"
 	Else
@@ -47,7 +47,7 @@ End Function
 
 'Returns size of folder in bytes or <0 if error
 Function FolderSize:Int(FolderPath:String)
-	If Right(FolderPath, 1) = "/" Or Right(FolderPath, 1) = "\" then
+	If Right(FolderPath, 1) = "/" Or Right(FolderPath, 1) = "\" Then
 		FolderPath = Left(FolderPath, Len(FolderPath) - 1)
 	EndIf
 	Local Size:Int = 0
@@ -55,21 +55,21 @@ Function FolderSize:Int(FolderPath:String)
 	Local File:String, FileT:Int 
 	Local FolderReturn:Int
 	
-	If FileType(FolderPath) = 2 then
+	If FileType(FolderPath) = 2 Then
 		Dir = ReadDir(FolderPath)
 		Repeat
 			File = NextFile(Dir)
-			If File = "." Or File = ".." then Continue
-			If File = "" then Exit
+			If File = "." Or File = ".." Then Continue
+			If File = "" Then Exit
 			FileT = FileType(FolderPath + FolderSlash + File)
-			If FileT = 2 then
+			If FileT = 2 Then
 				FolderReturn = FolderSize(FolderPath + FolderSlash + File)
-				If FolderReturn >= 0 then
+				If FolderReturn >= 0 Then
 					Size = Size + FolderReturn
 				Else
 					Return FolderReturn
 				EndIf
-			ElseIf FileT = 1 then
+			ElseIf FileT = 1 Then
 				Size = Size + FileSize(FolderPath + FolderSlash + File)
 			Else
 				'Invalid File
@@ -339,14 +339,14 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 
 	'BUG: My Programs Crash and others Using CreateProcess on Windows, No Idea Why...
 	?Win32
-	If Detach = 1 then
+	If Detach = 1 Then
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, FRONTENDPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, MANAGERPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, EXPLORERPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, RUNNERPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, DOWNLOADERPROGRAM)
 		ReturnedValue = ReturnedValue + PhotonSuiteRunProcess(Command, UPDATEPROGRAM)
-		If ReturnedValue <> 0 then
+		If ReturnedValue <> 0 Then
 			Local Ex:TExecuter = New TExecuter
 			If Left(Command,1)=Chr(34) Then
 				For a = 2 To Len(Command)
@@ -358,7 +358,7 @@ Function RunProcess:TProcess(Command:String,Detach:Int = 0)
 				Next
 			Else
 				For a = 1 To Len(Command)
-					If Mid(Command, a, 1) = " " then
+					If Mid(Command, a, 1) = " " Then
 						Print Mid(Command, 1, a - 1)
 						Print Right(Command, Len(Command) - a)
 						Exit
@@ -538,7 +538,7 @@ Type GameReadType {expose}
 	Field StartWaitEnabled:Int 
 	Field WatchEXEs:TList
 	
-	Field OverideArtwork:Int = 0
+	Field OverideArtwork:int = 0
 	
 	'Field ScreenShotNumber:Int '1 if there is screenshots/0 otherwise
 	Field ScreenShotsAvailable:Int
@@ -547,20 +547,20 @@ Type GameReadType {expose}
 	Function GameNameFilter:String(Text:String)
 		'Strips out all characters that cannot be displayed in GameManager suite programs	
 		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
-		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
+		'Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
 		
 		Text = Regfilter.ReplaceAll(Text, "&")
-		Text = Regfilter2.ReplaceAll(Text, "")
+		'Text = Regfilter2.ReplaceAll(Text, "")
 		
 		Return Text
 		
 	End Function
 
 	Method GetEXEPart:String(Part:Int)
-		If Left(Self.RunEXE, 1) = Chr(34) then
+		If Left(Self.RunEXE, 1) = Chr(34) Then
 			For a = 2 To Len(Self.RunEXE)
-				If Mid(Self.RunEXE , a , 1) = Chr(34) then
-					If Part = 1 then
+				If Mid(Self.RunEXE , a , 1) = Chr(34) Then
+					If Part = 1 Then
 						'EXE
 						Return Left(Self.RunEXE , a)
 					Else
@@ -572,7 +572,7 @@ Type GameReadType {expose}
 		Else
 			For a = 1 To Len(Self.RunEXE)
 				If Mid(Self.RunEXE , a , 1) = " " then
-					If Part = 1 then
+					If Part = 1 Then
 						'EXE
 						Return Left(Self.RunEXE , a - 1)
 					Else
@@ -588,10 +588,10 @@ Type GameReadType {expose}
 	Function GameDescFilter:String(Text:String)
 		'Strips out all characters that cannot be displayed in GameManager suite programs	
 		Local Regfilter:TRegEx = New TRegEx.Create("&amp;")
-		Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
+		'Local Regfilter2:TRegEx = New TRegEx.Create("[^0-9a-zA-Z\-!\^%&*()+={}\[\];:'@#<>,./?\\|` _"+Chr(34)+"]")
 		
 		Text = Regfilter.ReplaceAll(Text, "&")
-		Text = Regfilter2.ReplaceAll(Text, "")
+		'Text = Regfilter2.ReplaceAll(Text, "")
 		
 		Return Text
 	End Function
@@ -631,7 +631,7 @@ Type GameReadType {expose}
 		
 	End Method
 	
-	Method AddToList(list:TList,item:String)
+	Method AddToList(list:TList, item:String)
 		If list = Null Then list=CreateList()
 		ListAddLast(list,item)
 	End Method	
@@ -639,10 +639,10 @@ Type GameReadType {expose}
 	Method GetGame(GName:String)
 		Self.NewGame()
 		Self.PlatformNum = 0
-		GName = Self.GameNameDirFilter(GName)
+		GName = GameReadType.GameNameDirFilter(GName)
 		Self.OrginalName = GName
 		
-		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "Info.xml") = 1 then
+		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "Info.xml") = 1 Then
 		Else
 			Return -1
 		EndIf		
@@ -653,7 +653,7 @@ Type GameReadType {expose}
 		
 		Gamedoc = TxmlDoc.parseFile(GAMEDATAFOLDER + GName + FolderSlash+"Info.xml")
 		PrintF("Parsed File")
-		If Gamedoc = Null then
+		If Gamedoc = Null Then
 			PrintF("XML Document not parsed successfully, GetGameXML. "+ GName)
 			Return -1				
 			'CustomRuntimeError( "Error 39: XML Document not parsed successfully, GetGameXML. "+ GName) 'MARK: Error 39
@@ -665,7 +665,7 @@ Type GameReadType {expose}
 			Gamedoc.free()
 			Gamedoc = Null 
 			PrintF("Empty document, GetGameXML. "+ GName)
-			Return -1				
+			Return - 1				
 			'CustomRuntimeError( "Error 40: Empty document, GetGameXML. "+ GName) 'MARK: Error 40
 		End If		
 
@@ -709,9 +709,21 @@ Type GameReadType {expose}
 				Case "DiscImage"
 					Self.DiscImage = node.getText()
 				Case "Trailer"
-					Self.Trailer = node.getText()
-				'Case "TrailerURL"
-				'	Self.TrailerURL = node.getText()
+					Self.Trailer = node.GetText()
+					If Len(Self.Trailer) > 11 then
+						If Left(Self.Trailer, Len("https://www.youtube.com/watch?v=") ) = "https://www.youtube.com/watch?v=" then
+							Self.Trailer = Mid(Self.Trailer, Len("https://www.youtube.com/watch?v=") + 1 , 11)
+						EndIf
+						If Left(Self.Trailer, Len("http://www.youtube.com/watch?v=") ) = "http://www.youtube.com/watch?v=" then
+							Self.Trailer = Mid(Self.Trailer, Len("http://www.youtube.com/watch?v=") + 1 , 11)
+						EndIf		
+						If Left(Self.Trailer, Len("https://youtu.be/") ) = "https://youtu.be/" then
+							Self.Trailer = Mid(Self.Trailer, Len("https://youtu.be/") + 1 , 11)
+						EndIf			
+						If Left(Self.Trailer, Len("http://youtu.be/") ) = "http://youtu.be/" then
+							Self.Trailer = Mid(Self.Trailer, Len("http://youtu.be/") + 1 , 11)
+						EndIf				
+					EndIf 
 				Case "Name"
 					Self.Name = node.getText()
 				Case "Description"
@@ -809,7 +821,7 @@ Type GameReadType {expose}
 						Next
 					EndIf		
 				Case "ID"
-					If node.GetText() = "0" then
+					If node.GetText() = "0" Then
 					Else
 						Self.LuaFile = "thegamesdb.net.lua"
 						Self.LuaIDData = Int(node.GetText() )
@@ -854,15 +866,15 @@ Type GameReadType {expose}
 			
 		Next	
 		
-		If Self.PlatformNum = 0 Or Self.PlatformNum = Null then
-			If Self.Plat = "" then
+		If Self.PlatformNum = 0 Or Self.PlatformNum = Null Then
+			If Self.Plat = "" Then
 			
 			Else
-				If Self.Plat = "Nintendo Game Boy Advance" then
+				If Self.Plat = "Nintendo Game Boy Advance" Then
 					Self.Plat = "Nintendo Gameboy Advance"
-				ElseIf Self.Plat = "Nintendo Game Boy" then
+				ElseIf Self.Plat = "Nintendo Game Boy" Then
 					Self.Plat = "Nintendo Gameboy"
-				ElseIf Self.Plat = "Sony PlayStation" then
+				ElseIf Self.Plat = "Sony PlayStation" Then
 					Self.Plat = "Sony Playstation"
 				EndIf			
 			
@@ -873,7 +885,7 @@ Type GameReadType {expose}
 		
 		
 		PrintF("Getting userdata")
-		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "userdata.txt") = 1 then
+		If FileType(GAMEDATAFOLDER + GName + FolderSlash + "userdata.txt") = 1 Then
 			Local ReadUserData = ReadFile(GAMEDATAFOLDER + GName + FolderSlash + "userdata.txt")
 				Self.Rating = ReadLine(ReadUserData)
 				Self.Completed = Int(ReadLine(ReadUserData) )
@@ -1007,7 +1019,7 @@ End Function
 
 ?Threaded
 Function PrintF(Tex:String, File:String = "")
-	If File = "" then
+	If File = "" Then
 		File = LogName
 	EndIf
 	If Debug = True Then
@@ -1056,7 +1068,7 @@ Type MounterReadType
 	Field Drives:TList = CreateList()
 	Field MounterPath:String
 	Field Platform:String
-	Field MounterDelay:int
+	Field MounterDelay:Int
 	
 	
 	Method Init()
@@ -1471,7 +1483,7 @@ End Function
 
 Function keygen:String(name:String, v:String = "23456DDE7ES3428HG9ABCDEFGHHUEYSJKLM7J262KNPQRST8U4V3WXKAS2YZ")
 	
-	If Len(name) = 0 then
+	If Len(name) = 0 Then
 		name = "0"
 	EndIf 
 	
@@ -1541,7 +1553,7 @@ Function keygen:String(name:String, v:String = "23456DDE7ES3428HG9ABCDEFGHHUEYSJ
 	Local e:Int
 	For ee = 0 To 19
 		e = encrypt[ee] Mod Len(v) - 1
-		If e = - 1 then e = 0
+		If e = - 1 Then e = 0
 		encrypted = encrypted + Chr(v[e])
 	Next
 
@@ -1563,12 +1575,12 @@ Function CheckKey()
 	
 	EvaluationMode = False
 
-	If FileType("ProgramKey.txt") = 1 then
+	If FileType("ProgramKey.txt") = 1 Then
 		KeyFile = ReadFile("ProgramKey.txt")
 		Name = ReadLine(KeyFile)
 		Key = ReadLine(KeyFile)	
 		CloseFile(KeyFile)
-	ElseIf FileType(SETTINGSFOLDER + "ProgramKey.txt") = 1 then
+	ElseIf FileType(SETTINGSFOLDER + "ProgramKey.txt") = 1 Then
 		KeyFile = ReadFile(SETTINGSFOLDER + "ProgramKey.txt")
 		Name = ReadLine(KeyFile)
 		Key = ReadLine(KeyFile)		
@@ -1580,7 +1592,7 @@ Function CheckKey()
 		EvaluationMode = True
 		Return			
 	EndIf
-	If Key = keygen(Name) then
+	If Key = keygen(Name) Then
 		EvaluationMode = False 
 		Return
 	EndIf
@@ -1594,14 +1606,18 @@ End Function
 
 Function CheckVersion:Int()
 	Local Line:String
-	Local Version:String 
+	Local Version:String
 	Local Online:String
 	Local Important:String 
 	Local Error:Int
+	Local Beta:String
 	
-	'FIX: Remove this later
-	Return 0
-	
+	Local BetaDownload = False
+
+	If Debug = True Or FileType("BetaDownloads.txt") = 1 then
+		BetaDownload = True
+	EndIf
+		
 
 	If Connected = 0 Then
 		Return 0
@@ -1677,8 +1693,10 @@ Function CheckVersion:Int()
 				Case 2
 					Online = Mid(Line,start,a-start)
 				Case 3
-					Important = Mid(Line,start,a-start)
-					Exit 
+					Important = Mid(Line, start, a - start)
+				Case 4
+					Beta = Mid(Line, start, a - start)
+					Exit
 			End Select
 			start=a+1			
 			b=b+1
@@ -1691,7 +1709,7 @@ Function CheckVersion:Int()
 	PrintF("Version: "+Version)
 	Local NNVersion:String
 	If Online = "ONLINE" Then 
-		If Int(Right(Version,2)) > Int(Right(CurrentVersion,2)) Then 
+		If Int(Right(Version, 2) ) > Int(Right(CurrentVersion, 2) ) And (Beta = "NO" Or BetaDownload = True) then
 			If Important = "YES" Then 
 				Notify("There is an important update to GameManager, you must update to continue using this product.") 
 				RunProcess("PhotonUpdater.exe" , 1)
@@ -1733,7 +1751,7 @@ End Function
 
 Function getKeyCodeChar:String(inNum:Int)
 
-If inNum = 8 then Return "Backspace"
+If inNum = 8 Then Return "Backspace"
 If inNum=9  Then Return "Tab"
 If inNum=12 Then Return "Clear"
 If inNum=13 Then Return "Return"
@@ -1817,10 +1835,10 @@ If inNum=118 Then Return "F7"
 If inNum=119 Then Return "F8"
 If inNum=120 Then Return "F9"
 If inNum=121 Then Return "F10"
-If inNum = 122 then Return "F11"
+If inNum = 122 Then Return "F11"
 If inNum=123 Then Return "F12"
 If inNum=144 Then Return "Num Lock"
-If inNum = 145 then Return "Scroll Lock"
+If inNum = 145 Then Return "Scroll Lock"
 If inNum=160 Then Return "Shift (Left)"
 If inNum=161 Then Return "Shift (Right)"
 If inNum=162 Then Return "Control (Left)"
@@ -1828,14 +1846,14 @@ If inNum=163 Then Return "Control (Right)"
 If inNum=164 Then Return "Alt key (Left)"
 If inNum=165 Then Return "Alt key (Right)"
 If inNum=192 Then Return "Tilde"
-If inNum = 107 then Return "Minus"
+If inNum = 107 Then Return "Minus"
 If inNum=109 Then Return "Equals"
 If inNum=219 Then Return "Bracket (Open)"
 If inNum=221 Then Return "Bracket (Close)"
 If inNum=226 Then Return "Backslash"
 If inNum=186 Then Return "Semi-colon"
 If inNum=222 Then Return "Quote"
-If inNum = 188 then Return "Comma"
+If inNum = 188 Then Return "Comma"
 If inNum=190 Then Return "Period"		
 If inNum=191 Then Return "Slash"
 

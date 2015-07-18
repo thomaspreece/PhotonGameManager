@@ -3,10 +3,10 @@ Global PROGRAMICON:String = RESFOLDER + "Manager.ico"
 
 Global wxEVT_COMMAND_SEARCHPANEL_SELECTED:Int = wxNewEventType()
 Global wxEVT_COMMAND_SEARCHPANEL_SOURCECHANGED:Int = wxNewEventType()
-Global wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH:int = wxNewEventType()
+Global wxEVT_COMMAND_SEARCHPANEL_NEWSEARCH:Int = wxNewEventType()
 
 
-Const DEFAULTPLATFORMNUM:int = 200
+Const DEFAULTPLATFORMNUM:Int = 200
 
 
 ?Threaded
@@ -17,7 +17,9 @@ Global LogWinList:TList = CreateList()
 ?Threaded
 Global LogOpenMutex:TMutex = CreateMutex()
 ?
-Global LogOpen:Int = 0
+Global LogOpen:int = 0
+
+Global TempDebugLogEnabled = False 
 
 Global SteamFolder:String = ""
 Global SteamID:String = ""
@@ -32,10 +34,10 @@ Global LowMemory:Int = 0
 Global LowProcessor:Int = 0
 Global TouchKeyboardEnabled:Int = True 
 Global ShowScreenButton:Int = True
-Global ShowInfoButton:int = True
-Global ShowMenu:int = True
-Global ShowNavigation:int = True
-Global ShowSearchBox:int = True
+Global ShowInfoButton:Int = True
+Global ShowMenu:Int = True
+Global ShowNavigation:Int = True
+Global ShowSearchBox:Int = True
 
 Global RunnerButtonCloseOnly:Int = False 
 Global OriginWaitEnabled = True 
@@ -44,36 +46,41 @@ Global OnlineAddSource:String = ""
 Global OnlineAddPlatform:String = ""
 
 Global EditGameName:String = ""
-Global PMHideHelp:int = 0
+Global PMHideHelp:Int = 0
 
-Global PRProcessQueryDelay:int = 50
-Global PRPluginQueryDelay:int = 50
+Global PRProcessQueryDelay:Int = 50
+Global PRPluginQueryDelay:Int = 50
 
-Global PMRed:int = 185'190
-Global PMGreen:int = 210'190
+Global PMRed:Int = 185'190
+Global PMGreen:Int = 210'190
 Global PMBlue:Int = 255'255
 
-Global PMRed2:int = 215
-Global PMGreen2:int = 230
-Global PMBlue2:int = 255
+Global PMRed2:Int = 215
+Global PMGreen2:Int = 230
+Global PMBlue2:Int = 255
 
-Global PMRedF:int = 0
-Global PMGreenF:int = 0
-Global PMBlueF:int = 0
+Global PMRedF:Int = 0
+Global PMGreenF:Int = 0
+Global PMBlueF:Int = 0
 
-Global PERed:int = 185'190
-Global PEGreen:int = 210'190
-Global PEBlue:int = 255'255
+Global PERed:Int = 185'190
+Global PEGreen:Int = 210'190
+Global PEBlue:Int = 255'255
 
-Global PERed2:int = 215 '215
-Global PEGreen2:int = 230 '230
-Global PEBlue2:int = 255 '255
+Global PERed2:Int = 215 '215
+Global PEGreen2:Int = 230 '230
+Global PEBlue2:Int = 255 '255
 
-Global PERed3:int = 215 '215
-Global PEGreen3:int = 230 '230
-Global PEBlue3:int = 255 '255
-
+Global PERed3:Int = 215 '215
+Global PEGreen3:Int = 230 '230
+Global PEBlue3:Int = 255 '255
+?Win32
 Global PMFont:wxFont = New wxFont.CreateFontWithAttributes(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL)
+?MacOS
+Global PMFont:wxFont = New wxFont.CreateFontWithAttributes(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, 0,"LucidaGrande")
+?Linux
+Global PMFont:wxFont = New wxFont.CreateFontWithAttributes(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL)
+?
 
 Global PMMaximize:Int = 1
 

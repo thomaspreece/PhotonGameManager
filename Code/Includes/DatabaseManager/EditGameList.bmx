@@ -124,7 +124,7 @@ Type EditGameList Extends wxFrame
 		Self.SetBackgroundColour(New wxColour.Create(PMRed, PMGreen, PMBlue) )
 		
 		ParentWin = MainWindow(GetParent() )
-		Selection=-1
+		Selection = - 1
 		Local MainVbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		DataChanged = 0
 	
@@ -137,8 +137,11 @@ Type EditGameList Extends wxFrame
 		Local FilterText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Filter:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
 		FilterTextBox = New wxTextCtrl.Create(FilPlatPanel, EGL_FTB , "" , -1 , -1 , -1 , -1 , 0 )
 		Local PlatformText:wxStaticText = New wxStaticText.Create(FilPlatPanel , wxID_ANY , "Platform:" , -1 , -1 , - 1 , - 1 , wxALIGN_LEFT)
+		?Win32
 		PlatformCombo = New wxComboBox.Create(FilPlatPanel , EGL_PL , "All" , ["All"] + GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY | wxCB_SORT)		
-		
+		?Not Win32
+		PlatformCombo = New wxComboBox.Create(FilPlatPanel , EGL_PL , "All" , ["All"] + GlobalPlatforms.GetPlatformNameList() , - 1 , - 1 , - 1 , - 1 , wxCB_DROPDOWN | wxCB_READONLY)
+		?
 		FilPlatHbox.Add(SortText , 0 , wxEXPAND | wxLEFT | wxTOP | wxBOTTOM | wxALIGN_CENTER , 10 )
 		FilPlatHbox.Add(SortCombo , 2 , wxEXPAND | wxALL  , 10)
 		FilPlatHbox.Add(FilterText , 0 , wxEXPAND | wxLEFT  | wxTOP | wxBOTTOM | wxALIGN_CENTER , 10 )
@@ -192,7 +195,7 @@ Type EditGameList Extends wxFrame
 		Local SubGamePanel2Vbox:wxBoxSizer = New wxBoxSizer.Create(wxVERTICAL)
 		
 		HelpText = New wxTextCtrl.Create(SubGamePanel2, wxID_ANY, "Help information will appear here", - 1, - 1, - 1, - 1, wxTE_MULTILINE | wxTE_BESTWRAP | wxTE_READONLY)
-		If PMHideHelp = 1 then
+		If PMHideHelp = 1 Then
 			HelpText.Hide()
 		EndIf
 		Rem
@@ -822,7 +825,7 @@ Type EditGameList Extends wxFrame
 		MainVbox.Add(BackButtonPanel, 0 , wxEXPAND , 0)		
 		Self.SetSizer(MainVbox)
 		Self.Centre()	
-		If PMMaximize = 1 then
+		If PMMaximize = 1 Then
 			Self.Maximize(1)
 		EndIf
 		Self.Hide()
@@ -944,12 +947,12 @@ Type EditGameList Extends wxFrame
 		Local Window:EditGameList = EditGameList(event.parent)
 		?Not Win32	
 		Local openFileDialog:wxFileDialog = New wxFileDialog.Create(EmuWin, "Select emulator path" )	
-		If openFileDialog.ShowModal() = wxID_OK then
+		If openFileDialog.ShowModal() = wxID_OK Then
 			Window.EP_EO.ChangeValue(Chr(34) + openFileDialog.GetPath() + Chr(34) + " [ROMPATH] [EXTRA-CMD]")
 		EndIf
 		?Win32
 		tempFile:String = RequestFile("Select emulator path" )
-		If tempFile <> "" then
+		If tempFile <> "" Then
 			Window.EP_EO.ChangeValue(Chr(34) + tempFile + Chr(34) + " [ROMPATH] [EXTRA-CMD]")
 		EndIf
 		? 	
@@ -959,7 +962,7 @@ Type EditGameList Extends wxFrame
 	Function GameNotebookPageChanged(event:wxEvent)
 		Local EditGameWin:EditGameList = EditGameList(event.parent)
 		Local Page:String, Page2:String
-		If EditGameWin.GameNotebook.GetSelection() <> - 1 then
+		If EditGameWin.GameNotebook.GetSelection() <> - 1 Then
 			Page = EditGameWin.GameNotebook.GetPageText(EditGameWin.GameNotebook.GetSelection() )
 			Select Page
 				Case "Details"
@@ -971,7 +974,7 @@ Type EditGameList Extends wxFrame
 				Case "Runner Options"
 					EditGameWin.HelpText.SetValue(EGL_Help_Runner_Options)
 				Case "Executables"
-					If EditGameWin.ExecutableNotebook.GetSelection() <> - 1 then
+					If EditGameWin.ExecutableNotebook.GetSelection() <> - 1 Then
 						Page2 = EditGameWin.ExecutableNotebook.GetPageText(EditGameWin.ExecutableNotebook.GetSelection() )
 						Select Page2
 							Case "ROM Path"
@@ -1174,7 +1177,7 @@ EndRem
 			Next 
 			If IDSet = True Then 
 				Local item:wxListItem = New wxListItem.Create()	
-				item.SetID(ID)
+				item.SetId(ID)
 				GameList.GetItem(item)
 				item.SetState(wxLIST_STATE_SELECTED)
 				GameList.SetItem(item)
@@ -1213,14 +1216,14 @@ EndRem
 			If item = "" then Exit
 			If item = "." Or item = ".." then Continue
 			GameNode:GameType = New GameType
-			If GameNode.GetGame(item) = - 1 Then
-			
+			If GameNode.GetGame(item) = - 1 then
+				PrintF("Failed")
 			Else
 				If GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name = PlatformFilterType Or PlatformFilterType = "All" then
 					ListAddLast(GamesTList,item)
 				EndIf				
 			EndIf
-		
+			DatabaseApp.Yield()
 		Forever
 		CloseDir(GameDir)
 		PrintF("Sorting by: "+SortCombo.GetValue())
@@ -1440,7 +1443,7 @@ EndRem
 		EGW.SubGamePanel2.Enable()
 		EGW.GameNotebookPageChanged(event)
 		
-		If EGW.DataChanged = 1 then
+		If EGW.DataChanged = 1 Then
 			PrintF("Clear Changes?")
 			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes, are you sure you wish to clear them?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 			If MessageBox.ShowModal() = wxID_NO Then
@@ -1593,7 +1596,7 @@ EndRem
 			EGW.AM_UnMountCombo.SetValue(GameNode.UnMount)
 			EGW.AM_ISOPath.ChangeValue(GameNode.DiscImage)
 			
-			If GameNode.GameRunnerAlwaysOn = 1 then
+			If GameNode.GameRunnerAlwaysOn = 1 Then
 				EGW.A_RunnerON.SetSelection(EGW.A_RunnerON.FindString("Yes") )
 			Else
 				EGW.A_RunnerON.SetSelection(EGW.A_RunnerON.FindString("No") )
@@ -1623,7 +1626,7 @@ EndRem
 
 								
 			
-			If GlobalPlatforms.GetPlatformByID(GPlatformNum).PlatType = "Folder" then
+			If GlobalPlatforms.GetPlatformByID(GPlatformNum).PlatType = "Folder" Then
 				EGW.ExecutableNotebook.SetPageText(0,"Run Executable Path")
 				EGW.EP_EO_DT.SetLabel("")
 				'EGW.EP_TP2_ST.SetLabel("")
@@ -1644,7 +1647,7 @@ EndRem
 				'	EndIf
 				'Next		
 				
-				If Left(GameNode.RunEXE, 1) = Chr(34) then
+				If Left(GameNode.RunEXE, 1) = Chr(34) Then
 					For a = 2 To Len(GameNode.RunEXE)
 						If Mid(GameNode.RunEXE , a , 1) = Chr(34) Then
 							EXE = Left(GameNode.RunEXE , a)
@@ -1673,7 +1676,7 @@ EndRem
 				'EGW.DescribeTexthbox.Layout()
 				If GEmuOverride = "" Or GEmuOverride = " " Then
 					EGW.EP_EO.ChangeValue(GlobalPlatforms.GetPlatformByID(GPlatformNum).Emulator )
-					If GlobalPlatforms.GetPlatformByID(GPlatformNum).Emulator = "" then
+					If GlobalPlatforms.GetPlatformByID(GPlatformNum).Emulator = "" Then
 						EGW.EP_EO_DT.SetLabel("(Default emulator for this platform not set! Goto 'Platform' tab of main menu to set one.)")
 					Else
 						EGW.EP_EO_DT.SetLabel("(Default Emulator)")
@@ -1737,7 +1740,7 @@ EndRem
 		Local EGW:EditGameList = EditGameList(event.parent)
 		Local MessageBox:wxMessageDialog
 		Local Trailer:String = EGW.GetYoutube(EGW.DP_GameName.GetValue() )
-		If Trailer = "" then
+		If Trailer = "" Then
 			MessageBox = New wxMessageDialog.Create(Null , "Could not find a video" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()
@@ -1763,7 +1766,7 @@ EndRem
 		Trailercurl.setOptString(CURLOPT_URL, "https://photongamemanager.com/GameManagerPages/Youtube.php?q=" + Replace(Replace(Text, " ", "+"), "&", "") + "+Trailer" )
 		Error = Trailercurl.perform()
 		CloseFile(TFile)	
-		If Error then
+		If Error Then
 			PrintF("CurlError: " + CurlError(Error) )
 			Return ""
 		EndIf
@@ -1778,12 +1781,12 @@ EndRem
 
 			match = RegEx.Find(Line)
 
-			If match And match.SubCount() > 0 then
+			If match And match.SubCount() > 0 Then
 				PrintF("Youtube:" + match.SubExp(1) )
 				Return match.SubExp(1)
 			EndIf
 			
-			If Eof(ReadYoutube) then Exit
+			If Eof(ReadYoutube) Then Exit
 		Forever
 		CloseFile(ReadYoutube)
 		Return ""
@@ -1794,13 +1797,20 @@ EndRem
 		Local EGW:EditGameList = EditGameList(event.parent)
 		Local MessageBox:wxMessageDialog
 	
-		If Left(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=") ) = "https://www.youtube.com/watch?v=" then
+		If Left(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=") ) = "https://www.youtube.com/watch?v=" Then
 			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=")+1 , 11) )
 		EndIf
 		If Left(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") ) = "http://www.youtube.com/watch?v=" then
 			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") + 1 , 11) )
 		EndIf	
-							If EGW.DP_GameVid.GetValue().length > 0 And EGW.DP_GameVid.GetValue().length <> 11 then
+		If Left(EGW.DP_GameVid.GetValue(), Len("https://youtu.be/") ) = "https://youtu.be/" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("https://youtu.be/") + 1 , 11) )
+		EndIf			
+		If Left(EGW.DP_GameVid.GetValue(), Len("http://youtu.be/") ) = "http://youtu.be/" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("http://youtu.be/") + 1 , 11) )
+		EndIf					
+		
+		If EGW.DP_GameVid.GetValue().length > 0 And EGW.DP_GameVid.GetValue().length <> 11 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Invalid Trailer code: it should be 11 characters and can be found by taking the youtube video link and copying the 11 characters after the 'v=' part of the link. So for 'youtube.com/watch?v=nfWlot6h_JM' you would enter 'nfWlot6h_JM'. Leave blank to not have a trailer." , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()
@@ -1816,7 +1826,7 @@ EndRem
 		If EGW.AM_MountCombo.GetValue() <> "None" Then 
 			EGW.Mounter.MounterPath = EGW.AM_MPath.GetValue()
 			
-			If FileType(EGW.Mounter.MounterPath ) <> 1 then
+			If FileType(EGW.Mounter.MounterPath ) <> 1 Then
 				MessageBox = New wxMessageDialog.Create(Null , "Invalid Mounter Path" , "Error" , wxOK | wxICON_EXCLAMATION)
 				MessageBox.ShowModal()
 				MessageBox.Free()
@@ -1826,7 +1836,7 @@ EndRem
 			EGW.Mounter.SaveMounter()
 			
 
-			If IsntNull(EGW.AM_VDCombo.GetValue())=False Then
+			If IsntNull(EGW.AM_VDCombo.GetValue() ) = False then
 				MessageBox = New wxMessageDialog.Create(Null , "Invalid Virtual Drive Number" , "Error" , wxOK | wxICON_EXCLAMATION)
 				MessageBox.ShowModal()
 				MessageBox.Free()
@@ -1849,14 +1859,21 @@ EndRem
 				
 		EndIf 
 		
-		If Left(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=") ) = "https://www.youtube.com/watch?v=" then
+		If Left(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=") ) = "https://www.youtube.com/watch?v=" Then
 			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("https://www.youtube.com/watch?v=")+1 , 11) )
 		EndIf
-		If Left(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") ) = "http://www.youtube.com/watch?v=" then
+		If Left(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") ) = "http://www.youtube.com/watch?v=" Then
 			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("http://www.youtube.com/watch?v=") + 1 , 11) )
 		EndIf		
+		If Left(EGW.DP_GameVid.GetValue(), Len("https://youtu.be/") ) = "https://youtu.be/" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("https://youtu.be/") + 1 , 11) )
+		EndIf			
+		If Left(EGW.DP_GameVid.GetValue(), Len("http://youtu.be/") ) = "http://youtu.be/" then
+			EGW.DP_GameVid.SetValue(Mid(EGW.DP_GameVid.GetValue(), Len("http://youtu.be/") + 1 , 11) )
+		EndIf					
+				
 		
-		If EGW.DP_GameVid.GetValue().length > 0 And EGW.DP_GameVid.GetValue().length <> 11 then
+		If EGW.DP_GameVid.GetValue().length > 0 And EGW.DP_GameVid.GetValue().length <> 11 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Invalid Trailer code: it should be 11 characters and can be found by taking the youtube video link and copying the 11 characters after the 'v=' part of the link. So for 'youtube.com/watch?v=nfWlot6h_JM' you would enter 'nfWlot6h_JM'. Leave blank to not have a trailer." , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()
@@ -2156,7 +2173,7 @@ EndRem
 		
 		Else
 			PrintF("Copying: Icon Art")
-			If EGW.IconArt.Image = "" then
+			If EGW.IconArt.Image = "" Then
 				DeleteFile(GAMEDATAFOLDER + GameName +FolderSlash+"Icon.ico")
 			Else			
 				CopyFile(EGW.IconArt.Image , GAMEDATAFOLDER + GameName +FolderSlash+"Icon.ico")
@@ -2192,8 +2209,8 @@ EndRem
 		If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).PlatType = "Folder" Then
 		
 		Else
-			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator Or EditGameWin.EP_EO.GetValue() = "" then
-				If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator = "" then
+			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator Or EditGameWin.EP_EO.GetValue() = "" Then
+				If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator = "" Then
 					EditGameWin.EP_EO_DT.SetLabel("(Default emulator for this platform not set! Goto 'Platform' tab of main menu to set one.)")
 				Else
 					EditGameWin.EP_EO_DT.SetLabel("(Default Emulator)")
@@ -2216,7 +2233,7 @@ EndRem
 		If GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue()).PlatType = "Folder" Then
 		
 		Else
-			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator Or EditGameWin.EP_EO.GetValue() = "" then
+			If EditGameWin.EP_EO.GetValue() = GlobalPlatforms.GetPlatformByName(EditGameWin.DP_GamePlat.GetValue() ).Emulator Or EditGameWin.EP_EO.GetValue() = "" Then
 				EditGameWin.EP_EO_DT.SetLabel("(Default Emulator)")
 			Else
 				EditGameWin.EP_EO_DT.SetLabel("")
@@ -2238,7 +2255,7 @@ EndRem
 		
 		Repeat
 			item = EditGameWin.GameList.GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED)
-			If item = - 1 then Exit
+			If item = - 1 Then Exit
 			DeleteMessage = DeleteMessage + "~n" + String(GameNamesArray[item])
 			ListAddLast(DeleteList, String(item) )
 		Forever
@@ -2246,7 +2263,7 @@ EndRem
 		item = - 1
 		PrintF(DeleteMessage)
 		MessageBox = New wxMessageDialog.Create(Null, DeleteMessage , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-		If MessageBox.ShowModal() = wxID_YES then
+		If MessageBox.ShowModal() = wxID_YES Then
 			Local DeleteCount = 0
 			For itemString:String = EachIn DeleteList
 				item = Int(itemString)
@@ -2294,7 +2311,7 @@ EndRem
 		Local MainWin:MainWindow = EditGameList(event.parent).ParentWin
 		Local EGW:EditGameList = EditGameList(event.parent)
 		Local MessageBox:wxMessageDialog
-		If EGW.DataChanged = 1 then
+		If EGW.DataChanged = 1 Then
 			PrintF("Clear Changes? (EXIT)")
 			MessageBox = New wxMessageDialog.Create(Null, "You have unsaved changes, are you sure you wish to clear them?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 			If MessageBox.ShowModal() = wxID_NO Then
@@ -2637,7 +2654,7 @@ EndRem
 		Local Value2:String = EditGameWin.EEP_EXEName.GetValue()
 		Local Index:Int
 		
-		If Value = "" Or Value = " " then
+		If Value = "" Or Value = " " Then
 			PrintF("EXE Path empty")
 			MessageBox = New wxMessageDialog.Create(Null, "Please browse or enter an executable to add to list", "Info", wxOK)
 			MessageBox.ShowModal()
@@ -2649,7 +2666,7 @@ EndRem
 			MessageBox.ShowModal()
 			MessageBox.Free()		
 			Return 		
-		else
+		Else
 			Index = EditGameWin.EEP_LC.InsertStringItem( 0 , Value2 )
 
 			EditGameWin.EEP_LC.SetStringItem(Index , 1 , Value )
@@ -2818,7 +2835,7 @@ EndRem
 		Local ExtractIcon:TProcess = CreateProcess(ResourceExtractPath + " /Source " + Chr(34) + StandardiseSlashes(EXEPath) + Chr(34) + " /DestFolder " + Chr(34) + TEMPFOLDER + "Icons" + FolderSlash + Chr(34) + " /OpenDestFolder 0 /ExtractBinary 0 /ExtractTypeLib 0 /ExtractAVI 0 /ExtractAnimatedCursors 0 /ExtractAnimatedIcons 1 /ExtractManifests 0 /ExtractHTML 0 /ExtractBitmaps 0 /ExtractCursors 0 /ExtractIcons 1")
 		Repeat
 			Delay 10
-			If ProcessStatus(ExtractIcon) = 0 then Exit
+			If ProcessStatus(ExtractIcon) = 0 Then Exit
 		Forever	
 		
 		ReadIcons = ReadDir(TEMPFOLDER + "Icons"+FolderSlash)
@@ -2826,7 +2843,7 @@ EndRem
 		Repeat
 			File = NextFile(ReadIcons)
 			If File = "" Then Exit
-			If File = "." Or File = ".." then Continue
+			If File = "." Or File = ".." Then Continue
 			If ExtractExt(File) = "ico" Then
 				temp = TEMPFOLDER + "Icons"+FolderSlash + File
 				Exit			
@@ -2984,7 +3001,7 @@ EndRem
 		Local GameEXE:String
 		Local GamePlat:String
 		Local GameUpdateMode:Int = - 1
-		If CheckInternet() = 0 then
+		If CheckInternet() = 0 Then
 			PrintF("Not Connected to Internet")
 			MessageBox = New wxMessageDialog.Create(Null, "You are not connected to the internet.", "Error", wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
@@ -2992,7 +3009,7 @@ EndRem
 			Return 					
 		EndIf
 		
-		If EditGameWin.Selection = - 1 then
+		If EditGameWin.Selection = - 1 Then
 			PrintF("GameList Returned: -1, Update Pressed")
 			MessageBox = New wxMessageDialog.Create(Null, "Please select a game to Update", "Info", wxOK)
 			MessageBox.ShowModal()
@@ -3007,13 +3024,13 @@ EndRem
 			Local GameNode:GameType = New GameType
 			PrintF("GameList Selection: " + GameName)
 
-			If GameNode.GetGame(GameName) = - 1 then
+			If GameNode.GetGame(GameName) = - 1 Then
 				CustomRuntimeError("Error 4: Unable to find info.txt in UpdateGame") 'MARK: Error 4			
 			Else
 				PrintF("Reading Info File")
 
 				
-				If GameNode.LuaFile = Null Or GameNode.LuaFile = "" Or GameNode.LuaIDData = Null Or GameNode.LuaIDData = "" then
+				If GameNode.LuaFile = Null Or GameNode.LuaFile = "" Or GameNode.LuaIDData = Null Or GameNode.LuaIDData = "" Then
 					PrintF("ID=0: Message Shown End Loop")
 					MessageBox = New wxMessageDialog.Create(Null , "This game was added manually, please select a game added via the online database to use the update feature" , "Info" , wxOK)
 					MessageBox.ShowModal()
@@ -3068,11 +3085,11 @@ EndRem
 		
 		Repeat
 			item = EditGameWin.GameList.GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_DONTCARE)
-			If item = - 1 then Exit
+			If item = - 1 Then Exit
 			ListAddLast(UpdateList, String(GameNamesArray[item]) )
 		Forever		
 		
-		If CheckInternet() = 0 then
+		If CheckInternet() = 0 Then
 			PrintF("Not Connected to Internet")
 			MessageBox = New wxMessageDialog.Create(Null, "You are not connected to the internet.", "Error", wxOK | wxICON_ERROR)
 			MessageBox.ShowModal()
@@ -3644,7 +3661,7 @@ Function Thread_UpdateAllGames:Object(GameL:Object)
 	Log1.Show(1)
 	
 	MessageBox = New wxMessageDialog.Create(Null, "Would you like to overwrite old files?" + Chr(10) + " Yes - redownloads all game artwork" + Chr(10) + " No - download new artwork only" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-	If MessageBox.ShowModal() = wxID_YES then
+	If MessageBox.ShowModal() = wxID_YES Then
 		PrintF("Overwrite True")
 		OverideArtwork = 1
 	Else
@@ -3662,13 +3679,13 @@ Function Thread_UpdateAllGames:Object(GameL:Object)
 		GameName:String = String(GameN)
 		PrintF("Update Game: " + GameName)
 		Log1.AddText("Updating:" + GameName )
-		If GameNode.GetGame(GameName) = - 1 then
+		If GameNode.GetGame(GameName) = - 1 Then
 			PrintF("Invalid GetGame")	
 		Else
-			If GameNode.LuaFile = Null Or GameNode.LuaFile = "" Or GameNode.LuaIDData = Null Or GameNode.LuaIDData = "" then
+			If GameNode.LuaFile = Null Or GameNode.LuaFile = "" Or GameNode.LuaIDData = Null Or GameNode.LuaIDData = "" Then
 				PrintF("Invalid Lua Data")							
 			Else
-				If OverideArtwork = 1 then
+				If OverideArtwork = 1 Then
 					GameNode.OverideArtwork = 1
 				Else
 					GameNode.OverideArtwork = 0
@@ -3681,7 +3698,7 @@ Function Thread_UpdateAllGames:Object(GameL:Object)
 		EndIf
 		GameNumber = GameNumber + 1
 		Log1.Progress.SetValue( (100 * GameNumber) / GameTotal )
-		If Log1.LogClosed = True then Exit
+		If Log1.LogClosed = True Then Exit
 	Next
 	
 	MessageBox = New wxMessageDialog.Create(Null , "Games Successfully Updated" , "Info" , wxOK)

@@ -5,7 +5,7 @@ Import wx.wxStaticText
 Import wx.wxProgressDialog
 Import wx.wxTimer
 Import wx.wxMessageDialog
-Import wx.wxpanel
+Import wx.wxPanel
 
 Import BRL.StandardIO
 Import BRL.FileSystem
@@ -67,12 +67,19 @@ CreateFile(LOGFOLDER + LogName)
 
 AppTitle = "PhotonDownloader"
 
-If DebugLogEnabled = False then
+If DebugLogEnabled = False Then
 	DeleteFile(LOGFOLDER + LogName)
+EndIf
+
+Global BetaDownload = False
+
+If Debug = True Or FileType("BetaDownloads.txt") = 1 then
+	BetaDownload = True
 EndIf
 
 DownloaderApp = New DownloaderShell
 DownloaderApp.Run()
+
 
 
 Type DownloaderShell Extends wxApp
@@ -123,7 +130,7 @@ Type DownloaderShell Extends wxApp
 		Timer2.Start(10)
 		Timer3.Start(100)
 		
-		If FileType(SevenZipPath) <> 1 then
+		If FileType(SevenZipPath) <> 1 Then
 			MessageBox = New wxMessageDialog.Create(Null , "Error 202: 7zip plugin missing, please reinstall GameManager" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()	 		
@@ -154,7 +161,7 @@ Type DownloaderShell Extends wxApp
 	
 	Function OnTick(event:wxEvent)
 		Local Main:DownloaderShell = DownloaderShell(event.parent)
-		If Main.Dialog.IsShown() = 0 then
+		If Main.Dialog.IsShown() = 0 Then
 			End
 		EndIf
 	End Function
@@ -169,34 +176,35 @@ Function Thread_Update:Object(obj:Object)
 		Local a:Int
 		Local Success:String
 		
-		If FileType("TempUpdater.bat") = 1 then
+		If FileType("TempUpdater.bat") = 1 Then
 			DeleteFile("TempUpdater.bat")
 		EndIf
 
-
-				
-
 		
 		Message = "Getting Update Package Details"
+?Threaded		
 		LockMutex(DialogMutex)
+?
 		DialogText = Message
 		DialogPulse = 1
+?Threaded			
 		UnlockMutex(DialogMutex)
-		
+?		
 		Local CurrentVersion:String
 		If FileType("Version.txt") <> 1 Then 
-			CurrentVersion = "V4.09"
+			CurrentVersion = "V4." + OSubVersion
 		Else
 			Local v:TStream = ReadFile("Version.txt")
 			CurrentVersion = ReadLine(v)
 			CloseFile(v)
-		EndIf 
+		EndIf
 		
 		Local Line:String
 		Local Version:String 
 		Local Online:String
-		Local Important:String 
-		Local Package:String 
+		Local Important:String
+		Local Package:String
+		Local Beta:String
 		
 		
 		Local curl:TCurlEasy
@@ -208,16 +216,18 @@ Function Thread_Update:Object(obj:Object)
 		curl.setOptInt(CURLOPT_HEADER, 0)
 		curl.setWriteStream(TFile)
 		curl.setProgressCallback(progressCallback)
+		curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 		?Win32
-		curl.setOptString(CURLOPT_URL, "http://photongamemanager.com/PackageManager/LatestVersionWin.txt")
+		curl.setOptString(CURLOPT_URL, "https://photongamemanager.com/PackageManager/LatestVersionWin.txt")
 		?Linux
-		curl.setOptString(CURLOPT_URL, "http://photongamemanager.com/PackageManager/LatestVersionLinux.txt")
+		curl.setOptString(CURLOPT_URL, "https://photongamemanager.com/PackageManager/LatestVersionLinux.txt")
 		?
 		Error = curl.perform()
 		CloseFile(TFile)
-		If Error>0 Then 
+		If Error > 0 then
+			PrintF(CurlError(Error) )
 			DeleteFile(TEMPFOLDER + "UpdateInfo.txt")
-			Message = "failed to download update info"
+			Message = "failed to download update info: " + CurlError(Error)
 			LockMutex(DialogMutex)
 			DialogText = Message
 			DialogProgress = 101
@@ -234,7 +244,10 @@ Function Thread_Update:Object(obj:Object)
 			If CurrentVersion = Version Then 
 				Exit 
 			EndIf 	
-			If Eof(TFile) then Return
+			If Eof(TFile) then
+				Version = CurrentVersion
+				Exit
+			EndIf
 		
 		Forever
 		CloseStream(TFile)
@@ -251,20 +264,21 @@ Function Thread_Update:Object(obj:Object)
 					Case 0
 						Version = Mid(Line,start,c-start)					
 					Case 1
-						Package = "http://photongamemanager.com/PackageManager/"+Mid(Line,start,c-start)	
+						Package = "https://photongamemanager.com/PackageManager/" + Mid(Line, start, c - start)	
 					Case 2
-						Online = Mid(Line,start,c-start)
+						Online = Mid(Line, start, c - start)
 					Case 3
-						Important = Mid(Line,start,c-start)
-						Exit 
+						Important = Mid(Line, start, c - start)	
+					Case 4
+						Beta = Mid(Line, start, c - start)	
+						Exit
 				End Select
-				start=c+1			
-				b=b+1
-			EndIf 
-		Next 
-	
+				start = c + 1			
+				b = b + 1
+			EndIf
+		Next
 				
-		If Online = "ONLINE" Then 
+		If Online = "ONLINE" then
 			
 			Message = "Checking Version Information"	
 			LockMutex(DialogMutex)
@@ -284,7 +298,7 @@ Function Thread_Update:Object(obj:Object)
 				Return
 			EndIf 
 	
-			If Int(Right(Version,2)) > Int(Right(CurrentVersion,2)) Then 
+			If Int(Right(Version, 2) ) > Int(Right(CurrentVersion, 2) ) And (Beta = "NO" Or BetaDownload = True) then
 				MessageBox = New wxMessageDialog.Create(Null, "Would you like to update from " + CurrentVersion + " to " + Version + "? ~nPlease backup your game database before updating. Also if you have any custom resources in Photon's Resources folder please also backup those as well before proceeding" , "Question", wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION)
 				If MessageBox.ShowModal() = wxID_NO Then
 					Message = "Update Canceled By User"
@@ -292,7 +306,7 @@ Function Thread_Update:Object(obj:Object)
 					DialogText = Message
 					DialogProgress = 101
 					UnlockMutex(DialogMutex)			
-					Return 
+					Return
 				EndIf
 				Message = "Downloading: " + Package
 				LockMutex(DialogMutex)
@@ -302,7 +316,7 @@ Function Thread_Update:Object(obj:Object)
 				PrintF("Downloading: " + Package)
 				Success = Download_UpdatePackage(Package)
 				If Success <> "1" Then
-					Message = "Download Failed: "+Success
+					Message = "Download Failed: " + Success
 					LockMutex(DialogMutex)
 					DialogText = Message
 					DialogProgress = 101
@@ -312,7 +326,7 @@ Function Thread_Update:Object(obj:Object)
 				Success = Install_UpdatePackage(Main.Dialog)
 				
 			Else
-				MessageBox = New wxMessageDialog.Create(Null , "You currently have the newest version of GameManager" , "Error" , wxOK | wxICON_EXCLAMATION)
+				MessageBox = New wxMessageDialog.Create(Null , "You currently have the newest version of GameManager" , "Info" , wxOK | wxICON_INFORMATION)
 				MessageBox.ShowModal()
 				MessageBox.Free()	
 				Message = "Finished"
@@ -354,7 +368,7 @@ Function Install_UpdatePackage:String(Dialog:DownloaderDialog)
 	DialogPulse = 1
 	UnlockMutex(DialogMutex)	
 	DeleteCreateFolder(TEMPFOLDER+"UpdatePackage")
-	Local zipProc:TProcess=CreateProcess(SevenZipPath+" x -aoa -y -o"+Chr(34)+TEMPFOLDER+"UpdatePackage"+Chr(34)+" "+Chr(34)+TEMPFOLDER+"UpdatePackage.zip"+Chr(34),1)	
+	Local zipProc:TProcess = CreateProcess(SevenZipPath + " x -aoa -y -o" + Chr(34) + TEMPFOLDER + "UpdatePackage" + Chr(34) + " " + Chr(34) + TEMPFOLDER + "UpdatePackage.zip" + Chr(34), 1)	
 	Repeat
 		LockMutex(DialogMutex)
 		DialogText = Message
@@ -369,7 +383,7 @@ Function Install_UpdatePackage:String(Dialog:DownloaderDialog)
 	Local item:String , item2:String 
 	Local renamedSucc:Int = 0
 	Local UpdateUpdater:Int = 0
-	InstallList = GenerateInstallList(InstallList,"")
+	InstallList = GenerateInstallList(InstallList, "")
 	Message = "Preparing to install..."	
 	LockMutex(DialogMutex)
 	DialogText = Message
@@ -382,11 +396,11 @@ Function Install_UpdatePackage:String(Dialog:DownloaderDialog)
 		DialogPulse = 1
 		UnlockMutex(DialogMutex)
 		renamedSucc = 0
-		If Right(item,Len(item)-1) <> "PhotonUpdater.exe" Then 
+		If Right(item, Len(item) - 1) <> "PhotonUpdater.exe" then
 			If FileType(Right(item,Len(item)-1)+"_tempOLDFile") = 1 Then
 				DeleteFile(Right(item,Len(item)-1)+"_tempOLDFile")
-			EndIf 
-			For a=1 To 5
+			EndIf
+			For a = 1 To 5
 				If FileType(Right(item,Len(item)-1)) = 1 Then 
 					RenameFile(Right(item,Len(item)-1) , Right(item,Len(item)-1)+"_tempOLDFile")
 					If FileType(Right(item,Len(item)-1)) = 0 Then 
@@ -420,10 +434,10 @@ Function Install_UpdatePackage:String(Dialog:DownloaderDialog)
 		UnlockMutex(DialogMutex)	
 		item2 = Right(item,Len(item)-1)
 		If item2 = "PhotonUpdater.exe" Then
-			UpdateUpdater = True 
+			UpdateUpdater = True
 		Else
 			If FileType(ExtractDir(item2)) = 0 Then 
-				CreateDir(ExtractDir(item2),1)
+				CreateDir(ExtractDir(item2), 1)
 			EndIf 
 			CopyFile(TEMPFOLDER+"UpdatePackage"+item,item2)
 		EndIf 
@@ -444,13 +458,13 @@ Function Install_UpdatePackage:String(Dialog:DownloaderDialog)
 		DeleteFile(item)
 	Next 
 	
-	If UpdateUpdater = True then
+	If UpdateUpdater = True Then
 		WriteBat = WriteFile("TempUpdater.bat")
 		WriteLine(WriteBat,"echo off")
 		WriteLine(WriteBat,"echo Updating PhotonUpdater.exe")
 		WriteLine(WriteBat,"ping 1.1.1.100 -n 1 -w 2000 > nul")
-		WriteLine(WriteBat,"xcopy "+TEMPFOLDER+"UpdatePackage\PhotonUpdater.exe /Y")
-		WriteLine(WriteBat,"PhotonUpdater.exe")
+		WriteLine(WriteBat, "xcopy " + TEMPFOLDER + "UpdatePackage\PhotonUpdater.exe /Y")
+		WriteLine(WriteBat, "PhotonUpdater.exe")
 		CloseFile(WriteBat)
 		WinExec("TempUpdater.bat" , 1)
 		End 
@@ -465,20 +479,21 @@ Function Install_UpdatePackage:String(Dialog:DownloaderDialog)
 	Return "1"
 End Function
 
-Function GenerateInstallList:TList(List:TList,Folder:String)
+Function GenerateInstallList:TList(List:TList, Folder:String)
 	Local temp:String
-	Dir = ReadDir(TEMPFOLDER+"UpdatePackage"+Folder)
+	Dir = ReadDir(TEMPFOLDER + "UpdatePackage" + Folder)
 	NextFile(Dir)
 	NextFile(Dir)
 	Repeat
 		temp = NextFile(Dir)
-		If temp = "" Then Exit
+		If temp = "" then Exit
 		If FileType(TEMPFOLDER + "UpdatePackage" + Folder + "\" + temp) = 2 then
-			List = GenerateInstallList(List,"\"+temp)
-		ElseIf FileType(TEMPFOLDER+"UpdatePackage"+Folder+"\"+temp) = 1 Then 
-			ListAddLast(List,Folder+"\"+temp)	
-			Print(Folder+"\"+temp)
-		EndIf 
+			CreateDir(Right(Folder, Len(Folder) - 1) + "\" + temp, 1)
+			List = GenerateInstallList(List, Folder + "\" + temp)
+		ElseIf FileType(TEMPFOLDER + "UpdatePackage" + Folder + "\" + temp) = 1 then
+			ListAddLast(List, Folder + "\" + temp)	
+			Print(Folder + "\" + temp)
+		EndIf
 	Forever
 	CloseDir(Dir)
 	Return List
@@ -494,8 +509,9 @@ Function Download_UpdatePackage:String(Package:String)
 	curl.setOptInt(CURLOPT_FOLLOWLOCATION, 1)
 	curl.setOptInt(CURLOPT_HEADER, 0)
 	curl.setWriteStream(TFile)
-	curl.setProgressCallback(progressCallback) 
-	curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER+"cookie.txt") 
+	curl.setProgressCallback(progressCallback)
+	curl.setOptString(CURLOPT_COOKIEFILE, TEMPFOLDER + "cookie.txt")
+	curl.setOptString(CURLOPT_CAINFO, CERTIFICATEBUNDLE)
 	curl.setOptString(CURLOPT_URL, Package)
 	Error = curl.perform()
 	CloseFile(TFile)
@@ -529,16 +545,16 @@ Type DownloaderDialog Extends wxProgressDialog
 	Method Update()
 		Local a:Int 
 		LockMutex(DialogMutex)
-		If DialogResume <> - 1 then
+		If DialogResume <> - 1 Then
 			DialogResume = - 1
 			DialogNotCanceled = True
 			Self.Resume()
 		EndIf 		
-		If DialogPulse = 1 then
+		If DialogPulse = 1 Then
 			DialogPulse = - 1
 			Self.Pulse(DialogText, a)
 		Else
-			If DialogProgress <> - 1 then
+			If DialogProgress <> - 1 Then
 				DialogNotCanceled = Self.UpdateProgress(DialogProgress , DialogText , a)
 				DialogProgress = - 1
 			EndIf
@@ -567,9 +583,9 @@ Function progressCallback:Int(data:Object , dltotal:Double , dlnow:Double , ulto
 		NotCanceled = DialogNotCanceled
 		UnlockMutex(DialogMutex)		
 		
-		If NotCanceled = False then
+		If NotCanceled = False Then
 			MessageBox = New wxMessageDialog.Create(Null, "Are you sure you want to cancel downloading?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-			If MessageBox.ShowModal() = wxID_NO then
+			If MessageBox.ShowModal() = wxID_NO Then
 				LockMutex(DialogMutex)
 				DialogResume = True
 				DialogNotCanceled = True
@@ -590,7 +606,7 @@ Function progressCallback:Int(data:Object , dltotal:Double , dlnow:Double , ulto
 		DialogPulse = 1
 		NotCanceled = DialogNotCanceled
 		UnlockMutex(DialogMutex)
-		If NotCanceled = False then
+		If NotCanceled = False Then
 			MessageBox = New wxMessageDialog.Create(Null, "Are you sure you want to cancel downloading?" , "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
 			If MessageBox.ShowModal() = wxID_NO Then
 				LockMutex(DialogMutex)
@@ -613,18 +629,19 @@ End Function
 Function LoadGlobalSettings()	
 	ReadSettings:SettingsType = New SettingsType
 	ReadSettings.ParseFile(SETTINGSFOLDER + "GeneralSettings.xml" , "GeneralSettings")		
-	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
-		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" Then		
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 Then
 			DebugLogEnabled = 1
 		EndIf
 	EndIf					
 	ReadSettings.CloseFile()
 End Function
 
+?Win32
 Extern "win32"
 	Function WinExec(lpCmdLine$z , nCmdShow)
 End Extern
-
+?
 
 Include "Includes\General\General.bmx"
 Include "Includes\General\SplashApp.bmx"

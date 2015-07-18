@@ -1,5 +1,6 @@
 'TODO: FrontEnd Debug Seems to idle at 100%: Added in Delay, make sure Frontend still smooth
-
+'TODO: Fix Banner flipping. Cant find any banner flipping problems?
+'TODO: Flipping cover on Infoview, Bannerflow
 
 Framework BRL.FileSystem
 Import BRL.StandardIO
@@ -78,8 +79,8 @@ CreateFile(LOGFOLDER+LogName2)
 
 
 
-Local StartWait:int = 0
-Local ForceFront:int = 0
+Local StartWait:Int = 0
+Local ForceFront:Int = 0
 
 Local PastArgument:String 
 For Argument$ = EachIn AppArgs$
@@ -121,18 +122,18 @@ CheckVersion()
 
 SettingFile.ParseFile(SETTINGSFOLDER + "FrontEnd.xml")
 
+?Win32
 WindowsCheck()
+?
 
 SetupPlatforms()
 OldPlatformListChecks()
-'CORENUM = 2'CpuCount()
-'PrintF("Found "+CORENUM+" Cores/Threads")
 
 
 PopulateGames()
 PopulateUsedPlatformList()
 
-If GameArrayLen < 1 Then 
+If GameArrayLen < 1 And False Then 
 	If Confirm("You don't have any games in your libary yet. Would you like to load PhotonManager?") = 1 Then 
 		RunProcess(MANAGERPROGRAM,1)
 		End
@@ -178,7 +179,7 @@ Delay(StartWait)
 Graphics3D GWidth , GHeight , Depth , GMode , FRAMERATE , GRAPHICS_BACKBUFFER|GRAPHICS_DEPTHBUFFER|GRAPHICS_ACCUMBUFFER|GRAPHICS_MULTISAMPLE
 
 ?Win32
-If ForceFront = 1 then
+If ForceFront = 1 Then
 	hWnd=GetActiveWindow()
 	OurThreadID = GetCurrentThreadId()
 	
@@ -231,7 +232,6 @@ If Tex = Null Then RuntimeError "BackLoading.jpg not found"
 GreyTex = LoadTexture(RESFOLDER + "Gray.jpg")
 If GreyTex = Null Then RuntimeError "Gray.jpg not found"
 
-
 SkyBox:TMesh = CreateSphere(8)
 ScaleEntity(SkyBox , 1000, 1000, 1000)
 EntityFX(SkyBox , 1)
@@ -260,7 +260,7 @@ If SettingFile.GetSetting("FilterType") <> "" Then
 	FilterType = SettingFile.GetSetting("FilterType")
 	RePopulate=True 	
 EndIf	
-If SettingFile.GetSetting("FilterName") <> "" then		
+If SettingFile.GetSetting("FilterName") <> "" Then		
 	FilterName = SettingFile.GetSetting("FilterName")
 	RePopulate=True 	
 EndIf	
@@ -271,7 +271,7 @@ If SettingFile.GetSetting("GamesSortFilter") <> "" Then
 EndIf	
 
 If SettingFile.GetSetting("GamesPlatformFilter") <> "" Then		
-	GamesPlatformFilter = int(SettingFile.GetSetting("GamesPlatformFilter") )
+	GamesPlatformFilter = Int(SettingFile.GetSetting("GamesPlatformFilter") )
 	RePopulate = True 	
 EndIf	
 If SettingFile.GetSetting("GamesGenreFilter") <> "" Then		
@@ -454,7 +454,7 @@ Repeat
 	For obj = EachIn UpdateTypeList
 		obj.Update()
 	Next	
-	If RenderLoop = True then
+	If RenderLoop = True Then
 		LockMutex(TTexture.Mutex_tex_list)
 		RenderWorld 'CRASH-4
 		UnlockMutex(TTexture.Mutex_tex_list)
@@ -514,8 +514,8 @@ Repeat
 	RenderLimiter()
 	MemoryLimiter()
 	
-	If MouseDown(1) then
-		If SwipeMode = True then	
+	If MouseDown(1) Then
+		If SwipeMode = True Then	
 			If MilliSecs() - StartMouseTimer > 100 Then
 				StartMouseTimer = MilliSecs()
 				MouseStart[0] = MouseX()
@@ -573,7 +573,7 @@ Repeat
 		If obj.UpdateKeyboard()=True Then Exit
 	Next
 	For obj = EachIn UpdateTypeList	
-		If obj.UpdateMouse() = True then Exit
+		If obj.UpdateMouse() = True Then Exit
 	Next		
 	For obj = EachIn UpdateTypeList	
 		If obj.UpdateJoy()= True Then Exit 
@@ -636,7 +636,7 @@ Repeat
 		ForceTextureReset = False 
 	EndIf
 	
-	If MilliSecs() - SecondTimer > 1000 then
+	If MilliSecs() - SecondTimer > 1000 Then
 		If TryLockMutex(Mutex_ThreadStatus) Then 
 			If ThreadStatus = 0 Then
 				If TryLockMutex(Mutex_ProcessStack) Then
@@ -653,8 +653,8 @@ Repeat
 	EndIf
 	
 	Delay(10)
-	If ExitProgramCall = True then Exit
-	If AppTerminate() then Exit
+	If ExitProgramCall = True Then Exit
+	If AppTerminate() Then Exit
 Forever
 
 LockMutex(Mutex_CloseTextureThread)
@@ -803,7 +803,7 @@ Function PopulateUsedPlatformList()
 	Local GameNode:GameReadType = New GameReadType
 	For a = 0 To GameArrayLen - 1
 		GameNode.GetGame(GameArray[a])
-		If ListContains(UsedPlatformList , String(GameNode.PlatformNum) ) <> 1 And GameNode.PlatformNum <> 0 then
+		If ListContains(UsedPlatformList , String(GameNode.PlatformNum) ) <> 1 And GameNode.PlatformNum <> 0 Then
 			ListAddLast(UsedPlatformList , String(GameNode.PlatformNum) )
 		EndIf
 	Next
@@ -847,7 +847,7 @@ Function PopulateGames()
 				AddGame = False
 			EndIf 
 			
-			If GamesGenreFilter <> "" And ListContains(GameNode.Genres , GamesGenreFilter) <> 1 then
+			If GamesGenreFilter <> "" And ListContains(GameNode.Genres , GamesGenreFilter) <> 1 Then
 				AddGame = False
 			EndIf
 			
@@ -939,7 +939,7 @@ Function ApplySort:TList(GamesTList:TList)
 				Select GamesSortFilter
 					Case "Platform"
 						PlatformName = GlobalPlatforms.GetPlatformByID(GameNode.PlatformNum).Name
-						If PlatformName = "" then
+						If PlatformName = "" Then
 							ListAddLast(GamesTSList, "zzzz>" + item)
 						Else
 							ListAddLast(GamesTSList, PlatformName + ">" + item)
@@ -1028,7 +1028,8 @@ Function ApplySort:TList(GamesTList:TList)
 			Next
 		Next	
 		PrintF("Sort Applied")
-	Else		
+	Else
+		PrintF("Sorting List")		
 		SortList(GamesTList , True)
 	EndIf 
 	Return GamesTList
@@ -1086,7 +1087,7 @@ Function LoadGlobalSettings()
 	If ReadSettings.GetSetting("Country")<>"" Then 
 		Country = ReadSettings.GetSetting("Country")
 	EndIf
-	If ReadSettings.GetSetting("PGMOff") <> "" then
+	If ReadSettings.GetSetting("PGMOff") <> "" Then
 		PerminantPGMOff = Int(ReadSettings.GetSetting("PGMOff") )
 	EndIf	
 	If ReadSettings.GetSetting("GraphicsWidth") <> "" Then	
@@ -1111,37 +1112,37 @@ Function LoadGlobalSettings()
 		TouchKeyboardEnabled = Int(ReadSettings.GetSetting("TouchKey"))
 	EndIf	
 	
-	If ReadSettings.GetSetting("ShowInfoButton") <> "" then		
+	If ReadSettings.GetSetting("ShowInfoButton") <> "" Then		
 		ShowInfoButton = Int(ReadSettings.GetSetting("ShowInfoButton"))
 	EndIf		
 	If ReadSettings.GetSetting("ShowScreenButton") <> "" Then		
 		ShowScreenButton = Int(ReadSettings.GetSetting("ShowScreenButton"))
 	EndIf		
 		
-	If ReadSettings.GetSetting("ShowMenu") <> "" then		
+	If ReadSettings.GetSetting("ShowMenu") <> "" Then		
 		ShowMenuButton = Int(ReadSettings.GetSetting("ShowMenu") )
 	EndIf		
-	If ReadSettings.GetSetting("ShowNavigation") <> "" then		
+	If ReadSettings.GetSetting("ShowNavigation") <> "" Then		
 		ShowNavigation = Int(ReadSettings.GetSetting("ShowNavigation") )
 	EndIf		
-	If ReadSettings.GetSetting("ShowSearchBox") <> "" then		
+	If ReadSettings.GetSetting("ShowSearchBox") <> "" Then		
 		ShowSearchBar = Int(ReadSettings.GetSetting("ShowSearchBox") )
 	EndIf	
 		
 	If ReadSettings.GetSetting("AntiAlias") <> "" Then		
 		AntiAliasSetting = Int(ReadSettings.GetSetting("AntiAlias"))
 	EndIf	
-	If ReadSettings.GetSetting("DebugLogEnabled") <> "" then		
-		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 then
+	If ReadSettings.GetSetting("DebugLogEnabled") <> "" Then		
+		If Int(ReadSettings.GetSetting("DebugLogEnabled") ) = 1 Then
 			DebugLogEnabled = 1
 		EndIf
 	EndIf			
 	ReadSettings.CloseFile()
 End Function
 
+?Win32
 Function WindowsCheck()
-	?Win32
 	WinDir = GetEnv("WINDIR")
 	PrintF("Windows Folder: " + WinDir)
-	?
 End Function
+?

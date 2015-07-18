@@ -59,7 +59,11 @@ Type DatabaseSearchPanelType Extends wxPanel
 				
 		SearchList = New wxListBox.Create(Self, DSP_SL, Null, - 1, - 1, - 1, - 1, wxLB_SINGLE)
 		
+		?Win32
 		SourceText:wxHyperlinkCtrl = New wxHyperlinkCtrl.Create(Self, DSP_HLC, "Loading...", "")
+		?Not Win32
+		SourceText:wxHyperlinkCtrl = New wxHyperlinkCtrl.Create(Self, DSP_HLC, "Loading...", "",-1,-1,-1,-1,wxHL_ALIGN_LEFT)
+		?
 		
 		vbox.AddSizer(SShbox, 0, wxEXPAND, 0)
 		vbox.AddSizer(Shbox, 0, wxEXPAND, 0)
@@ -129,7 +133,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 	Function HyperLinkFun(event:wxEvent)
 		Local DatabaseSearchPanel:DatabaseSearchPanelType = DatabaseSearchPanelType(event.parent)
 		Local MessageBox:wxMessageDialog = New wxMessageDialog.Create(Null, "Goto website: " + DatabaseSearchPanel.SourceText.GetURL() + "?~n(Note that Photon Game Manager does not take any responsibility for the content or quality of the link and the site it points to)" , "Question", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION)
-		If MessageBox.ShowModal() = wxID_YES then
+		If MessageBox.ShowModal() = wxID_YES Then
 			wxLaunchDefaultBrowser(DatabaseSearchPanel.SourceText.GetURL() )	
 		EndIf
 	End Function
@@ -156,7 +160,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		
 		
-		If LuaHelper_LoadString(LuaVM, "" , LuaFile) <> 0 then
+		If LuaHelper_LoadString(LuaVM, "" , LuaFile) <> 0 Then
 			LuaMutexUnlock()
 			Return
 		EndIf
@@ -165,17 +169,18 @@ Type DatabaseSearchPanelType Extends wxPanel
 		lua_getfield(LuaVM, LUA_GLOBALSINDEX, "GetPlatforms")
 		lua_pushinteger( LuaVM , Self.PlatformNum)
 		lua_pushbmaxobject( LuaVM, LuaList )
+		lua_pushbmaxobject(LuaVM, LUAFOLDER)
 		LuaMutexUnlock()
 		
 		Self.Disable()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 2, 4, "SourceChanged")
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 3, 4, "SourceChanged")
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
 		LuaMutexLock()
-		If LuaHelper_pcall(LuaVM, 2, 4) <> 0 then
+		If LuaHelper_pcall(LuaVM, 3, 4) <> 0 Then
 			Return
 			LuaMutexUnlock()
 		Else
@@ -195,14 +200,14 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Local Error:Int
 		
 		'Get Return status
-		If lua_isnumber(LuaVM, 1) = False then
+		If lua_isnumber(LuaVM, 1) = False Then
 			Error = 198
 		Else		
 			Error = luaL_checkint( LuaVM, 1 )
 		EndIf
 		
-		If Error <> 0 then
-			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+		If Error <> 0 Then
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False Then
 				ErrorString = "Lua code did not return int @1 or/and string @2"
 			Else
 				ErrorString = luaL_checkstring(LuaVM , 2)
@@ -214,13 +219,13 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		
 		'Get selected platform
-		If lua_isstring(LuaVM, 3) = False then
+		If lua_isstring(LuaVM, 3) = False Then
 			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
 			LuaMutexUnlock()
 			Return		
 		EndIf
 		Local SelectedPlatform:String = luaL_checkstring(LuaVM , 3)
-		If lua_isbmaxobject(LuaVM, 4) = False then
+		If lua_isbmaxobject(LuaVM, 4) = False Then
 			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
 			LuaMutexUnlock()
 			Return		
@@ -236,7 +241,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Next
 		
 		Local SelectedPlatformItem:Int = Self.SearchPlatform.FindString(SelectedPlatform)
-		If SelectedPlatformItem <> - 1 then
+		If SelectedPlatformItem <> - 1 Then
 			Self.SearchPlatform.SetSelection(SelectedPlatformItem)
 		EndIf
 		
@@ -246,7 +251,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		
 		Error = luaL_checkint( LuaVM, 1 )
 		
-		If Error <> 0 then
+		If Error <> 0 Then
 			LuaHelper_FunctionError(LuaVM, Error, "Error Getting Website Source Link")
 			LuaMutexUnlock()
 			Return
@@ -260,11 +265,11 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Self.SourceText.SetURL(ReturnedSourceURL)
 		
 		'Blank out lua Code
-		If LuaHelper_LoadString(LuaVM, LuaBlank) <> 0 then CustomRuntimeError("Blank Lua Code Error")
+		If LuaHelper_LoadString(LuaVM, LuaBlank) <> 0 Then CustomRuntimeError("Blank Lua Code Error")
 		
 		LuaMutexUnlock()
 		
-		If Self.InitialSearch = Null Or Self.InitialSearch = "" then
+		If Self.InitialSearch = Null Or Self.InitialSearch = "" Then
 			Return
 		Else
 			Self.SearchText.ChangeValue(Self.InitialSearch)
@@ -287,7 +292,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Local SearchTerm:String = Self.SearchText.GetValue()
 		
 		Local PlatformData:String
-		If Self.SearchPlatform.GetSelection() = wxNOT_FOUND then
+		If Self.SearchPlatform.GetSelection() = wxNOT_FOUND Then
 			LuaMutexUnlock()
 			Return			
 		Else
@@ -297,7 +302,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Local LuaList:LuaListType = New LuaListType.Create()
 		
 		Local LuaFile:String = LUAFOLDER + "Game" + FolderSlash + Self.SearchSource.GetValue() + ".lua"
-		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 Then
 			LuaMutexUnlock()
 			Return
 		EndIf
@@ -313,6 +318,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		lua_pushinteger( LuaVM , Self.ListDepth)
 		lua_pushbmaxobject( LuaVM, LuaInternet )
 		lua_pushbmaxobject( LuaVM, LuaList )
+		lua_pushbmaxobject(LuaVM, LUAFOLDER)
 		'Call Lua Function
 		
 		LuaMutexUnlock()
@@ -320,12 +326,12 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Self.Disable()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "Search" )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 7, 4, "Search" )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		
 		?Not Threaded
 		LuaMutexLock()
-		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+		If LuaHelper_pcall(LuaVM, 7, 4) <> 0 then
 			Return
 			LuaMutexUnlock()
 		Else
@@ -346,14 +352,14 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Local Error:Int
 		
 		'Get Return status
-		If lua_isnumber(LuaVM, 1) = False then
+		If lua_isnumber(LuaVM, 1) = False Then
 			Error = 198
 		Else		
 			Error = luaL_checkint( LuaVM, 1 )
 		EndIf
 		
-		If Error <> 0 then
-			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False then
+		If Error <> 0 Then
+			If lua_isstring(LuaVM, 2) = False Or lua_isnumber(LuaVM, 1) = False Then
 				ErrorString = "Lua code did not return int @1 or/and string @2"
 			Else
 				ErrorString = luaL_checkstring(LuaVM , 2)
@@ -364,13 +370,13 @@ Type DatabaseSearchPanelType Extends wxPanel
 		EndIf
 		
 					
-		If lua_isstring(LuaVM, 3) = False then
+		If lua_isstring(LuaVM, 3) = False Then
 			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return string object @3")
 			LuaMutexUnlock()
 			Return		
 		EndIf
 		Self.ListDepth = luaL_checkint( LuaVM , 3)
-		If lua_isbmaxobject(LuaVM, 4) = False then
+		If lua_isbmaxobject(LuaVM, 4) = False Then
 			LuaHelper_FunctionError(LuaVM, 199, "Lua code did not return correct object @4")
 			LuaMutexUnlock()
 			Return		
@@ -380,7 +386,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		LuaHelper_CleanStack(LuaVM)
 		
 		
-		If CountList(LuaList.List) > 0 then
+		If CountList(LuaList.List) > 0 Then
 			Local LuaListItem:LuaListItemType
 			For LuaListItem = EachIn LuaList.List
 				Self.SearchList.Append(LuaListItem.ItemName, LuaListItem.ClientData)
@@ -395,10 +401,10 @@ Type DatabaseSearchPanelType Extends wxPanel
 
 	Method ListItemSelected()
 		Local MessageBox:wxMessageDialog
-		If Self.ListDepth = 0 then
+		If Self.ListDepth = 0 Then
 			'Send Event			
 			'Self.SearchList.Clear()
-			If Self.SearchList.GetStringSelection() = "No Search Results Returned" then
+			If Self.SearchList.GetStringSelection() = "No Search Results Returned" Then
 				PrintF("Invalid search selection")
 				MessageBox = New wxMessageDialog.Create(Null , "Not a valid selection!" , "Error" , wxOK | wxICON_EXCLAMATION)
 				MessageBox.ShowModal()
@@ -412,7 +418,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 				GetEventHandler().AddPendingEvent( event )
 				
 			EndIf
-		else
+		Else
 			Self.FurtherSearch(String(Self.SearchList.GetItemClientData(Self.SearchList.GetSelection() ) ) )
 		EndIf
 	End Method
@@ -427,7 +433,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		Local LuaInternet:LuaInternetType = LuaInternetType(New LuaInternetType.Create() )
 		
 		Local LuaFile:String = LUAFOLDER + "Game" + FolderSlash + Self.SearchSource.GetValue() + ".lua"
-		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 then
+		If LuaHelper_LoadString(LuaVM, "", LuaFile) <> 0 Then
 			LuaMutexUnlock()
 			Return
 		EndIf
@@ -441,6 +447,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		lua_pushinteger( LuaVM , Self.ListDepth)
 		lua_pushbmaxobject( LuaVM, LuaInternet )
 		lua_pushbmaxobject( LuaVM, LuaList )
+		lua_pushbmaxobject(LuaVM, LUAFOLDER)
 		'Call Lua Function
 		
 		Self.Disable()
@@ -448,11 +455,11 @@ Type DatabaseSearchPanelType Extends wxPanel
 		LuaMutexUnlock()
 		
 		?Threaded
-		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 6, 4, "FurtherSearch" )
+		Local LuaThreadType:LuaThread_pcall_Type = New LuaThread_pcall_Type.Create(LuaVM, 7, 4, "FurtherSearch" )
 		Local LuaThread:TThread = CreateThread(LuaThread_pcall_Funct, LuaThreadType)
 		?Not Threaded
 		LuaMutexLock()
-		If LuaHelper_pcall(LuaVM, 6, 4) <> 0 then
+		If LuaHelper_pcall(LuaVM, 7, 4) <> 0 Then
 			Return
 			LuaMutexUnlock()
 		Else
@@ -473,7 +480,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 		'Get Return status
 		Error = luaL_checkint( LuaVM, 1 )
 		
-		If Error <> 0 then
+		If Error <> 0 Then
 			Local ErrorString:String = luaL_checkstring(LuaVM , 2)
 			LuaHelper_FunctionError(LuaVM, Error, ErrorString)
 			LuaMutexUnlock()
@@ -504,7 +511,7 @@ Type DatabaseSearchPanelType Extends wxPanel
 	Function SearchFun(event:wxEvent)
 		Local MessageBox:wxMessageDialog
 		DatabaseSearchPanel:DatabaseSearchPanelType = DatabaseSearchPanelType(event.parent)
-		If DatabaseSearchPanel.SearchPlatform.GetSelection() = wxNOT_FOUND then
+		If DatabaseSearchPanel.SearchPlatform.GetSelection() = wxNOT_FOUND Then
 			MessageBox = New wxMessageDialog.Create(Null , "Please select a platform" , "Error" , wxOK | wxICON_EXCLAMATION)
 			MessageBox.ShowModal()
 			MessageBox.Free()

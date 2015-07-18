@@ -1,12 +1,13 @@
 -- Description
 -- Takes 	1. ID of the Photon platform
 --		 	2: Takes List to add platforms to
+--			3. Path to Lua Folder
 -- Returns 	1. Return status of function: 0 for success, 1 for visible error, 2 for invisible error
 --			2. Error Text
 --			3. The script platform that matches the Photon platform
 --			4. The input List
 --			Auto returns List to program
-function GetPlatforms(PlatformID,List)
+function GetPlatforms(PlatformID,List,LuaFolder)
 	--Add to list the name to show in GM list and data to be passed to SearchGame as platform
 	List:LuaListAddLast("All Platforms","0")
 	List:LuaListAddLast("3DO","61")
@@ -151,11 +152,12 @@ end
 --			4. This function may require the user to select a item from lists that go multiple selections deep, this is the current depth of user (1-inf)
 --			5. Internet type to get data from net
 --			6. The list to populate with results
+--			7. Path to Lua Folder
 -- Returns	1. Return status of function: 0 for success
 --			2. Error text
 --			3. The next depth to provide SearchGame or 0 for finished selecting
 --			4. The List
-function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List)
+function Search(SearchText,PreviousClientData,Platform,ListDepth,Internet,List,LuaFolder)
 	ListDepth = tonumber(ListDepth)
 	local ReturnedFile = ""
 	
@@ -224,10 +226,11 @@ end
 -- Takes	1. List to add downloaded files to
 --			2. Internet type to get data from net
 --			3. ID data to identify which file to get
+--			4. Path to Lua Folder
 -- Returns	1. Return status of function: 0 for success
 --			2. Error Text
 --			3. List to add downloaded files to
-function Get(FileList,Internet,LuaIDData,DownloadWindow)
+function Get(FileList,Internet,LuaIDData,DownloadWindow,LuaFolder)
 	local ReturnedFile = ""
 	
 	DownloadWindow:AddText("Getting link to file")
