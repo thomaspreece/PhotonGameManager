@@ -2,3 +2,5 @@
 *.bak
 /Releases/
 /RawResources/
+*._.DS_Store
+*.DS_Store
