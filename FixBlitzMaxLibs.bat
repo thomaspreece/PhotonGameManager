@@ -1,5 +1,5 @@
 @echo off
-@set dirMinGW=C:\MinGW
+@set dirMinGW=C:\BlitzMax\MinGW32
 @set minGWVersionString=4.7.1
 @set dirBlitzmax=C:\Blitzmax
 
